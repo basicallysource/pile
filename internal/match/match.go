@@ -46,19 +46,24 @@ type setLines struct {
 	lines    []line // counted lines, one per key
 	need     int32
 	printed  int32
+	figParts int32
 	minifigs int32
 	same     []string // other sets with exactly these lines
 }
 
 type Match struct {
-	Set          *catalog.Set
-	Have, Need   int32
-	Weighted     float64
-	Evidence     float64
-	Printed      int32
-	Minifigures  int32
-	SameContents []string
-	Pick         int // its place in the explained order, from 1; 0 if not picked
+	Set        *catalog.Set
+	Have, Need int32
+	Weighted   float64
+	Evidence   float64
+	Printed    int32
+	// Loose minifigure parts in the inventory, left out of Need like the figures.
+	MinifigureParts int32
+	// Basically a minifigure: its figures outweigh its counted pieces.
+	MinifigureSet bool
+	Minifigures   int32
+	SameContents  []string
+	Pick          int // its place in the explained order, from 1; 0 if not picked
 }
 
 type Result struct {
@@ -88,9 +93,15 @@ func Run(cat *catalog.Catalog, pile map[catalog.PartColor]int32) *Result {
 		sl := &setLines{set: s}
 		qty := map[Key]int32{}
 		for _, l := range s.Lines {
-			if p := cat.Parts[l.Part]; p != nil && p.Printed {
-				sl.printed += l.Quantity
-				continue
+			if p := cat.Parts[l.Part]; p != nil {
+				switch p.Counting {
+				case catalog.Printed:
+					sl.printed += l.Quantity
+					continue
+				case catalog.FigurePart:
+					sl.figParts += l.Quantity
+					continue
+				}
 			}
 			qty[r.key(catalog.PartColor{Part: l.Part, Color: l.Color})] += l.Quantity
 		}
@@ -118,7 +129,10 @@ func Run(cat *catalog.Catalog, pile map[catalog.PartColor]int32) *Result {
 	sets = dedupe(sets)
 
 	score := func(sl *setLines, pile map[Key]int32) *Match {
-		m := &Match{Set: sl.set, Need: sl.need, Printed: sl.printed, Minifigures: sl.minifigs, SameContents: sl.same}
+		m := &Match{Set: sl.set, Need: sl.need, Printed: sl.printed, MinifigureParts: sl.figParts, Minifigures: sl.minifigs, SameContents: sl.same}
+		// A minifigure is about four pieces (head, torso, legs, hair).
+		figure := 4*sl.minifigs + sl.figParts
+		m.MinifigureSet = figure > 0 && figure >= sl.need
 		var wNeed float64
 		for _, l := range sl.lines {
 			h := min(pile[l.key], l.qty)

@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pile/v1/pile.proto.
  */
 export const file_pile_v1_pile: GenFile = /*@__PURE__*/
-  fileDesc("ChJwaWxlL3YxL3BpbGUucHJvdG8SB3BpbGUudjEiWQoFQ29sb3ISCgoCaWQYASABKAUSDAoEbmFtZRgCIAEoCRILCgNyZ2IYAyABKAkSEwoLdHJhbnNwYXJlbnQYBCABKAgSFAoMYnJpY2tsaW5rX2lkGAUgASgFIhQKEkdldE92ZXJ2aWV3UmVxdWVzdCKHAgoTR2V0T3ZlcnZpZXdSZXNwb25zZRIOCgZwaWVjZXMYASABKAUSDAoEbG90cxgCIAEoBRIYChB1bm1hdGNoZWRfcGllY2VzGAMgASgFEhcKD2ZpcnN0X3NlZW5fdW5peBgEIAEoAxIWCg5sYXN0X3NlZW5fdW5peBgFIAEoAxIVCg1zbmFwc2hvdF91bml4GAYgASgDEhQKDGNhdGFsb2dfdW5peBgHIAEoAxIUCgxtYWNoaW5lX25hbWUYCCABKAkSEwoLc2V0c19yYW5rZWQYCSABKAUSGAoQZXhwbGFpbmVkX3BpZWNlcxgKIAEoBRIVCg1jb21wbGV0ZV9zZXRzGAsgASgFIhEKD0xpc3RMb3RzUmVxdWVzdCKnAQoDTG90EhAKCHBhcnRfbnVtGAEgASgJEhQKDGJyaWNrbGlua19pZBgCIAEoCRIMCgRuYW1lGAMgASgJEh0KBWNvbG9yGAQgASgLMg4ucGlsZS52MS5Db2xvchINCgVjb3VudBgFIAEoBRIRCglpbWFnZV91cmwYBiABKAkSEAoIY2F0ZWdvcnkYByABKAkSFwoPbWVhbl9jb25maWRlbmNlGAggASgCIlUKDFVubWF0Y2hlZExvdBIUCgxicmlja2xpbmtfaWQYASABKAkSDAoEbmFtZRgCIAEoCRISCgpjb2xvcl9uYW1lGAMgASgJEg0KBWNvdW50GAQgASgFIlgKEExpc3RMb3RzUmVzcG9uc2USGgoEbG90cxgBIAMoCzIMLnBpbGUudjEuTG90EigKCXVubWF0Y2hlZBgCIAMoCzIVLnBpbGUudjEuVW5tYXRjaGVkTG90IvcBCghTZXRNYXRjaBIPCgdzZXRfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSDAoEeWVhchgDIAEoBRINCgV0aGVtZRgEIAEoCRIRCglpbWFnZV91cmwYBSABKAkSDAoEaGF2ZRgGIAEoBRIMCgRuZWVkGAcgASgFEh0KFXdlaWdodGVkX2NvbXBsZXRlbmVzcxgIIAEoARIQCghldmlkZW5jZRgJIAEoARIVCg1wcmludGVkX3BhcnRzGAogASgFEhMKC21pbmlmaWd1cmVzGAsgASgFEhUKDXNhbWVfY29udGVudHMYDCADKAkSDAoEcGljaxgNIAEoBSJDCg9MaXN0U2V0c1JlcXVlc3QSIQoHcmFua2luZxgBIAEoDjIQLnBpbGUudjEuUmFua2luZxINCgVsaW1pdBgCIAEoBSIzChBMaXN0U2V0c1Jlc3BvbnNlEh8KBHNldHMYASADKAsyES5waWxlLnYxLlNldE1hdGNoIiAKDUdldFNldFJlcXVlc3QSDwoHc2V0X251bRgBIAEoCSKLAQoHU2V0TGluZRIQCghwYXJ0X251bRgBIAEoCRIMCgRuYW1lGAIgASgJEh0KBWNvbG9yGAMgASgLMg4ucGlsZS52MS5Db2xvchIMCgRuZWVkGAQgASgFEg8KB2luX3BpbGUYBSABKAUSEQoJaW1hZ2VfdXJsGAYgASgJEg8KB3ByaW50ZWQYByABKAgiUAoKTWluaWZpZ3VyZRIPCgdmaWdfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSEAoIcXVhbnRpdHkYAyABKAUSEQoJaW1hZ2VfdXJsGAQgASgJInsKDkdldFNldFJlc3BvbnNlEh4KA3NldBgBIAEoCzIRLnBpbGUudjEuU2V0TWF0Y2gSHwoFbGluZXMYAiADKAsyEC5waWxlLnYxLlNldExpbmUSKAoLbWluaWZpZ3VyZXMYAyADKAsyEy5waWxlLnYxLk1pbmlmaWd1cmUqYgoHUmFua2luZxIXChNSQU5LSU5HX1VOU1BFQ0lGSUVEEAASFQoRUkFOS0lOR19FWFBMQUlORUQQARIRCg1SQU5LSU5HX0FMT05FEAISFAoQUkFOS0lOR19DT01QTEVURRADMpQCCgtQaWxlU2VydmljZRJICgtHZXRPdmVydmlldxIbLnBpbGUudjEuR2V0T3ZlcnZpZXdSZXF1ZXN0GhwucGlsZS52MS5HZXRPdmVydmlld1Jlc3BvbnNlEj8KCExpc3RMb3RzEhgucGlsZS52MS5MaXN0TG90c1JlcXVlc3QaGS5waWxlLnYxLkxpc3RMb3RzUmVzcG9uc2USPwoITGlzdFNldHMSGC5waWxlLnYxLkxpc3RTZXRzUmVxdWVzdBoZLnBpbGUudjEuTGlzdFNldHNSZXNwb25zZRI5CgZHZXRTZXQSFi5waWxlLnYxLkdldFNldFJlcXVlc3QaFy5waWxlLnYxLkdldFNldFJlc3BvbnNlQjRaMmdpdGh1Yi5jb20vYmFzaWNhbGx5c291cmNlL3BpbGUvZ2VuL3BpbGUvdjE7cGlsZXYxYgZwcm90bzM");
+  fileDesc("ChJwaWxlL3YxL3BpbGUucHJvdG8SB3BpbGUudjEiWQoFQ29sb3ISCgoCaWQYASABKAUSDAoEbmFtZRgCIAEoCRILCgNyZ2IYAyABKAkSEwoLdHJhbnNwYXJlbnQYBCABKAgSFAoMYnJpY2tsaW5rX2lkGAUgASgFIhQKEkdldE92ZXJ2aWV3UmVxdWVzdCKHAgoTR2V0T3ZlcnZpZXdSZXNwb25zZRIOCgZwaWVjZXMYASABKAUSDAoEbG90cxgCIAEoBRIYChB1bm1hdGNoZWRfcGllY2VzGAMgASgFEhcKD2ZpcnN0X3NlZW5fdW5peBgEIAEoAxIWCg5sYXN0X3NlZW5fdW5peBgFIAEoAxIVCg1zbmFwc2hvdF91bml4GAYgASgDEhQKDGNhdGFsb2dfdW5peBgHIAEoAxIUCgxtYWNoaW5lX25hbWUYCCABKAkSEwoLc2V0c19yYW5rZWQYCSABKAUSGAoQZXhwbGFpbmVkX3BpZWNlcxgKIAEoBRIVCg1jb21wbGV0ZV9zZXRzGAsgASgFIhEKD0xpc3RMb3RzUmVxdWVzdCKnAQoDTG90EhAKCHBhcnRfbnVtGAEgASgJEhQKDGJyaWNrbGlua19pZBgCIAEoCRIMCgRuYW1lGAMgASgJEh0KBWNvbG9yGAQgASgLMg4ucGlsZS52MS5Db2xvchINCgVjb3VudBgFIAEoBRIRCglpbWFnZV91cmwYBiABKAkSEAoIY2F0ZWdvcnkYByABKAkSFwoPbWVhbl9jb25maWRlbmNlGAggASgCIlUKDFVubWF0Y2hlZExvdBIUCgxicmlja2xpbmtfaWQYASABKAkSDAoEbmFtZRgCIAEoCRISCgpjb2xvcl9uYW1lGAMgASgJEg0KBWNvdW50GAQgASgFIlgKEExpc3RMb3RzUmVzcG9uc2USGgoEbG90cxgBIAMoCzIMLnBpbGUudjEuTG90EigKCXVubWF0Y2hlZBgCIAMoCzIVLnBpbGUudjEuVW5tYXRjaGVkTG90IqkCCghTZXRNYXRjaBIPCgdzZXRfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSDAoEeWVhchgDIAEoBRINCgV0aGVtZRgEIAEoCRIRCglpbWFnZV91cmwYBSABKAkSDAoEaGF2ZRgGIAEoBRIMCgRuZWVkGAcgASgFEh0KFXdlaWdodGVkX2NvbXBsZXRlbmVzcxgIIAEoARIQCghldmlkZW5jZRgJIAEoARIVCg1wcmludGVkX3BhcnRzGAogASgFEhMKC21pbmlmaWd1cmVzGAsgASgFEhUKDXNhbWVfY29udGVudHMYDCADKAkSDAoEcGljaxgNIAEoBRIYChBtaW5pZmlndXJlX3BhcnRzGA4gASgFEhYKDm1pbmlmaWd1cmVfc2V0GA8gASgIIkMKD0xpc3RTZXRzUmVxdWVzdBIhCgdyYW5raW5nGAEgASgOMhAucGlsZS52MS5SYW5raW5nEg0KBWxpbWl0GAIgASgFIjMKEExpc3RTZXRzUmVzcG9uc2USHwoEc2V0cxgBIAMoCzIRLnBpbGUudjEuU2V0TWF0Y2giIAoNR2V0U2V0UmVxdWVzdBIPCgdzZXRfbnVtGAEgASgJIp8BCgdTZXRMaW5lEhAKCHBhcnRfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSHQoFY29sb3IYAyABKAsyDi5waWxlLnYxLkNvbG9yEgwKBG5lZWQYBCABKAUSDwoHaW5fcGlsZRgFIAEoBRIRCglpbWFnZV91cmwYBiABKAkSIwoIY291bnRpbmcYByABKA4yES5waWxlLnYxLkNvdW50aW5nIlAKCk1pbmlmaWd1cmUSDwoHZmlnX251bRgBIAEoCRIMCgRuYW1lGAIgASgJEhAKCHF1YW50aXR5GAMgASgFEhEKCWltYWdlX3VybBgEIAEoCSJ7Cg5HZXRTZXRSZXNwb25zZRIeCgNzZXQYASABKAsyES5waWxlLnYxLlNldE1hdGNoEh8KBWxpbmVzGAIgAygLMhAucGlsZS52MS5TZXRMaW5lEigKC21pbmlmaWd1cmVzGAMgAygLMhMucGlsZS52MS5NaW5pZmlndXJlKmIKB1JhbmtpbmcSFwoTUkFOS0lOR19VTlNQRUNJRklFRBAAEhUKEVJBTktJTkdfRVhQTEFJTkVEEAESEQoNUkFOS0lOR19BTE9ORRACEhQKEFJBTktJTkdfQ09NUExFVEUQAyppCghDb3VudGluZxIYChRDT1VOVElOR19VTlNQRUNJRklFRBAAEhQKEENPVU5USU5HX0NPVU5URUQQARIUChBDT1VOVElOR19QUklOVEVEEAISFwoTQ09VTlRJTkdfTUlOSUZJR1VSRRADMpQCCgtQaWxlU2VydmljZRJICgtHZXRPdmVydmlldxIbLnBpbGUudjEuR2V0T3ZlcnZpZXdSZXF1ZXN0GhwucGlsZS52MS5HZXRPdmVydmlld1Jlc3BvbnNlEj8KCExpc3RMb3RzEhgucGlsZS52MS5MaXN0TG90c1JlcXVlc3QaGS5waWxlLnYxLkxpc3RMb3RzUmVzcG9uc2USPwoITGlzdFNldHMSGC5waWxlLnYxLkxpc3RTZXRzUmVxdWVzdBoZLnBpbGUudjEuTGlzdFNldHNSZXNwb25zZRI5CgZHZXRTZXQSFi5waWxlLnYxLkdldFNldFJlcXVlc3QaFy5waWxlLnYxLkdldFNldFJlc3BvbnNlQjRaMmdpdGh1Yi5jb20vYmFzaWNhbGx5c291cmNlL3BpbGUvZ2VuL3BpbGUvdjE7cGlsZXYxYgZwcm90bzM");
 
 /**
  * @generated from message pile.v1.Color
@@ -311,7 +311,8 @@ export type SetMatch = Message<"pile.v1.SetMatch"> & {
   have: number;
 
   /**
-   * Pieces in the set, not counting printed parts, stickers or minifigures.
+   * Pieces in the set, not counting printed parts, stickers, minifigures or
+   * minifigure parts.
    *
    * @generated from field: int32 need = 7;
    */
@@ -357,6 +358,21 @@ export type SetMatch = Message<"pile.v1.SetMatch"> & {
    * @generated from field: int32 pick = 13;
    */
   pick: number;
+
+  /**
+   * Loose minifigure parts in its inventory, left out of `need`.
+   *
+   * @generated from field: int32 minifigure_parts = 14;
+   */
+  minifigureParts: number;
+
+  /**
+   * Basically a minifigure: its figures (about four pieces each) and loose
+   * figure parts outweigh its counted pieces.
+   *
+   * @generated from field: bool minifigure_set = 15;
+   */
+  minifigureSet: boolean;
 };
 
 /**
@@ -462,11 +478,9 @@ export type SetLine = Message<"pile.v1.SetLine"> & {
   imageUrl: string;
 
   /**
-   * A printed part or a sticker: shown, not counted.
-   *
-   * @generated from field: bool printed = 7;
+   * @generated from field: pile.v1.Counting counting = 7;
    */
-  printed: boolean;
+  counting: Counting;
 };
 
 /**
@@ -576,6 +590,43 @@ export enum Ranking {
  */
 export const RankingSchema: GenEnum<Ranking> = /*@__PURE__*/
   enumDesc(file_pile_v1_pile, 0);
+
+/**
+ * Whether a part counts toward a set's completeness.
+ *
+ * @generated from enum pile.v1.Counting
+ */
+export enum Counting {
+  /**
+   * @generated from enum value: COUNTING_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: COUNTING_COUNTED = 1;
+   */
+  COUNTED = 1,
+
+  /**
+   * A printed part or a sticker: shown, not counted.
+   *
+   * @generated from enum value: COUNTING_PRINTED = 2;
+   */
+  PRINTED = 2,
+
+  /**
+   * A minifigure part (head, torso, legs, hair, hat, a figure's tool): shown, not counted.
+   *
+   * @generated from enum value: COUNTING_MINIFIGURE = 3;
+   */
+  MINIFIGURE = 3,
+}
+
+/**
+ * Describes the enum pile.v1.Counting.
+ */
+export const CountingSchema: GenEnum<Counting> = /*@__PURE__*/
+  enumDesc(file_pile_v1_pile, 1);
 
 /**
  * What a sorter sorted, and which LEGO sets those pieces make up.

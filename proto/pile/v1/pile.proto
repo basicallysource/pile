@@ -101,7 +101,8 @@ message SetMatch {
   string image_url = 5;
   // Pieces of the set found in the pile, each line capped at what the set needs.
   int32 have = 6;
-  // Pieces in the set, not counting printed parts, stickers or minifigures.
+  // Pieces in the set, not counting printed parts, stickers, minifigures or
+  // minifigure parts.
   int32 need = 7;
   // The same, weighted by how rare each part and color is across all sets:
   // finding a set's unusual pieces counts for more than its 2x4 bricks.
@@ -115,6 +116,11 @@ message SetMatch {
   repeated string same_contents = 12;
   // Its place in the explained order, from 1; 0 when it was not picked.
   int32 pick = 13;
+  // Loose minifigure parts in its inventory, left out of `need`.
+  int32 minifigure_parts = 14;
+  // Basically a minifigure: its figures (about four pieces each) and loose
+  // figure parts outweigh its counted pieces.
+  bool minifigure_set = 15;
 }
 
 message ListSetsRequest {
@@ -140,8 +146,17 @@ message SetLine {
   // to what the line needs.
   int32 in_pile = 5;
   string image_url = 6;
+  Counting counting = 7;
+}
+
+// Whether a part counts toward a set's completeness.
+enum Counting {
+  COUNTING_UNSPECIFIED = 0;
+  COUNTING_COUNTED = 1;
   // A printed part or a sticker: shown, not counted.
-  bool printed = 7;
+  COUNTING_PRINTED = 2;
+  // A minifigure part (head, torso, legs, hair, hat, a figure's tool): shown, not counted.
+  COUNTING_MINIFIGURE = 3;
 }
 
 message Minifigure {

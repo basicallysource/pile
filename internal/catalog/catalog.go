@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 type Color struct {
@@ -25,10 +26,20 @@ type Part struct {
 	Num      string
 	Name     string
 	Category string
-	// Printed parts and stickers: a sorter cannot be expected to find them,
-	// so a set's completeness leaves them out.
-	Printed bool
+	Counting Counting
 }
+
+// Counting says whether a part counts toward a set's completeness.
+type Counting int
+
+const (
+	Counted Counting = iota
+	// Printed parts and stickers: a sorter cannot be expected to find them.
+	Printed
+	// Minifigure parts (heads, torsos, legs, hair, hats, the figures' tools):
+	// a set is complete without its figures.
+	FigurePart
+)
 
 type Line struct {
 	Part     string
@@ -172,7 +183,14 @@ func (c *Catalog) loadParts(dir string) error {
 	}
 	return each(dir, "parts", func(row func(string) string) error {
 		cat := cats[row("part_cat_id")]
-		c.Parts[row("part_num")] = &Part{Num: row("part_num"), Name: row("name"), Category: cat, Printed: cat == "Stickers"}
+		p := &Part{Num: row("part_num"), Name: row("name"), Category: cat}
+		switch {
+		case cat == "Stickers":
+			p.Counting = Printed
+		case strings.HasPrefix(cat, "Minifig"):
+			p.Counting = FigurePart
+		}
+		c.Parts[p.Num] = p
 		return nil
 	})
 }
@@ -195,8 +213,8 @@ func (c *Catalog) loadRelationships(dir string) error {
 		child, par := row("child_part_num"), row("parent_part_num")
 		switch row("rel_type") {
 		case "P":
-			if p := c.Parts[child]; p != nil {
-				p.Printed = true
+			if p := c.Parts[child]; p != nil && p.Counting == Counted {
+				p.Counting = Printed
 			}
 		case "M", "A":
 			a, b := find(child), find(par)

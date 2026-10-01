@@ -81,6 +81,61 @@ func (Ranking) EnumDescriptor() ([]byte, []int) {
 	return file_pile_v1_pile_proto_rawDescGZIP(), []int{0}
 }
 
+// Whether a part counts toward a set's completeness.
+type Counting int32
+
+const (
+	Counting_COUNTING_UNSPECIFIED Counting = 0
+	Counting_COUNTING_COUNTED     Counting = 1
+	// A printed part or a sticker: shown, not counted.
+	Counting_COUNTING_PRINTED Counting = 2
+	// A minifigure part (head, torso, legs, hair, hat, a figure's tool): shown, not counted.
+	Counting_COUNTING_MINIFIGURE Counting = 3
+)
+
+// Enum value maps for Counting.
+var (
+	Counting_name = map[int32]string{
+		0: "COUNTING_UNSPECIFIED",
+		1: "COUNTING_COUNTED",
+		2: "COUNTING_PRINTED",
+		3: "COUNTING_MINIFIGURE",
+	}
+	Counting_value = map[string]int32{
+		"COUNTING_UNSPECIFIED": 0,
+		"COUNTING_COUNTED":     1,
+		"COUNTING_PRINTED":     2,
+		"COUNTING_MINIFIGURE":  3,
+	}
+)
+
+func (x Counting) Enum() *Counting {
+	p := new(Counting)
+	*p = x
+	return p
+}
+
+func (x Counting) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Counting) Descriptor() protoreflect.EnumDescriptor {
+	return file_pile_v1_pile_proto_enumTypes[1].Descriptor()
+}
+
+func (Counting) Type() protoreflect.EnumType {
+	return &file_pile_v1_pile_proto_enumTypes[1]
+}
+
+func (x Counting) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Counting.Descriptor instead.
+func (Counting) EnumDescriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{1}
+}
+
 type Color struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Rebrickable's color id.
@@ -595,7 +650,8 @@ type SetMatch struct {
 	ImageUrl string                 `protobuf:"bytes,5,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
 	// Pieces of the set found in the pile, each line capped at what the set needs.
 	Have int32 `protobuf:"varint,6,opt,name=have,proto3" json:"have,omitempty"`
-	// Pieces in the set, not counting printed parts, stickers or minifigures.
+	// Pieces in the set, not counting printed parts, stickers, minifigures or
+	// minifigure parts.
 	Need int32 `protobuf:"varint,7,opt,name=need,proto3" json:"need,omitempty"`
 	// The same, weighted by how rare each part and color is across all sets:
 	// finding a set's unusual pieces counts for more than its 2x4 bricks.
@@ -608,7 +664,12 @@ type SetMatch struct {
 	// Other sets with exactly the same pieces (the same box sold under several numbers).
 	SameContents []string `protobuf:"bytes,12,rep,name=same_contents,json=sameContents,proto3" json:"same_contents,omitempty"`
 	// Its place in the explained order, from 1; 0 when it was not picked.
-	Pick          int32 `protobuf:"varint,13,opt,name=pick,proto3" json:"pick,omitempty"`
+	Pick int32 `protobuf:"varint,13,opt,name=pick,proto3" json:"pick,omitempty"`
+	// Loose minifigure parts in its inventory, left out of `need`.
+	MinifigureParts int32 `protobuf:"varint,14,opt,name=minifigure_parts,json=minifigureParts,proto3" json:"minifigure_parts,omitempty"`
+	// Basically a minifigure: its figures (about four pieces each) and loose
+	// figure parts outweigh its counted pieces.
+	MinifigureSet bool `protobuf:"varint,15,opt,name=minifigure_set,json=minifigureSet,proto3" json:"minifigure_set,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -732,6 +793,20 @@ func (x *SetMatch) GetPick() int32 {
 		return x.Pick
 	}
 	return 0
+}
+
+func (x *SetMatch) GetMinifigureParts() int32 {
+	if x != nil {
+		return x.MinifigureParts
+	}
+	return 0
+}
+
+func (x *SetMatch) GetMinifigureSet() bool {
+	if x != nil {
+		return x.MinifigureSet
+	}
+	return false
 }
 
 type ListSetsRequest struct {
@@ -883,10 +958,9 @@ type SetLine struct {
 	Need    int32                  `protobuf:"varint,4,opt,name=need,proto3" json:"need,omitempty"`
 	// Pieces of this part and color (or a mold variant of it) in the pile, up
 	// to what the line needs.
-	InPile   int32  `protobuf:"varint,5,opt,name=in_pile,json=inPile,proto3" json:"in_pile,omitempty"`
-	ImageUrl string `protobuf:"bytes,6,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
-	// A printed part or a sticker: shown, not counted.
-	Printed       bool `protobuf:"varint,7,opt,name=printed,proto3" json:"printed,omitempty"`
+	InPile        int32    `protobuf:"varint,5,opt,name=in_pile,json=inPile,proto3" json:"in_pile,omitempty"`
+	ImageUrl      string   `protobuf:"bytes,6,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	Counting      Counting `protobuf:"varint,7,opt,name=counting,proto3,enum=pile.v1.Counting" json:"counting,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -963,11 +1037,11 @@ func (x *SetLine) GetImageUrl() string {
 	return ""
 }
 
-func (x *SetLine) GetPrinted() bool {
+func (x *SetLine) GetCounting() Counting {
 	if x != nil {
-		return x.Printed
+		return x.Counting
 	}
-	return false
+	return Counting_COUNTING_UNSPECIFIED
 }
 
 type Minifigure struct {
@@ -1142,7 +1216,7 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x05count\x18\x04 \x01(\x05R\x05count\"i\n" +
 	"\x10ListLotsResponse\x12 \n" +
 	"\x04lots\x18\x01 \x03(\v2\f.pile.v1.LotR\x04lots\x123\n" +
-	"\tunmatched\x18\x02 \x03(\v2\x15.pile.v1.UnmatchedLotR\tunmatched\"\xf7\x02\n" +
+	"\tunmatched\x18\x02 \x03(\v2\x15.pile.v1.UnmatchedLotR\tunmatched\"\xc9\x03\n" +
 	"\bSetMatch\x12\x17\n" +
 	"\aset_num\x18\x01 \x01(\tR\x06setNum\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -1157,22 +1231,24 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	" \x01(\x05R\fprintedParts\x12 \n" +
 	"\vminifigures\x18\v \x01(\x05R\vminifigures\x12#\n" +
 	"\rsame_contents\x18\f \x03(\tR\fsameContents\x12\x12\n" +
-	"\x04pick\x18\r \x01(\x05R\x04pick\"S\n" +
+	"\x04pick\x18\r \x01(\x05R\x04pick\x12)\n" +
+	"\x10minifigure_parts\x18\x0e \x01(\x05R\x0fminifigureParts\x12%\n" +
+	"\x0eminifigure_set\x18\x0f \x01(\bR\rminifigureSet\"S\n" +
 	"\x0fListSetsRequest\x12*\n" +
 	"\aranking\x18\x01 \x01(\x0e2\x10.pile.v1.RankingR\aranking\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\"9\n" +
 	"\x10ListSetsResponse\x12%\n" +
 	"\x04sets\x18\x01 \x03(\v2\x11.pile.v1.SetMatchR\x04sets\"(\n" +
 	"\rGetSetRequest\x12\x17\n" +
-	"\aset_num\x18\x01 \x01(\tR\x06setNum\"\xc2\x01\n" +
+	"\aset_num\x18\x01 \x01(\tR\x06setNum\"\xd7\x01\n" +
 	"\aSetLine\x12\x19\n" +
 	"\bpart_num\x18\x01 \x01(\tR\apartNum\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12$\n" +
 	"\x05color\x18\x03 \x01(\v2\x0e.pile.v1.ColorR\x05color\x12\x12\n" +
 	"\x04need\x18\x04 \x01(\x05R\x04need\x12\x17\n" +
 	"\ain_pile\x18\x05 \x01(\x05R\x06inPile\x12\x1b\n" +
-	"\timage_url\x18\x06 \x01(\tR\bimageUrl\x12\x18\n" +
-	"\aprinted\x18\a \x01(\bR\aprinted\"r\n" +
+	"\timage_url\x18\x06 \x01(\tR\bimageUrl\x12-\n" +
+	"\bcounting\x18\a \x01(\x0e2\x11.pile.v1.CountingR\bcounting\"r\n" +
 	"\n" +
 	"Minifigure\x12\x17\n" +
 	"\afig_num\x18\x01 \x01(\tR\x06figNum\x12\x12\n" +
@@ -1187,7 +1263,12 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x13RANKING_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11RANKING_EXPLAINED\x10\x01\x12\x11\n" +
 	"\rRANKING_ALONE\x10\x02\x12\x14\n" +
-	"\x10RANKING_COMPLETE\x10\x032\x94\x02\n" +
+	"\x10RANKING_COMPLETE\x10\x03*i\n" +
+	"\bCounting\x12\x18\n" +
+	"\x14COUNTING_UNSPECIFIED\x10\x00\x12\x14\n" +
+	"\x10COUNTING_COUNTED\x10\x01\x12\x14\n" +
+	"\x10COUNTING_PRINTED\x10\x02\x12\x17\n" +
+	"\x13COUNTING_MINIFIGURE\x10\x032\x94\x02\n" +
 	"\vPileService\x12H\n" +
 	"\vGetOverview\x12\x1b.pile.v1.GetOverviewRequest\x1a\x1c.pile.v1.GetOverviewResponse\x12?\n" +
 	"\bListLots\x12\x18.pile.v1.ListLotsRequest\x1a\x19.pile.v1.ListLotsResponse\x12?\n" +
@@ -1206,48 +1287,50 @@ func file_pile_v1_pile_proto_rawDescGZIP() []byte {
 	return file_pile_v1_pile_proto_rawDescData
 }
 
-var file_pile_v1_pile_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_pile_v1_pile_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_pile_v1_pile_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_pile_v1_pile_proto_goTypes = []any{
 	(Ranking)(0),                // 0: pile.v1.Ranking
-	(*Color)(nil),               // 1: pile.v1.Color
-	(*GetOverviewRequest)(nil),  // 2: pile.v1.GetOverviewRequest
-	(*GetOverviewResponse)(nil), // 3: pile.v1.GetOverviewResponse
-	(*ListLotsRequest)(nil),     // 4: pile.v1.ListLotsRequest
-	(*Lot)(nil),                 // 5: pile.v1.Lot
-	(*UnmatchedLot)(nil),        // 6: pile.v1.UnmatchedLot
-	(*ListLotsResponse)(nil),    // 7: pile.v1.ListLotsResponse
-	(*SetMatch)(nil),            // 8: pile.v1.SetMatch
-	(*ListSetsRequest)(nil),     // 9: pile.v1.ListSetsRequest
-	(*ListSetsResponse)(nil),    // 10: pile.v1.ListSetsResponse
-	(*GetSetRequest)(nil),       // 11: pile.v1.GetSetRequest
-	(*SetLine)(nil),             // 12: pile.v1.SetLine
-	(*Minifigure)(nil),          // 13: pile.v1.Minifigure
-	(*GetSetResponse)(nil),      // 14: pile.v1.GetSetResponse
+	(Counting)(0),               // 1: pile.v1.Counting
+	(*Color)(nil),               // 2: pile.v1.Color
+	(*GetOverviewRequest)(nil),  // 3: pile.v1.GetOverviewRequest
+	(*GetOverviewResponse)(nil), // 4: pile.v1.GetOverviewResponse
+	(*ListLotsRequest)(nil),     // 5: pile.v1.ListLotsRequest
+	(*Lot)(nil),                 // 6: pile.v1.Lot
+	(*UnmatchedLot)(nil),        // 7: pile.v1.UnmatchedLot
+	(*ListLotsResponse)(nil),    // 8: pile.v1.ListLotsResponse
+	(*SetMatch)(nil),            // 9: pile.v1.SetMatch
+	(*ListSetsRequest)(nil),     // 10: pile.v1.ListSetsRequest
+	(*ListSetsResponse)(nil),    // 11: pile.v1.ListSetsResponse
+	(*GetSetRequest)(nil),       // 12: pile.v1.GetSetRequest
+	(*SetLine)(nil),             // 13: pile.v1.SetLine
+	(*Minifigure)(nil),          // 14: pile.v1.Minifigure
+	(*GetSetResponse)(nil),      // 15: pile.v1.GetSetResponse
 }
 var file_pile_v1_pile_proto_depIdxs = []int32{
-	1,  // 0: pile.v1.Lot.color:type_name -> pile.v1.Color
-	5,  // 1: pile.v1.ListLotsResponse.lots:type_name -> pile.v1.Lot
-	6,  // 2: pile.v1.ListLotsResponse.unmatched:type_name -> pile.v1.UnmatchedLot
+	2,  // 0: pile.v1.Lot.color:type_name -> pile.v1.Color
+	6,  // 1: pile.v1.ListLotsResponse.lots:type_name -> pile.v1.Lot
+	7,  // 2: pile.v1.ListLotsResponse.unmatched:type_name -> pile.v1.UnmatchedLot
 	0,  // 3: pile.v1.ListSetsRequest.ranking:type_name -> pile.v1.Ranking
-	8,  // 4: pile.v1.ListSetsResponse.sets:type_name -> pile.v1.SetMatch
-	1,  // 5: pile.v1.SetLine.color:type_name -> pile.v1.Color
-	8,  // 6: pile.v1.GetSetResponse.set:type_name -> pile.v1.SetMatch
-	12, // 7: pile.v1.GetSetResponse.lines:type_name -> pile.v1.SetLine
-	13, // 8: pile.v1.GetSetResponse.minifigures:type_name -> pile.v1.Minifigure
-	2,  // 9: pile.v1.PileService.GetOverview:input_type -> pile.v1.GetOverviewRequest
-	4,  // 10: pile.v1.PileService.ListLots:input_type -> pile.v1.ListLotsRequest
-	9,  // 11: pile.v1.PileService.ListSets:input_type -> pile.v1.ListSetsRequest
-	11, // 12: pile.v1.PileService.GetSet:input_type -> pile.v1.GetSetRequest
-	3,  // 13: pile.v1.PileService.GetOverview:output_type -> pile.v1.GetOverviewResponse
-	7,  // 14: pile.v1.PileService.ListLots:output_type -> pile.v1.ListLotsResponse
-	10, // 15: pile.v1.PileService.ListSets:output_type -> pile.v1.ListSetsResponse
-	14, // 16: pile.v1.PileService.GetSet:output_type -> pile.v1.GetSetResponse
-	13, // [13:17] is the sub-list for method output_type
-	9,  // [9:13] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	9,  // 4: pile.v1.ListSetsResponse.sets:type_name -> pile.v1.SetMatch
+	2,  // 5: pile.v1.SetLine.color:type_name -> pile.v1.Color
+	1,  // 6: pile.v1.SetLine.counting:type_name -> pile.v1.Counting
+	9,  // 7: pile.v1.GetSetResponse.set:type_name -> pile.v1.SetMatch
+	13, // 8: pile.v1.GetSetResponse.lines:type_name -> pile.v1.SetLine
+	14, // 9: pile.v1.GetSetResponse.minifigures:type_name -> pile.v1.Minifigure
+	3,  // 10: pile.v1.PileService.GetOverview:input_type -> pile.v1.GetOverviewRequest
+	5,  // 11: pile.v1.PileService.ListLots:input_type -> pile.v1.ListLotsRequest
+	10, // 12: pile.v1.PileService.ListSets:input_type -> pile.v1.ListSetsRequest
+	12, // 13: pile.v1.PileService.GetSet:input_type -> pile.v1.GetSetRequest
+	4,  // 14: pile.v1.PileService.GetOverview:output_type -> pile.v1.GetOverviewResponse
+	8,  // 15: pile.v1.PileService.ListLots:output_type -> pile.v1.ListLotsResponse
+	11, // 16: pile.v1.PileService.ListSets:output_type -> pile.v1.ListSetsResponse
+	15, // 17: pile.v1.PileService.GetSet:output_type -> pile.v1.GetSetResponse
+	14, // [14:18] is the sub-list for method output_type
+	10, // [10:14] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_pile_v1_pile_proto_init() }
@@ -1260,7 +1343,7 @@ func file_pile_v1_pile_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pile_v1_pile_proto_rawDesc), len(file_pile_v1_pile_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,

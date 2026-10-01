@@ -18,6 +18,7 @@
 		[
 			set.printedParts && `${set.printedParts} printed not counted`,
 			set.minifigures && `${set.minifigures} minifigure${set.minifigures === 1 ? '' : 's'}`,
+			set.minifigureParts && `${set.minifigureParts} figure parts not counted`,
 			set.sameContents.length && `also sold as ${set.sameContents.join(', ')}`
 		]
 			.filter(Boolean)

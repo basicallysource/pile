@@ -120,10 +120,17 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 		}
 		part := p.Catalog.Parts[l.Part]
 		line := &pilev1.SetLine{PartNum: l.Part, Color: color(p.Catalog.Colors[l.Color]), Need: l.Quantity, ImageUrl: l.ImageURL}
+		line.Counting = pilev1.Counting_COUNTING_COUNTED
 		if part != nil {
-			line.Name, line.Printed = part.Name, part.Printed
+			line.Name = part.Name
+			switch part.Counting {
+			case catalog.Printed:
+				line.Counting = pilev1.Counting_COUNTING_PRINTED
+			case catalog.FigurePart:
+				line.Counting = pilev1.Counting_COUNTING_MINIFIGURE
+			}
 		}
-		if !line.Printed {
+		if line.Counting == pilev1.Counting_COUNTING_COUNTED {
 			line.InPile = min(left[canon], l.Quantity)
 			left[canon] -= line.InPile
 		}
@@ -147,6 +154,8 @@ func setMatch(m *match.Match) *pilev1.SetMatch {
 		WeightedCompleteness: m.Weighted,
 		Evidence:             m.Evidence,
 		PrintedParts:         m.Printed,
+		MinifigureParts:      m.MinifigureParts,
+		MinifigureSet:        m.MinifigureSet,
 		Minifigures:          m.Minifigures,
 		SameContents:         m.SameContents,
 		Pick:                 int32(m.Pick),

@@ -5,7 +5,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import type { GetSetResponse, SetLine } from '$lib/gen/pile/v1/pile_pb';
+	import { Counting, type GetSetResponse, type SetLine } from '$lib/gen/pile/v1/pile_pb';
 	import { pile } from '$lib/api';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Panel from '$lib/components/Panel.svelte';
@@ -34,8 +34,8 @@
 	});
 
 	const found = (l: SetLine) => l.inPile;
-	const counted = $derived(detail?.lines.filter((l) => !l.printed) ?? []);
-	const printed = $derived(detail?.lines.filter((l) => l.printed) ?? []);
+	const counted = $derived(detail?.lines.filter((l) => l.counting === Counting.COUNTED) ?? []);
+	const printed = $derived(detail?.lines.filter((l) => l.counting !== Counting.COUNTED) ?? []);
 	const lines = $derived(
 		counted
 			.filter((l) =>
@@ -86,7 +86,13 @@
 			/>
 			<Stat label="Of its rarer pieces" value={percent(set.weightedCompleteness)} />
 			<Stat label="Printed parts and stickers" value={set.printedParts} hint="not counted" />
-			<Stat label="Minifigures" value={set.minifigures} hint="not counted" />
+			<Stat
+				label="Minifigures"
+				value={set.minifigures}
+				hint={set.minifigureParts
+					? `and ${set.minifigureParts} figure parts, not counted`
+					: 'not counted'}
+			/>
 		</div>
 	</Panel>
 
@@ -125,7 +131,7 @@
 	{#if printed.length || detail.minifigures.length}
 		<Panel
 			title="Not counted"
-			description="Printed parts, stickers and minifigures: the sorter is not expected to find them."
+			description="Printed parts, stickers, minifigures and their parts: a set is complete without them."
 			flush
 		>
 			<div class="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-x-3 gap-y-4 p-(--pad-panel)">

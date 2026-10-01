@@ -1,9 +1,10 @@
 <!--
 	The answer: the sets the pile holds whole, then the sets it most likely
 	came from that are still missing pieces (the explained picks, in the
-	order picked). Sets of under five counted pieces (a key chain, a figure
-	whose printed parts are left out) are complete in any pile, so they fold
-	away. Every set is browsable at /sets.
+	order picked). Sets of under five counted pieces (a key chain, gear)
+	are complete in any pile, so they fold away. Sets that are basically a
+	minifigure go last, smaller, complete or likely. Every set is browsable at
+	/sets.
 -->
 <script lang="ts">
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
@@ -35,10 +36,17 @@
 		pile.listSets({ ranking: Ranking.EXPLAINED }).then((r) => (picks = r.sets), fail);
 	});
 
-	const builds = $derived(complete?.filter((s) => s.need >= TINY) ?? []);
-	const tiny = $derived(complete?.filter((s) => s.need < TINY) ?? []);
+	const builds = $derived(complete?.filter((s) => !s.minifigureSet && s.need >= TINY) ?? []);
+	const tiny = $derived(complete?.filter((s) => !s.minifigureSet && s.need < TINY) ?? []);
 	// The picks the pile does not hold whole (those are listed as complete).
-	const likely = $derived(picks?.filter((s) => s.have < s.need) ?? null);
+	const likely = $derived(picks?.filter((s) => !s.minifigureSet && s.have < s.need) ?? null);
+	const figures = $derived.by(() => {
+		if (!complete || !picks) return null;
+		const seen = new Set<string>();
+		return [...complete, ...picks].filter(
+			(s) => s.minifigureSet && !seen.has(s.setNum) && seen.add(s.setNum)
+		);
+	});
 </script>
 
 <PageHeader
@@ -106,6 +114,16 @@
 		<SetGrid sets={likely} numbered />
 	{/if}
 </Panel>
+
+{#if figures?.length}
+	<Panel
+		title="Minifigure sets · {count(figures.length)}"
+		description="Sets that are basically a minifigure, complete or likely. Only their loose pieces are counted."
+		flush
+	>
+		<SetGrid sets={figures} small />
+	</Panel>
+{/if}
 
 <div>
 	<Button href="/sets" icon={ArrowRight}>Browse every set</Button>
