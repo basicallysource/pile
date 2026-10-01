@@ -1,18 +1,17 @@
 <!--
-	The sets the pile looks like, every one of them. "Explains the pile" picks
-	sets one at a time, each taking its pieces before the next is picked, so a
-	bucket of basic bricks is picked once and the sets under it show; "Each on
-	its own" is every set with a piece in the pile, scored against the whole
-	pile, in the order chosen. Rows are drawn a page at a time.
+	The answer: the sets the pile holds whole, then the sets it most likely
+	came from that are still missing pieces (the explained picks, in the
+	order picked). Sets of under five counted pieces (a key chain, a figure
+	whose printed parts are left out) are complete in any pile, so they fold
+	away. Every set is browsable at /sets.
 -->
 <script lang="ts">
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import { Ranking, type GetOverviewResponse, type SetMatch } from '$lib/gen/pile/v1/pile_pb';
 	import { pile } from '$lib/api';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Panel from '$lib/components/Panel.svelte';
-	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
-	import Select from '$lib/components/Select.svelte';
-	import Input from '$lib/components/Input.svelte';
+	import Disclosure from '$lib/components/Disclosure.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
@@ -21,60 +20,37 @@
 	import SetRow from '$lib/pile/SetRow.svelte';
 	import { count, dayOf, dayTimeOf } from '$lib/format';
 
-	const PAGE = 100;
-	type Mode = 'explained' | 'alone';
-	type Order = 'evidence' | 'complete' | 'found';
-	let mode = $state<Mode>('explained');
-	let order = $state<Order>('complete');
-	let query = $state('');
-	let drawn = $state(PAGE);
+	// Fewer counted pieces than this and a set is complete in any pile.
+	const TINY = 5;
+
 	let overview = $state<GetOverviewResponse | null>(null);
-	let sets = $state<SetMatch[] | null>(null);
+	let complete = $state<SetMatch[] | null>(null);
+	let picks = $state<SetMatch[] | null>(null);
 	let error = $state<string | null>(null);
 
 	$effect(() => {
-		pile.getOverview({}).then((o) => (overview = o), (e) => (error = String(e)));
+		const fail = (e: unknown) => (error = String(e));
+		pile.getOverview({}).then((o) => (overview = o), fail);
+		pile.listSets({ ranking: Ranking.COMPLETE }).then((r) => (complete = r.sets), fail);
+		pile.listSets({ ranking: Ranking.EXPLAINED }).then((r) => (picks = r.sets), fail);
 	});
 
-	$effect(() => {
-		const ranking = mode === 'explained' ? Ranking.EXPLAINED : Ranking.ALONE;
-		sets = null;
-		pile.listSets({ ranking, limit: 0 }).then(
-			(r) => (sets = r.sets),
-			(e) => (error = String(e))
-		);
-	});
-
-	const share = (s: SetMatch) => s.have / Math.max(1, s.need);
-	const orders: Record<Order, (a: SetMatch, b: SetMatch) => number> = {
-		evidence: (a, b) => b.evidence * b.weightedCompleteness - a.evidence * a.weightedCompleteness,
-		complete: (a, b) => share(b) - share(a) || b.need - a.need,
-		found: (a, b) => b.have - a.have || share(b) - share(a)
-	};
-
-	const shown = $derived.by(() => {
-		if (!sets) return null;
-		const q = query.trim().toLowerCase();
-		const list = q
-			? sets.filter((s) =>
-					[s.name, s.setNum, s.theme, String(s.year)].some((v) => v.toLowerCase().includes(q))
-				)
-			: [...sets];
-		return mode === 'alone' ? list.sort(orders[order]) : list;
-	});
-
-	// A new list starts at its first page.
-	$effect(() => {
-		void [mode, order, query];
-		drawn = PAGE;
+	const builds = $derived(complete?.filter((s) => s.need >= TINY) ?? []);
+	const tiny = $derived(complete?.filter((s) => s.need < TINY) ?? []);
+	// A pick still short of pieces once earlier picks took theirs, unless the
+	// pile holds it whole on its own (then it is listed as complete).
+	const likely = $derived.by(() => {
+		if (!picks || !complete) return null;
+		const whole = new Set(complete.map((s) => s.setNum));
+		return picks.filter((s) => s.have < s.need && !whole.has(s.setNum));
 	});
 </script>
 
 <PageHeader
 	title="Sets"
 	description={overview
-		? `Which sets the ${overview.machineName || 'sorter'}'s pieces from ${dayOf(overview.firstSeenUnix)} to ${dayOf(overview.lastSeenUnix)} make up, and how complete each is.`
-		: 'Which sets the sorted pieces make up, and how complete each is.'}
+		? `What the ${overview.machineName || 'sorter'}'s pieces from ${dayOf(overview.firstSeenUnix)} to ${dayOf(overview.lastSeenUnix)} make up: the sets that are all there, then the ones still missing pieces.`
+		: 'The sets the sorted pieces make up.'}
 >
 	{#if overview}
 		<p class="text-xs text-ink-faint">
@@ -92,64 +68,56 @@
 
 {#if overview}<Overview {overview} />{/if}
 
-<Panel flush>
-	<div class="flex flex-wrap items-center gap-3 border-b border-line px-(--pad-panel) py-3">
-		<SegmentedControl
-			label="Ranking"
-			bind:value={mode}
-			options={[
-				{ value: 'explained', label: 'Explains the pile' },
-				{ value: 'alone', label: 'Each on its own' }
-			]}
-		/>
-		{#if mode === 'alone'}
-			<Select
-				label="Order"
-				class="w-48"
-				bind:value={order}
-				options={[
-					{ value: 'complete', label: 'Most complete' },
-					{ value: 'found', label: 'Most pieces found' },
-					{ value: 'evidence', label: 'Best evidence' }
-				]}
-			/>
-		{/if}
-		<Input
-			type="search"
-			placeholder="Filter by name, number, theme or year"
-			aria-label="Filter sets"
-			bind:value={query}
-			class="min-w-48 flex-1"
-		/>
+{#snippet loading()}
+	<div aria-busy="true" class="flex flex-col gap-3 p-(--pad-panel)">
+		{#each { length: 4 } as _}<Skeleton class="h-16 w-full" />{/each}
 	</div>
-	<p class="px-(--pad-panel) pt-3 text-sm text-ink-muted">
-		{#if mode === 'explained'}
-			Picked in order, best evidence first; each pick's pieces are taken out of the pile before the
-			next, so no piece counts twice.
-		{:else}
-			Every set with a piece in the pile{shown ? ` (${count(shown.length)})` : ''}, each against the
-			whole pile, so two sets can count the same piece. Sets made only of common bricks are complete
-			in almost any big pile.
-		{/if}
-	</p>
-	{#if shown === null}
-		<div aria-busy="true" class="flex flex-col gap-3 p-(--pad-panel)">
-			{#each { length: 6 } as _}<Skeleton class="h-16 w-full" />{/each}
-		</div>
-	{:else if shown.length === 0}
-		<div class="p-(--pad-panel)">
-			<EmptyState title={query ? 'No set matches that filter.' : 'No set matches the pile.'} />
-		</div>
+{/snippet}
+
+<Panel
+	title={complete ? `Complete · ${count(builds.length)}` : 'Complete'}
+	description="Every counted piece is in the pile. The ones with rarer pieces come first; the last are made of common bricks any big pile has."
+	flush
+>
+	{#if complete === null}
+		{@render loading()}
+	{:else if builds.length === 0}
+		<div class="p-(--pad-panel)"><EmptyState title="No set is all there." /></div>
 	{:else}
 		<div class="divide-y divide-line">
-			{#each shown.slice(0, drawn) as set (set.setNum + set.pick)}<SetRow {set} />{/each}
+			{#each builds as set (set.setNum)}<SetRow {set} />{/each}
 		</div>
-		{#if shown.length > drawn}
-			<div class="border-t border-line px-(--pad-panel) py-3">
-				<Button onclick={() => (drawn += PAGE)}
-					>Show {Math.min(PAGE, shown.length - drawn)} more of {count(shown.length - drawn)}</Button
-				>
-			</div>
-		{/if}
+	{/if}
+	{#if tiny.length}
+		<div class="border-t border-line px-(--pad-panel) py-3">
+			<Disclosure
+				title="{count(tiny.length)} tiny sets"
+				help="Under {TINY} counted pieces: key chains, gear, and figures whose printed parts are not counted."
+			>
+				<div class="divide-y divide-line">
+					{#each tiny as set (set.setNum)}<SetRow {set} />{/each}
+				</div>
+			</Disclosure>
+		</div>
 	{/if}
 </Panel>
+
+<Panel
+	title={likely ? `Likely in the box, still missing pieces · ${count(likely.length)}` : 'Likely in the box, still missing pieces'}
+	description="The sets the pile most likely came from, most likely first. Each takes its pieces out of the pile before the next is picked, so no piece counts twice."
+	flush
+>
+	{#if likely === null}
+		{@render loading()}
+	{:else if likely.length === 0}
+		<div class="p-(--pad-panel)"><EmptyState title="No other set stands out." /></div>
+	{:else}
+		<div class="divide-y divide-line">
+			{#each likely as set (set.setNum + set.pick)}<SetRow {set} />{/each}
+		</div>
+	{/if}
+</Panel>
+
+<div>
+	<Button href="/sets" icon={ArrowRight}>Browse every set</Button>
+</div>

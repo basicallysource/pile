@@ -84,6 +84,9 @@ enum Ranking {
   RANKING_EXPLAINED = 1;
   // Every set scored against the whole pile on its own.
   RANKING_ALONE = 2;
+  // The sets the pile holds every counted piece of, the ones with the rarest
+  // pieces on average first.
+  RANKING_COMPLETE = 3;
 }
 
 message SetMatch {

@@ -30,6 +30,9 @@ const (
 	Ranking_RANKING_EXPLAINED Ranking = 1
 	// Every set scored against the whole pile on its own.
 	Ranking_RANKING_ALONE Ranking = 2
+	// The sets the pile holds every counted piece of, the ones with the rarest
+	// pieces on average first.
+	Ranking_RANKING_COMPLETE Ranking = 3
 )
 
 // Enum value maps for Ranking.
@@ -38,11 +41,13 @@ var (
 		0: "RANKING_UNSPECIFIED",
 		1: "RANKING_EXPLAINED",
 		2: "RANKING_ALONE",
+		3: "RANKING_COMPLETE",
 	}
 	Ranking_value = map[string]int32{
 		"RANKING_UNSPECIFIED": 0,
 		"RANKING_EXPLAINED":   1,
 		"RANKING_ALONE":       2,
+		"RANKING_COMPLETE":    3,
 	}
 )
 
@@ -1195,11 +1200,12 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x05lines\x18\x03 \x03(\v2\x10.pile.v1.SetLineR\x05lines\x125\n" +
 	"\vminifigures\x18\x04 \x03(\v2\x13.pile.v1.MinifigureR\vminifiguresB\f\n" +
 	"\n" +
-	"_explained*L\n" +
+	"_explained*b\n" +
 	"\aRanking\x12\x17\n" +
 	"\x13RANKING_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11RANKING_EXPLAINED\x10\x01\x12\x11\n" +
-	"\rRANKING_ALONE\x10\x022\x94\x02\n" +
+	"\rRANKING_ALONE\x10\x02\x12\x14\n" +
+	"\x10RANKING_COMPLETE\x10\x032\x94\x02\n" +
 	"\vPileService\x12H\n" +
 	"\vGetOverview\x12\x1b.pile.v1.GetOverviewRequest\x1a\x1c.pile.v1.GetOverviewResponse\x12?\n" +
 	"\bListLots\x12\x18.pile.v1.ListLotsRequest\x1a\x19.pile.v1.ListLotsResponse\x12?\n" +

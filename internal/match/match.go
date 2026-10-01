@@ -61,10 +61,10 @@ type Match struct {
 
 type Result struct {
 	Alone     []*Match // best first
+	Complete  []*Match // the ones the pile holds whole, rarest pieces first
 	Explained []*Match // in the order picked
 	Explains  int32    // pieces the picks claim
 	Ranked    int      // sets considered
-	Complete  int      // sets the pile holds every counted piece of
 
 	keys  map[catalog.PartColor]Key
 	pile  map[Key]int32
@@ -140,9 +140,6 @@ func Run(cat *catalog.Catalog, pile map[catalog.PartColor]int32) *Result {
 		if m.Have == 0 {
 			continue
 		}
-		if m.Have == m.Need {
-			r.Complete++
-		}
 		r.Alone = append(r.Alone, m)
 		r.alone[sl.set.Num] = m
 		if m.Evidence >= minPickEvidence && m.Weighted >= minPickWeighted {
@@ -150,6 +147,17 @@ func Run(cat *catalog.Catalog, pile map[catalog.PartColor]int32) *Result {
 		}
 	}
 	sort.Slice(r.Alone, func(i, j int) bool { return rank(r.Alone[i]) > rank(r.Alone[j]) })
+	for _, m := range r.Alone {
+		if m.Have == m.Need {
+			r.Complete = append(r.Complete, m)
+		}
+	}
+	// Complete sets by how rare their pieces are on average: the ones a
+	// common pile would not complete by chance come first.
+	sort.SliceStable(r.Complete, func(i, j int) bool {
+		a, b := r.Complete[i], r.Complete[j]
+		return a.Evidence/float64(a.Need) > b.Evidence/float64(b.Need)
+	})
 
 	left := map[Key]int32{}
 	for k, v := range r.pile {

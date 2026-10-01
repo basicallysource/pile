@@ -18,6 +18,7 @@
 	<TopBar
 		items={[
 			{ href: '/', label: 'Sets' },
+			{ href: '/sets', label: 'Every set' },
 			{ href: '/pile', label: 'Pile' },
 			{ href: '/design', label: 'Design' }
 		]}

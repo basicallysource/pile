@@ -52,7 +52,7 @@ func (s *Service) GetOverview(_ context.Context, _ *connect.Request[pilev1.GetOv
 		MachineName:     p.Machine,
 		SetsRanked:      int32(p.Result.Ranked),
 		ExplainedPieces: p.Result.Explains,
-		CompleteSets:    int32(p.Result.Complete),
+		CompleteSets:    int32(len(p.Result.Complete)),
 	}), nil
 }
 
@@ -80,8 +80,11 @@ func (s *Service) ListLots(_ context.Context, _ *connect.Request[pilev1.ListLots
 func (s *Service) ListSets(_ context.Context, req *connect.Request[pilev1.ListSetsRequest]) (*connect.Response[pilev1.ListSetsResponse], error) {
 	r := s.pile.Result
 	list := r.Explained
-	if req.Msg.Ranking == pilev1.Ranking_RANKING_ALONE {
+	switch req.Msg.Ranking {
+	case pilev1.Ranking_RANKING_ALONE:
 		list = r.Alone
+	case pilev1.Ranking_RANKING_COMPLETE:
+		list = r.Complete
 	}
 	limit := int(req.Msg.Limit)
 	if limit <= 0 || limit > len(list) {

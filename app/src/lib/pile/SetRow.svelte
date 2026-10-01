@@ -43,7 +43,11 @@
 		</div>
 		<ProgressBar value={set.have} max={set.need} label="{set.name}: {percent(share)} complete" />
 		<div class="num text-xs text-ink-faint">
-			{percent(set.weightedCompleteness)} of its rarer pieces
+			{#if set.have === set.need}
+				complete
+			{:else}
+				{count(set.need - set.have)} missing · {percent(set.weightedCompleteness)} of its rarer pieces
+			{/if}
 		</div>
 	</div>
 </a>
