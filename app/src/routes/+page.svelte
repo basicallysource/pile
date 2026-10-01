@@ -17,7 +17,7 @@
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Alert from '$lib/components/Alert.svelte';
 	import Overview from '$lib/pile/Overview.svelte';
-	import SetRow from '$lib/pile/SetRow.svelte';
+	import SetGrid from '$lib/pile/SetGrid.svelte';
 	import { count, dayOf, dayTimeOf } from '$lib/format';
 
 	// Fewer counted pieces than this and a set is complete in any pile.
@@ -79,9 +79,7 @@
 	{:else if builds.length === 0}
 		<div class="p-(--pad-panel)"><EmptyState title="No set is all there." /></div>
 	{:else}
-		<div class="divide-y divide-line">
-			{#each builds as set (set.setNum)}<SetRow {set} />{/each}
-		</div>
+		<SetGrid sets={builds} />
 	{/if}
 	{#if tiny.length}
 		<div class="border-t border-line px-(--pad-panel) py-3">
@@ -89,9 +87,7 @@
 				title="{count(tiny.length)} tiny sets"
 				help="Under {TINY} counted pieces: key chains, gear, and figures whose printed parts are not counted."
 			>
-				<div class="divide-y divide-line">
-					{#each tiny as set (set.setNum)}<SetRow {set} />{/each}
-				</div>
+				<SetGrid sets={tiny} />
 			</Disclosure>
 		</div>
 	{/if}
@@ -107,9 +103,7 @@
 	{:else if likely.length === 0}
 		<div class="p-(--pad-panel)"><EmptyState title="No other set stands out." /></div>
 	{:else}
-		<div class="divide-y divide-line">
-			{#each likely as set (set.setNum)}<SetRow {set} numbered />{/each}
-		</div>
+		<SetGrid sets={likely} numbered />
 	{/if}
 </Panel>
 

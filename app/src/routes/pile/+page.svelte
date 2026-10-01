@@ -99,7 +99,7 @@
 			{#each { length: 12 } as _}<Skeleton class="aspect-square w-full" />{/each}
 		</div>
 	{:else}
-		<div class="grid grid-cols-2 gap-x-4 gap-y-6 p-(--pad-panel) sm:grid-cols-4 lg:grid-cols-6">
+		<div class="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-x-3 gap-y-4 p-(--pad-panel)">
 			{#each shown as l (l.partNum + ':' + l.color?.id)}
 				<PartTile
 					layout="tile"

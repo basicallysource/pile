@@ -105,9 +105,10 @@
 				/>
 			</div>
 		{/snippet}
-		<div class="divide-y divide-line">
+		<div class="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-x-3 gap-y-4 p-(--pad-panel)">
 			{#each lines as l (l.partNum + ':' + l.color?.id)}
 				<PartTile
+					layout="tile"
 					name={l.name}
 					partNum={l.partNum}
 					imgUrl={l.imageUrl}
@@ -116,7 +117,7 @@
 					found={found(l)}
 				/>
 			{:else}
-				<p class="px-(--pad-panel) py-4 text-sm text-ink-muted">No lines to show.</p>
+				<p class="col-span-full text-sm text-ink-muted">No lines to show.</p>
 			{/each}
 		</div>
 	</Panel>
@@ -127,12 +128,19 @@
 			description="Printed parts, stickers and minifigures: the sorter is not expected to find them."
 			flush
 		>
-			<div class="divide-y divide-line">
+			<div class="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-x-3 gap-y-4 p-(--pad-panel)">
 				{#each detail.minifigures as f (f.figNum)}
-					<PartTile name={f.name} partNum={f.figNum} imgUrl={f.imageUrl} quantity={f.quantity} />
+					<PartTile
+						layout="tile"
+						name={f.name}
+						partNum={f.figNum}
+						imgUrl={f.imageUrl}
+						quantity={f.quantity}
+					/>
 				{/each}
 				{#each printed as l (l.partNum + ':' + l.color?.id)}
 					<PartTile
+						layout="tile"
 						name={l.name}
 						partNum={l.partNum}
 						imgUrl={l.imageUrl}

@@ -19,10 +19,24 @@
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import { theme } from '$lib/theme.svelte';
+	import { create } from '@bufbuild/protobuf';
+	import { SetMatchSchema } from '$lib/gen/pile/v1/pile_pb';
+	import SetGrid from '$lib/pile/SetGrid.svelte';
 
 	let mode = $state<'explained' | 'alone'>('explained');
 	const red = { name: 'Red', rgb: 'C91A09' };
 	const img = 'https://cdn.rebrickable.com/media/parts/elements/300121.jpg';
+	const sample = (setNum: string, have: number, need: number, pick = 0) =>
+		create(SetMatchSchema, {
+			setNum,
+			name: 'Speedboat',
+			year: 2006,
+			theme: 'Creator',
+			imageUrl: 'https://cdn.rebrickable.com/media/sets/7610-1.jpg',
+			have,
+			need,
+			pick
+		});
 </script>
 
 <PageHeader
@@ -83,6 +97,14 @@
 	<div class="grid grid-cols-2 gap-4 p-(--pad-panel) sm:grid-cols-6">
 		<PartTile layout="tile" name="Brick 2 x 4" bricklinkId="3001" imgUrl={img} color={red} quantity={40} />
 	</div>
+</Panel>
+
+<Panel
+	title="Sets"
+	description="SetGrid of SetTiles: the picture, a small caption, a thin bar for how much the pile holds, green when complete."
+	flush
+>
+	<SetGrid sets={[sample('7610-1', 18, 18), sample('7610-2', 15, 18), sample('7610-3', 4, 18)]} />
 </Panel>
 
 <Panel title="Progress" description="How complete a set is: the bar, the share, and the pieces.">

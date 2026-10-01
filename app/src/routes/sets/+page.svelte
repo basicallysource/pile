@@ -17,10 +17,10 @@
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Alert from '$lib/components/Alert.svelte';
-	import SetRow from '$lib/pile/SetRow.svelte';
+	import SetGrid from '$lib/pile/SetGrid.svelte';
 	import { count, dayOf, dayTimeOf } from '$lib/format';
 
-	const PAGE = 100;
+	const PAGE = 200;
 	type Mode = 'explained' | 'alone';
 	type Order = 'evidence' | 'complete' | 'found';
 	let mode = $state<Mode>('explained');
@@ -138,12 +138,7 @@
 			<EmptyState title={query ? 'No set matches that filter.' : 'No set matches the pile.'} />
 		</div>
 	{:else}
-		<div class="divide-y divide-line">
-			{#each shown.slice(0, drawn) as set (set.setNum)}<SetRow
-					{set}
-					numbered={mode === 'explained'}
-				/>{/each}
-		</div>
+		<SetGrid sets={shown.slice(0, drawn)} numbered={mode === 'explained'} />
 		{#if shown.length > drawn}
 			<div class="border-t border-line px-(--pad-panel) py-3">
 				<Button onclick={() => (drawn += PAGE)}
