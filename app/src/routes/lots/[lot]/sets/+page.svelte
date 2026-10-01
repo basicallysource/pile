@@ -1,10 +1,10 @@
 <!--
 	Every set and custom model with a piece in the lot, through the view, to
-	browse: filter by words, choose the order and the kind. Tiles are drawn a
-	page at a time.
+	browse: by kind, theme, licensed or not, and size, in the chosen order,
+	and filtered by words. Tiles are drawn a page at a time.
 -->
 <script lang="ts">
-	import { Kind, Order, type SetMatch } from '$lib/gen/pile/v1/pile_pb';
+	import { Kind, Order, type SetMatch, type ThemeCount } from '$lib/gen/pile/v1/pile_pb';
 	import { pile } from '$lib/api';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Panel from '$lib/components/Panel.svelte';
@@ -12,6 +12,7 @@
 	import Select from '$lib/components/Select.svelte';
 	import Input from '$lib/components/Input.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import Switch from '$lib/components/Switch.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Alert from '$lib/components/Alert.svelte';
@@ -20,10 +21,14 @@
 	import { lotId, view } from '$lib/view.svelte';
 
 	const PAGE = 200;
-	type OrderName = 'complete' | 'found' | 'evidence';
+	type OrderName = 'interesting' | 'biggest' | 'complex' | 'complete' | 'found';
 	type KindName = 'all' | 'sets' | 'custom';
-	let order = $state<OrderName>('complete');
+	let order = $state<OrderName>('interesting');
 	let kind = $state<KindName>('all');
+	let theme = $state('');
+	let licensedOnly = $state(false);
+	let minPieces = $state('0');
+	let themes = $state<ThemeCount[]>([]);
 	let query = $state('');
 	let drawn = $state(PAGE);
 	let sets = $state<SetMatch[] | null>(null);
@@ -32,11 +37,22 @@
 
 	$effect(() => {
 		const v = view.forLot(lot);
-		const o = { complete: Order.COMPLETE, found: Order.FOUND, evidence: Order.EVIDENCE }[order];
+		const o = {
+			interesting: Order.INTERESTING,
+			biggest: Order.BIGGEST,
+			complex: Order.COMPLEX,
+			complete: Order.COMPLETE,
+			found: Order.FOUND
+		}[order];
 		const k = { all: Kind.UNSPECIFIED, sets: Kind.SET, custom: Kind.CUSTOM }[kind];
+		const req = { view: v, order: o, kind: k, themeGroup: theme, licensedOnly, minPieces: +minPieces };
 		let stale = false;
-		pile.listSets({ view: v, order: o, kind: k }).then(
-			(r) => !stale && (sets = r.sets),
+		pile.listSets(req).then(
+			(r) => {
+				if (stale) return;
+				sets = r.sets;
+				themes = r.themes;
+			},
 			(e) => (error = String(e))
 		);
 		return () => (stale = true);
@@ -51,14 +67,14 @@
 	});
 
 	$effect(() => {
-		void [order, kind, query];
+		void [order, kind, query, theme, licensedOnly, minPieces];
 		drawn = PAGE;
 	});
 </script>
 
 <PageHeader
 	title="Every set"
-	description="Every set and custom model with a piece in this lot, each against what the sort-out queue leaves."
+	description="Every set and custom model with a piece in this lot, each against what the sort-out queue leaves. Sets of loose bricks show only with Bulk sets on."
 />
 
 {#if error}
@@ -78,14 +94,43 @@
 		/>
 		<Select
 			label="Order"
-			class="w-48"
+			class="w-52"
 			bind:value={order}
 			options={[
+				{ value: 'interesting', label: 'Most interesting' },
+				{ value: 'biggest', label: 'Biggest' },
+				{ value: 'complex', label: 'Most different parts' },
 				{ value: 'complete', label: 'Most complete' },
-				{ value: 'found', label: 'Most pieces found' },
-				{ value: 'evidence', label: 'Best evidence' }
+				{ value: 'found', label: 'Most pieces found' }
 			]}
 		/>
+		<Select
+			label="Theme"
+			class="w-56"
+			bind:value={theme}
+			options={[
+				{ value: '', label: 'Every theme' },
+				...themes.map((t) => ({ value: t.name, label: t.name, hint: count(t.sets) })),
+				...(theme && !themes.some((t) => t.name === theme) ? [{ value: theme, label: theme }] : [])
+			]}
+		/>
+		<Select
+			label="Size"
+			class="w-40"
+			bind:value={minPieces}
+			options={[
+				{ value: '0', label: 'Any size' },
+				{ value: '50', label: '50+ pieces' },
+				{ value: '100', label: '100+ pieces' },
+				{ value: '250', label: '250+ pieces' },
+				{ value: '500', label: '500+ pieces' },
+				{ value: '1000', label: '1,000+ pieces' }
+			]}
+		/>
+		<label class="flex items-center gap-2 text-sm whitespace-nowrap text-ink">
+			<Switch bind:checked={licensedOnly} />
+			Licensed only
+		</label>
 		<Input
 			type="search"
 			placeholder="Filter by name, number, theme, designer or year"

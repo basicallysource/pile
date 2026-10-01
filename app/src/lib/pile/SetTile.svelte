@@ -42,7 +42,9 @@
 <div class="group relative min-w-0 rounded-control hover:bg-hover">
 	<a
 		href="/lots/{lot}/sets/{set.setNum}"
-		title="{set.name}, {set.setNum}{custom ? `, by ${set.designer}` : `, ${set.year}, ${set.theme}`}{notes
+		title="{set.name}, {set.setNum}{custom
+			? `, by ${set.designer}`
+			: `, ${set.year}, ${set.themeGroup}${set.theme !== set.themeGroup ? ` / ${set.theme}` : ''}`}, {set.distinctParts} different parts{notes
 			? ` (${notes})`
 			: ''}"
 		class="flex min-w-0 flex-col gap-1.5 rounded-control p-1.5 active:bg-pressed"

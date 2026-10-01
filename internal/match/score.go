@@ -22,11 +22,11 @@ func (m *Match) Share() float64 { return float64(m.Have) / float64(max(m.Need, 1
 // Complete is every counted piece found.
 func (m *Match) Complete() bool { return m.Have >= m.Need }
 
-// Rarity is how rare its pieces are on average: high for a set a common
-// pile would not complete by chance.
-func (m *Match) Rarity() float64 { return m.Evidence / float64(max(m.Need, 1)) }
+// Interest is how interesting it is to find: big, with rare pieces, and
+// much of it there.
+func (m *Match) Interest() float64 { return m.Evidence * m.Weighted }
 
-func (m *Match) rank() float64 { return m.Evidence * m.Weighted }
+func (m *Match) rank() float64 { return m.Interest() }
 
 // Score matches one entry against the pile.
 func (ix *Index) Score(e *Entry, p *Pile, anyColor bool) (*Match, Found) {

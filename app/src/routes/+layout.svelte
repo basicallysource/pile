@@ -1,6 +1,7 @@
 <!--
 	The shell: the top bar and the page under it. In a lot the bar holds the
-	lot's pages and the color mode, which applies on all of them; outside one
+	lot's pages, the color mode and whether sets of loose bricks show, which
+	apply on all of them; outside one
 	it holds the collection and the design page.
 -->
 <script lang="ts">
@@ -13,6 +14,7 @@
 	import TopBar from '$lib/components/TopBar.svelte';
 	import Wordmark from '$lib/components/Wordmark.svelte';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
+	import Switch from '$lib/components/Switch.svelte';
 	import { view } from '$lib/view.svelte';
 
 	let { children } = $props();
@@ -36,6 +38,10 @@
 		{#snippet brand()}<Wordmark name="Pile" href="/" />{/snippet}
 		{#snippet end()}
 			{#if lot}
+				<label class="flex items-center gap-2 text-sm whitespace-nowrap text-ink-muted">
+					<Switch checked={view.showBulk} onchange={(v) => view.setShowBulk(v)} />
+					Bulk sets
+				</label>
 				<SegmentedControl
 					label="Colors"
 					size="sm"

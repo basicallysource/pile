@@ -59,6 +59,11 @@ func setMatch(m *match.Match) *pilev1.SetMatch {
 		Designer:             s.Designer,
 		Url:                  s.URL,
 		WrongColor:           m.WrongColor,
+		ThemeGroup:           s.ThemeGroup,
+		Licensed:             s.Licensed,
+		Bulk:                 m.Bulk,
+		DistinctParts:        m.DistinctParts,
+		Rarity:               m.Rarity,
 	}
 }
 

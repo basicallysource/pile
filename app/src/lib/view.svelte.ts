@@ -1,5 +1,5 @@
-// How lots are being looked at: any-color matching, and each lot's sort-out
-// queue (most wanted first). Kept in the browser, so it lasts across pages
+// How lots are being looked at: any-color matching, whether sets of loose
+// bricks show, and each lot's sort-out queue (most wanted first). Kept in the browser, so it lasts across pages
 // and reloads; every page reads it and the server works from it.
 import { page } from '$app/state';
 import type { View } from './gen/pile/v1/pile_pb';
@@ -8,31 +8,37 @@ import type { ViewSchema } from './gen/pile/v1/pile_pb';
 
 const KEY = 'pile-view';
 
-type Saved = { anyColor: boolean; sortOut: Record<string, string[]> };
+type Saved = { anyColor: boolean; showBulk: boolean; sortOut: Record<string, string[]> };
 
 function load(): Saved {
 	try {
 		const s = JSON.parse(localStorage.getItem(KEY) ?? '');
-		if (s && typeof s === 'object') return { anyColor: !!s.anyColor, sortOut: s.sortOut ?? {} };
+		if (s && typeof s === 'object')
+			return { anyColor: !!s.anyColor, showBulk: !!s.showBulk, sortOut: s.sortOut ?? {} };
 	} catch {
 		// Nothing saved, or storage is off.
 	}
-	return { anyColor: false, sortOut: {} };
+	return { anyColor: false, showBulk: false, sortOut: {} };
 }
 
 class ViewState {
 	anyColor = $state(false);
+	showBulk = $state(false);
 	sortOut = $state<Record<string, string[]>>({});
 
 	constructor() {
 		const s = load();
 		this.anyColor = s.anyColor;
+		this.showBulk = s.showBulk;
 		this.sortOut = s.sortOut;
 	}
 
 	private save() {
 		try {
-			localStorage.setItem(KEY, JSON.stringify({ anyColor: this.anyColor, sortOut: this.sortOut }));
+			localStorage.setItem(
+				KEY,
+				JSON.stringify({ anyColor: this.anyColor, showBulk: this.showBulk, sortOut: this.sortOut })
+			);
 		} catch {
 			// Storage can be off; the view lasts the visit.
 		}
@@ -40,6 +46,11 @@ class ViewState {
 
 	setAnyColor(anyColor: boolean) {
 		this.anyColor = anyColor;
+		this.save();
+	}
+
+	setShowBulk(showBulk: boolean) {
+		this.showBulk = showBulk;
 		this.save();
 	}
 
@@ -72,7 +83,7 @@ class ViewState {
 
 	// The View the server works from, for the lot in the route.
 	forLot(lotId: string): MessageInitShape<typeof ViewSchema> {
-		return { lotId, anyColor: this.anyColor, sortOut: this.queue(lotId) };
+		return { lotId, anyColor: this.anyColor, showBulk: this.showBulk, sortOut: this.queue(lotId) };
 	}
 }
 

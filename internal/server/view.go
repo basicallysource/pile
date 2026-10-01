@@ -14,6 +14,7 @@ import (
 type view struct {
 	lot      *lot
 	anyColor bool
+	showBulk bool
 	queue    []*match.Match // the sort-out queue, each against what came before it
 	found    map[string]match.Found
 	place    map[string]int // set number to its place in the queue, from 1
@@ -29,7 +30,7 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 	if t == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("no lot "+v.LotId))
 	}
-	w := &view{lot: t, anyColor: v.AnyColor, place: map[string]int{}, found: map[string]match.Found{}, left: t.pile.Clone()}
+	w := &view{lot: t, anyColor: v.AnyColor, showBulk: v.ShowBulk, place: map[string]int{}, found: map[string]match.Found{}, left: t.pile.Clone()}
 	for _, num := range v.SortOut {
 		e := s.index.Entry(num)
 		if e == nil || w.place[num] > 0 {
@@ -50,3 +51,6 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 	}
 	return w, nil
 }
+
+// shown is whether the view lists m: sets of loose bricks only when asked.
+func (w *view) shown(m *match.Match) bool { return w.showBulk || !m.Bulk }

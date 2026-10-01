@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"math"
+	"regexp"
 	"slices"
 	"sort"
 
@@ -29,6 +30,14 @@ type Entry struct {
 	// Other sets with exactly these lines; Hidden on those others.
 	SameContents []string
 	Hidden       bool
+	// How rare its pieces are on average across all sets (exact colors), and
+	// how many different parts it has: high for a set that is a model of
+	// something, low for a box of bricks.
+	Rarity        float64
+	DistinctParts int32
+	// Loose bricks rather than a model: in a bulk theme, named as a bucket,
+	// tub or brick box, or big and made of few different parts.
+	Bulk bool
 }
 
 // Index is every set and custom model with a counted line, and the weights
@@ -113,8 +122,31 @@ func NewIndex(cat *catalog.Catalog) *Index {
 	}
 	// A part no set has (only custom models) is as rare as can be.
 	ix.wMax = math.Log(float64(n))
+	for _, e := range ix.Entries {
+		parts := map[int32]bool{}
+		var w float64
+		for _, l := range e.Lines {
+			parts[l.Part] = true
+			w += float64(l.Quantity) * ix.weight(l, false)
+		}
+		e.DistinctParts = int32(len(parts))
+		e.Rarity = w / float64(max(e.Need, 1))
+		e.Bulk = !e.Set.Custom && (e.Set.BulkTheme || bulkName.MatchString(e.Set.Name) ||
+			(!e.Set.Licensed && e.Need >= bulkSize && e.Need >= bulkRepeat*e.DistinctParts))
+	}
 	return ix
 }
+
+const (
+	// A set this big with this many pieces per different part is a box of
+	// bricks whatever its theme (Creator's brick boxes run 13 to 27; models
+	// 3 to 7). Licensed sets are models even so (a big bust, a mosaic of a
+	// character).
+	bulkSize   = 100
+	bulkRepeat = 12
+)
+
+var bulkName = regexp.MustCompile(`(?i)\b(bucket|tub|canister|box of bricks|brick box|bricks box)\b`)
 
 // Part is the id of the part standing for p's mold variants and alternates.
 func (ix *Index) Part(p string) int32 {

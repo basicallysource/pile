@@ -38,7 +38,7 @@ func (c *Catalog) loadCustom(path string) error {
 		return err
 	}
 	for _, m := range models {
-		s := &Set{Num: m.Num, Name: m.Name, Year: m.Year, Theme: "Custom", ImageURL: m.Image, Custom: true, Designer: m.Designer, URL: m.URL}
+		s := &Set{Num: m.Num, Name: m.Name, Year: m.Year, Theme: "Custom", ThemeGroup: "Custom models", ImageURL: m.Image, Custom: true, Designer: m.Designer, URL: m.URL}
 		for _, l := range m.Lines {
 			s.Lines = append(s.Lines, Line{Part: l.Part, Color: l.Color, Quantity: l.Quantity, ImageURL: c.Images[PartColor{l.Part, l.Color}]})
 		}

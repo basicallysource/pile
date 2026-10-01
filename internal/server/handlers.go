@@ -59,7 +59,7 @@ func (s *Service) GetLot(_ context.Context, req *connect.Request[pilev1.GetLotRe
 	}
 	var complete, tiny, almost, likely, custom, figures []*match.Match
 	for _, m := range w.scores {
-		if w.place[m.Set.Num] > 0 {
+		if w.place[m.Set.Num] > 0 || !w.shown(m) {
 			continue
 		}
 		switch {
@@ -89,12 +89,12 @@ func (s *Service) GetLot(_ context.Context, req *connect.Request[pilev1.GetLotRe
 			return ms[i].Need > ms[j].Need
 		})
 	}
-	byRarity := func(ms []*match.Match) {
-		sort.SliceStable(ms, func(i, j int) bool { return ms[i].Rarity() > ms[j].Rarity() })
+	byInterest := func(ms []*match.Match) {
+		sort.SliceStable(ms, func(i, j int) bool { return ms[i].Interest() > ms[j].Interest() })
 	}
-	byRarity(complete)
-	byRarity(tiny)
-	byRarity(almost)
+	byInterest(complete)
+	byInterest(tiny)
+	byInterest(almost)
 	byShare(custom)
 	byShare(figures)
 	sort.SliceStable(likely, func(i, j int) bool { return likely[i].Pick < likely[j].Pick })
@@ -108,32 +108,49 @@ func (s *Service) ListSets(_ context.Context, req *connect.Request[pilev1.ListSe
 	if err != nil {
 		return nil, err
 	}
+	q := req.Msg
+	out := &pilev1.ListSetsResponse{}
+	themes := map[string]int32{}
 	var list []*match.Match
 	for _, m := range w.scores {
-		switch req.Msg.Kind {
-		case pilev1.Kind_KIND_SET:
-			if m.Set.Custom {
-				continue
-			}
-		case pilev1.Kind_KIND_CUSTOM:
-			if !m.Set.Custom {
-				continue
-			}
+		if !w.shown(m) || m.Need < q.MinPieces || (q.LicensedOnly && !m.Set.Licensed) {
+			continue
+		}
+		if (q.Kind == pilev1.Kind_KIND_SET && m.Set.Custom) || (q.Kind == pilev1.Kind_KIND_CUSTOM && !m.Set.Custom) {
+			continue
+		}
+		themes[m.Set.ThemeGroup]++
+		if q.ThemeGroup != "" && m.Set.ThemeGroup != q.ThemeGroup {
+			continue
 		}
 		list = append(list, m)
 	}
-	switch req.Msg.Order {
-	case pilev1.Order_ORDER_FOUND:
-		sort.SliceStable(list, func(i, j int) bool { return list[i].Have > list[j].Have })
-	case pilev1.Order_ORDER_COMPLETE:
-		sort.SliceStable(list, func(i, j int) bool {
-			if list[i].Share() != list[j].Share() {
-				return list[i].Share() > list[j].Share()
-			}
-			return list[i].Need > list[j].Need
-		})
+	for name, n := range themes {
+		out.Themes = append(out.Themes, &pilev1.ThemeCount{Name: name, Sets: n})
 	}
-	return connect.NewResponse(&pilev1.ListSetsResponse{Sets: setMatches(list)}), nil
+	sort.Slice(out.Themes, func(i, j int) bool {
+		if out.Themes[i].Sets != out.Themes[j].Sets {
+			return out.Themes[i].Sets > out.Themes[j].Sets
+		}
+		return out.Themes[i].Name < out.Themes[j].Name
+	})
+	by := map[pilev1.Order]func(a, b *match.Match) bool{
+		pilev1.Order_ORDER_FOUND:   func(a, b *match.Match) bool { return a.Have > b.Have },
+		pilev1.Order_ORDER_BIGGEST: func(a, b *match.Match) bool { return a.Need > b.Need },
+		pilev1.Order_ORDER_COMPLEX: func(a, b *match.Match) bool { return a.DistinctParts > b.DistinctParts },
+		pilev1.Order_ORDER_COMPLETE: func(a, b *match.Match) bool {
+			if a.Share() != b.Share() {
+				return a.Share() > b.Share()
+			}
+			return a.Need > b.Need
+		},
+	}
+	// The scores come most interesting first, which breaks every tie.
+	if less, ok := by[q.Order]; ok {
+		sort.SliceStable(list, func(i, j int) bool { return less(list[i], list[j]) })
+	}
+	out.Sets = setMatches(list)
+	return connect.NewResponse(out), nil
 }
 
 func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRequest]) (*connect.Response[pilev1.GetSetResponse], error) {

@@ -61,6 +61,13 @@ type Set struct {
 	Year     int32
 	Theme    string
 	ImageURL string
+	// The theme at the top of Theme's tree ("Star Wars" for "Ultimate
+	// Collector Series").
+	ThemeGroup string
+	// Made under license (Star Wars, Marvel, Minecraft...).
+	Licensed bool
+	// In a theme of loose bricks: buckets, brick boxes, service packs.
+	BulkTheme bool
 	// A free custom model (MOC) rather than a set LEGO sold.
 	Custom bool
 	// A custom model's designer and its page on Rebrickable.
@@ -240,16 +247,24 @@ func (c *Catalog) loadRelationships(dir string) error {
 }
 
 func (c *Catalog) loadSets(dir string) error {
-	themes := map[string]string{}
+	type theme struct{ name, parent string }
+	themes := map[string]theme{}
 	if err := each(dir, "themes", func(row func(string) string) error {
-		themes[row("id")] = row("name")
+		themes[row("id")] = theme{row("name"), row("parent_id")}
 		return nil
 	}); err != nil {
 		return err
 	}
 	if err := each(dir, "sets", func(row func(string) string) error {
 		n := row("set_num")
-		c.Sets[n] = &Set{Num: n, Name: row("name"), Year: num(row("year")), Theme: themes[row("theme_id")], ImageURL: row("img_url"), URL: "https://rebrickable.com/sets/" + n + "/"}
+		s := &Set{Num: n, Name: row("name"), Year: num(row("year")), Theme: themes[row("theme_id")].name, ImageURL: row("img_url"), URL: "https://rebrickable.com/sets/" + n + "/"}
+		for id := row("theme_id"); id != ""; id = themes[id].parent {
+			t := themes[id]
+			s.ThemeGroup = t.name
+			s.BulkTheme = s.BulkTheme || bulkThemes[t.name]
+		}
+		s.Licensed = licensedThemes[s.ThemeGroup]
+		c.Sets[n] = s
 		return nil
 	}); err != nil {
 		return err
