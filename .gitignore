@@ -1,0 +1,10 @@
+AGENTS.local.md
+docs.local/
+*.local.*
+.DS_Store
+
+# Build output and installed packages.
+bin/
+app/build/
+app/.svelte-kit/
+node_modules/

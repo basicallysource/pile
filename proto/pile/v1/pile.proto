@@ -1,0 +1,152 @@
+syntax = "proto3";
+
+package pile.v1;
+
+option go_package = "github.com/basicallysource/pile/gen/pile/v1;pilev1";
+
+// What a sorter sorted, and which LEGO sets those pieces make up.
+service PileService {
+  // The totals: how many pieces, from when, and how much the sets explain.
+  rpc GetOverview(GetOverviewRequest) returns (GetOverviewResponse);
+  // The bulk catalog: every part in every color, with its count.
+  rpc ListLots(ListLotsRequest) returns (ListLotsResponse);
+  // The sets the pile looks like, ranked.
+  rpc ListSets(ListSetsRequest) returns (ListSetsResponse);
+  // One set, line by line, against the pile.
+  rpc GetSet(GetSetRequest) returns (GetSetResponse);
+}
+
+message Color {
+  // Rebrickable's color id.
+  int32 id = 1;
+  string name = 2;
+  // Hex without the #.
+  string rgb = 3;
+  bool transparent = 4;
+  int32 bricklink_id = 5;
+}
+
+message GetOverviewRequest {}
+
+message GetOverviewResponse {
+  // Pieces the machine classified in the window.
+  int32 pieces = 1;
+  // Distinct part and color pairs among them.
+  int32 lots = 2;
+  // Pieces whose part or color has no Rebrickable match, so no set can claim them.
+  int32 unmatched_pieces = 3;
+  int64 first_seen_unix = 4;
+  int64 last_seen_unix = 5;
+  // When the machine's records were copied.
+  int64 snapshot_unix = 6;
+  // When the Rebrickable catalog was downloaded.
+  int64 catalog_unix = 7;
+  string machine_name = 8;
+  // Sets with an inventory big enough to rank.
+  int32 sets_ranked = 9;
+  // Pieces the explaining sets account for.
+  int32 explained_pieces = 10;
+}
+
+message ListLotsRequest {}
+
+message Lot {
+  string part_num = 1;
+  string bricklink_id = 2;
+  string name = 3;
+  Color color = 4;
+  int32 count = 5;
+  string image_url = 6;
+  string category = 7;
+  // The classifier's mean confidence over these pieces, 0 to 1.
+  float mean_confidence = 8;
+}
+
+// A piece the catalog cannot place: the classifier's own names.
+message UnmatchedLot {
+  string bricklink_id = 1;
+  string name = 2;
+  string color_name = 3;
+  int32 count = 4;
+}
+
+message ListLotsResponse {
+  repeated Lot lots = 1;
+  repeated UnmatchedLot unmatched = 2;
+}
+
+enum Ranking {
+  RANKING_UNSPECIFIED = 0;
+  // Sets picked one at a time, each taking its pieces out of the pile before
+  // the next is picked, so two sets never claim the same piece.
+  RANKING_EXPLAINED = 1;
+  // Every set scored against the whole pile on its own.
+  RANKING_ALONE = 2;
+}
+
+message SetMatch {
+  string set_num = 1;
+  string name = 2;
+  int32 year = 3;
+  string theme = 4;
+  string image_url = 5;
+  // Pieces of the set found in the pile, each line capped at what the set needs.
+  int32 have = 6;
+  // Pieces in the set, not counting printed parts, stickers or minifigures.
+  int32 need = 7;
+  // The same, weighted by how rare each part and color is across all sets:
+  // finding a set's unusual pieces counts for more than its 2x4 bricks.
+  double weighted_completeness = 8;
+  // How much distinctive evidence the pile holds for this set.
+  double evidence = 9;
+  // Printed parts and stickers in the set, left out of `need`.
+  int32 printed_parts = 10;
+  int32 minifigures = 11;
+  // Other sets with exactly the same pieces (the same box sold under several numbers).
+  repeated string same_contents = 12;
+  // In RANKING_EXPLAINED, its place in the order picked, from 1.
+  int32 pick = 13;
+}
+
+message ListSetsRequest {
+  Ranking ranking = 1;
+  int32 limit = 2;
+}
+
+message ListSetsResponse {
+  repeated SetMatch sets = 1;
+}
+
+message GetSetRequest {
+  string set_num = 1;
+}
+
+message SetLine {
+  string part_num = 1;
+  string name = 2;
+  Color color = 3;
+  int32 need = 4;
+  // Pieces of this part and color (or a mold variant of it) in the whole pile.
+  int32 in_pile = 5;
+  // Of those, the ones given to this set when the pile was explained.
+  int32 explained = 6;
+  string image_url = 7;
+  // A printed part or a sticker: shown, not counted.
+  bool printed = 8;
+}
+
+message Minifigure {
+  string fig_num = 1;
+  string name = 2;
+  int32 quantity = 3;
+  string image_url = 4;
+}
+
+message GetSetResponse {
+  // Against the whole pile.
+  SetMatch alone = 1;
+  // Its pick when the pile was explained, if it was picked.
+  optional SetMatch explained = 2;
+  repeated SetLine lines = 3;
+  repeated Minifigure minifigures = 4;
+}
