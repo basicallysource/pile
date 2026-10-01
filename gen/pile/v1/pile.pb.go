@@ -81,7 +81,8 @@ const (
 	// Most pieces found first.
 	Order_ORDER_FOUND Order = 2
 	// Most interesting first: big, with rare pieces, and much of it found
-	// (its rarity-weighted pieces found times its weighted completeness).
+	// (its rarity-weighted pieces found times its weighted completeness
+	// squared).
 	Order_ORDER_INTERESTING Order = 3
 	// Most pieces first.
 	Order_ORDER_BIGGEST Order = 4

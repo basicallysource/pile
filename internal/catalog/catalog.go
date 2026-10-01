@@ -262,8 +262,10 @@ func (c *Catalog) loadSets(dir string) error {
 			t := themes[id]
 			s.ThemeGroup = t.name
 			s.BulkTheme = s.BulkTheme || bulkThemes[t.name]
+			// A licensed theme can sit under one of LEGO's own (Ghostbusters
+			// under Icons).
+			s.Licensed = s.Licensed || licensedThemes[t.name]
 		}
-		s.Licensed = licensedThemes[s.ThemeGroup]
 		c.Sets[n] = s
 		return nil
 	}); err != nil {

@@ -23,10 +23,12 @@ func (m *Match) Share() float64 { return float64(m.Have) / float64(max(m.Need, 1
 func (m *Match) Complete() bool { return m.Have >= m.Need }
 
 // Interest is how interesting it is to find: big, with rare pieces, and
-// much of it there.
-func (m *Match) Interest() float64 { return m.Evidence * m.Weighted }
+// much of it there (completeness counts twice, so a huge set a quarter there
+// does not lead).
+func (m *Match) Interest() float64 { return m.Evidence * m.Weighted * m.Weighted }
 
-func (m *Match) rank() float64 { return m.Interest() }
+// rank is the evidence a set is in the pile, which orders the likely sets.
+func (m *Match) rank() float64 { return m.Evidence * m.Weighted }
 
 // Score matches one entry against the pile.
 func (ix *Index) Score(e *Entry, p *Pile, anyColor bool) (*Match, Found) {
@@ -47,8 +49,8 @@ func (ix *Index) Score(e *Entry, p *Pile, anyColor bool) (*Match, Found) {
 	return m, f
 }
 
-// ScoreAll matches every shown entry with a piece in the pile, best
-// evidence first.
+// ScoreAll matches every shown entry with a piece in the pile, most
+// interesting first.
 func (ix *Index) ScoreAll(p *Pile, anyColor bool) []*Match {
 	var out []*Match
 	for _, e := range ix.Entries {
@@ -59,6 +61,6 @@ func (ix *Index) ScoreAll(p *Pile, anyColor bool) []*Match {
 			out = append(out, m)
 		}
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].rank() > out[j].rank() })
+	sort.Slice(out, func(i, j int) bool { return out[i].Interest() > out[j].Interest() })
 	return out
 }

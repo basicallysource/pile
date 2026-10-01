@@ -987,7 +987,8 @@ export enum Order {
 
   /**
    * Most interesting first: big, with rare pieces, and much of it found
-   * (its rarity-weighted pieces found times its weighted completeness).
+   * (its rarity-weighted pieces found times its weighted completeness
+   * squared).
    *
    * @generated from enum value: ORDER_INTERESTING = 3;
    */

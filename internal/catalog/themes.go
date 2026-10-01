@@ -20,7 +20,8 @@ var bulkThemes = map[string]bool{
 	"Building Set with People": true,
 }
 
-// Top-level themes made under license from another company's property.
+// Themes made under license from another company's property, by name at any
+// level of a set's theme tree.
 var licensedThemes = map[string]bool{
 	"Angry Birds":                      true,
 	"Animal Crossing":                  true,
@@ -66,4 +67,8 @@ var licensedThemes = map[string]bool{
 	"Trolls: World Tour":               true,
 	"Wednesday":                        true,
 	"Wicked":                           true,
+	"Batman":                           true,
+	"Ferrari":                          true,
+	"Toy Story":                        true,
+	"Winnie the Pooh":                  true,
 }

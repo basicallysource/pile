@@ -19,7 +19,7 @@ type view struct {
 	found    map[string]match.Found
 	place    map[string]int // set number to its place in the queue, from 1
 	left     *match.Pile
-	scores   []*match.Match // every shown entry with a piece left, best evidence first
+	scores   []*match.Match // every shown entry with a piece left, most interesting first
 }
 
 func (s *Service) view(v *pilev1.View) (*view, error) {
