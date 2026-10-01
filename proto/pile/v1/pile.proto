@@ -44,7 +44,7 @@ message GetOverviewResponse {
   string machine_name = 8;
   // Sets with an inventory to rank (every set with a counted piece).
   int32 sets_ranked = 9;
-  // Pieces the explaining sets account for.
+  // Pieces the explained sets account for, each piece once.
   int32 explained_pieces = 10;
   // Sets the pile holds every counted piece of, each on its own.
   int32 complete_sets = 11;
@@ -79,8 +79,11 @@ message ListLotsResponse {
 
 enum Ranking {
   RANKING_UNSPECIFIED = 0;
-  // Sets picked one at a time, each taking its pieces out of the pile before
-  // the next is picked, so two sets never claim the same piece.
+  // The sets the pile most likely came from: picked one at a time, best
+  // evidence first, each taking its pieces out of the pile before the next is
+  // picked, so a bucket of common bricks is picked once and the sets under it
+  // show. Only the order comes from that; a match's counts are still against
+  // the whole pile.
   RANKING_EXPLAINED = 1;
   // Every set scored against the whole pile on its own.
   RANKING_ALONE = 2;
@@ -89,6 +92,7 @@ enum Ranking {
   RANKING_COMPLETE = 3;
 }
 
+// A set against the whole pile.
 message SetMatch {
   string set_num = 1;
   string name = 2;
@@ -109,7 +113,7 @@ message SetMatch {
   int32 minifigures = 11;
   // Other sets with exactly the same pieces (the same box sold under several numbers).
   repeated string same_contents = 12;
-  // In RANKING_EXPLAINED, its place in the order picked, from 1.
+  // Its place in the explained order, from 1; 0 when it was not picked.
   int32 pick = 13;
 }
 
@@ -132,13 +136,12 @@ message SetLine {
   string name = 2;
   Color color = 3;
   int32 need = 4;
-  // Pieces of this part and color (or a mold variant of it) in the whole pile.
+  // Pieces of this part and color (or a mold variant of it) in the pile, up
+  // to what the line needs.
   int32 in_pile = 5;
-  // Of those, the ones given to this set when the pile was explained.
-  int32 explained = 6;
-  string image_url = 7;
+  string image_url = 6;
   // A printed part or a sticker: shown, not counted.
-  bool printed = 8;
+  bool printed = 7;
 }
 
 message Minifigure {
@@ -149,10 +152,7 @@ message Minifigure {
 }
 
 message GetSetResponse {
-  // Against the whole pile.
-  SetMatch alone = 1;
-  // Its pick when the pile was explained, if it was picked.
-  optional SetMatch explained = 2;
-  repeated SetLine lines = 3;
-  repeated Minifigure minifigures = 4;
+  SetMatch set = 1;
+  repeated SetLine lines = 2;
+  repeated Minifigure minifigures = 3;
 }

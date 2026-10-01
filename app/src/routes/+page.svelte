@@ -37,13 +37,8 @@
 
 	const builds = $derived(complete?.filter((s) => s.need >= TINY) ?? []);
 	const tiny = $derived(complete?.filter((s) => s.need < TINY) ?? []);
-	// A pick still short of pieces once earlier picks took theirs, unless the
-	// pile holds it whole on its own (then it is listed as complete).
-	const likely = $derived.by(() => {
-		if (!picks || !complete) return null;
-		const whole = new Set(complete.map((s) => s.setNum));
-		return picks.filter((s) => s.have < s.need && !whole.has(s.setNum));
-	});
+	// The picks the pile does not hold whole (those are listed as complete).
+	const likely = $derived(picks?.filter((s) => s.have < s.need) ?? null);
 </script>
 
 <PageHeader
@@ -104,7 +99,7 @@
 
 <Panel
 	title={likely ? `Likely in the box, still missing pieces · ${count(likely.length)}` : 'Likely in the box, still missing pieces'}
-	description="The sets the pile most likely came from, most likely first. Each takes its pieces out of the pile before the next is picked, so no piece counts twice."
+	description="The sets the pile most likely came from, most likely first, with what the pile holds of each."
 	flush
 >
 	{#if likely === null}
@@ -113,7 +108,7 @@
 		<div class="p-(--pad-panel)"><EmptyState title="No other set stands out." /></div>
 	{:else}
 		<div class="divide-y divide-line">
-			{#each likely as set (set.setNum + set.pick)}<SetRow {set} />{/each}
+			{#each likely as set (set.setNum)}<SetRow {set} numbered />{/each}
 		</div>
 	{/if}
 </Panel>

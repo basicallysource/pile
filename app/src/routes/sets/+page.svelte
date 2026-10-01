@@ -121,8 +121,8 @@
 	</div>
 	<p class="px-(--pad-panel) pt-3 text-sm text-ink-muted">
 		{#if mode === 'explained'}
-			Picked in order, best evidence first; each pick's pieces are taken out of the pile before the
-			next, so no piece counts twice.
+			The sets the pile most likely came from, most likely first. To order them, each pick's pieces
+			come out of the pile before the next; the counts are against the whole pile.
 		{:else}
 			Every set with a piece in the pile{shown ? ` (${count(shown.length)})` : ''}, each against the
 			whole pile, so two sets can count the same piece. Sets made only of common bricks are complete
@@ -139,7 +139,10 @@
 		</div>
 	{:else}
 		<div class="divide-y divide-line">
-			{#each shown.slice(0, drawn) as set (set.setNum + set.pick)}<SetRow {set} />{/each}
+			{#each shown.slice(0, drawn) as set (set.setNum)}<SetRow
+					{set}
+					numbered={mode === 'explained'}
+				/>{/each}
 		</div>
 		{#if shown.length > drawn}
 			<div class="border-t border-line px-(--pad-panel) py-3">

@@ -6,10 +6,13 @@
 // rare it is across all sets (its inverse document frequency): a set's
 // unusual pieces are the evidence that it is there.
 //
-// Two rankings come out of it. Alone scores each set against the whole pile.
-// Explained picks sets one at a time, best evidence first, taking each
-// pick's pieces out of the pile before the next, so a bucket of basic bricks
-// is picked once and the themed sets underneath it surface on their own.
+// Every set is scored against the whole pile (Alone, Complete). Explained
+// orders the sets the pile most likely came from: it picks one at a time,
+// best evidence first, taking each pick's pieces out of a working copy of
+// the pile before the next, so a bucket of basic bricks is picked once and
+// the themed sets underneath it surface on their own. Which pick took which
+// common piece is a guess, so only the order comes from it: every match's
+// counts stay against the whole pile.
 package match
 
 import (
@@ -55,27 +58,25 @@ type Match struct {
 	Printed      int32
 	Minifigures  int32
 	SameContents []string
-	Pick         int // in the explained ranking, from 1
-	claimed      map[Key]int32
+	Pick         int // its place in the explained order, from 1; 0 if not picked
 }
 
 type Result struct {
 	Alone     []*Match // best first
 	Complete  []*Match // the ones the pile holds whole, rarest pieces first
 	Explained []*Match // in the order picked
-	Explains  int32    // pieces the picks claim
+	Explains  int32    // pieces the picks account for, each piece once
 	Ranked    int      // sets considered
 
 	keys  map[catalog.PartColor]Key
 	pile  map[Key]int32
 	alone map[string]*Match
-	first map[string]*Match // a set's first pick
 	cat   *catalog.Catalog
 }
 
 // Run scores every set in cat against pile (Rebrickable part and color → count).
 func Run(cat *catalog.Catalog, pile map[catalog.PartColor]int32) *Result {
-	r := &Result{keys: map[catalog.PartColor]Key{}, pile: map[Key]int32{}, alone: map[string]*Match{}, first: map[string]*Match{}, cat: cat}
+	r := &Result{keys: map[catalog.PartColor]Key{}, pile: map[Key]int32{}, alone: map[string]*Match{}, cat: cat}
 	for pc, n := range pile {
 		r.pile[r.key(pc)] += n
 	}
@@ -165,31 +166,32 @@ func Run(cat *catalog.Catalog, pile map[catalog.PartColor]int32) *Result {
 	}
 	for {
 		var best *Match
-		var bestLines *setLines
-		for _, sl := range pool {
+		bestAt := -1
+		for i, sl := range pool {
+			if sl == nil {
+				continue
+			}
 			m := score(sl, left)
 			if m.Evidence < minPickEvidence || m.Weighted < minPickWeighted {
 				continue
 			}
 			if best == nil || rank(m) > rank(best) {
-				best, bestLines = m, sl
+				best, bestAt = m, i
 			}
 		}
 		if best == nil {
 			break
 		}
-		best.Pick = len(r.Explained) + 1
-		best.claimed = map[Key]int32{}
-		for _, l := range bestLines.lines {
+		sl := pool[bestAt]
+		pool[bestAt] = nil // each set is picked once
+		for _, l := range sl.lines {
 			h := min(left[l.key], l.qty)
 			left[l.key] -= h
-			best.claimed[l.key] = h
+			r.Explains += h
 		}
-		r.Explains += best.Have
-		r.Explained = append(r.Explained, best)
-		if _, ok := r.first[best.Set.Num]; !ok {
-			r.first[best.Set.Num] = best
-		}
+		m := r.alone[sl.set.Num]
+		m.Pick = len(r.Explained) + 1
+		r.Explained = append(r.Explained, m)
 	}
 	return r
 }
@@ -233,9 +235,6 @@ func dedupe(sets []*setLines) []*setLines {
 // pieces there, or shares its contents with another set).
 func (r *Result) AloneMatch(setNum string) *Match { return r.alone[setNum] }
 
-// Picked is the set's first pick in the explained ranking, if any.
-func (r *Result) Picked(setNum string) *Match { return r.first[setNum] }
-
 // InPile is how many pieces of this part (or a variant) in this color the pile has.
 func (r *Result) InPile(pc catalog.PartColor) int32 {
 	pc.Part = r.cat.Canon(pc.Part)
@@ -244,17 +243,4 @@ func (r *Result) InPile(pc catalog.PartColor) int32 {
 		return 0
 	}
 	return r.pile[k]
-}
-
-// Claimed is how many pieces of this part and color a pick took from the pile.
-func (m *Match) Claimed(r *Result, pc catalog.PartColor) int32 {
-	if m == nil || m.claimed == nil {
-		return 0
-	}
-	pc.Part = r.cat.Canon(pc.Part)
-	k, ok := r.keys[pc]
-	if !ok {
-		return 0
-	}
-	return m.claimed[k]
 }

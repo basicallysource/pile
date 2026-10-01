@@ -9,7 +9,8 @@
 	import Badge from '$lib/components/Badge.svelte';
 	import { count, percent } from '$lib/format';
 
-	let { set }: { set: SetMatch } = $props();
+	// numbered: show its place in the explained order.
+	let { set, numbered = false }: { set: SetMatch; numbered?: boolean } = $props();
 	const share = $derived(set.have / Math.max(1, set.need));
 </script>
 
@@ -17,7 +18,7 @@
 	href="/sets/{set.setNum}"
 	class="flex flex-wrap items-center gap-x-4 gap-y-2 px-(--pad-panel) py-3 hover:bg-hover"
 >
-	{#if set.pick}<span class="num w-6 shrink-0 text-sm text-ink-faint">{set.pick}</span>{/if}
+	{#if numbered}<span class="num w-6 shrink-0 text-sm text-ink-faint">{set.pick}</span>{/if}
 	<PartImage src={set.imageUrl} class="size-16 shrink-0" />
 	<div class="min-w-0 flex-1 basis-56">
 		<div class="truncate text-sm font-medium text-ink" title={set.name}>{set.name}</div>

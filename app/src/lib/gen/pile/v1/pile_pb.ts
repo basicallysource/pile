@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pile/v1/pile.proto.
  */
 export const file_pile_v1_pile: GenFile = /*@__PURE__*/
-  fileDesc("ChJwaWxlL3YxL3BpbGUucHJvdG8SB3BpbGUudjEiWQoFQ29sb3ISCgoCaWQYASABKAUSDAoEbmFtZRgCIAEoCRILCgNyZ2IYAyABKAkSEwoLdHJhbnNwYXJlbnQYBCABKAgSFAoMYnJpY2tsaW5rX2lkGAUgASgFIhQKEkdldE92ZXJ2aWV3UmVxdWVzdCKHAgoTR2V0T3ZlcnZpZXdSZXNwb25zZRIOCgZwaWVjZXMYASABKAUSDAoEbG90cxgCIAEoBRIYChB1bm1hdGNoZWRfcGllY2VzGAMgASgFEhcKD2ZpcnN0X3NlZW5fdW5peBgEIAEoAxIWCg5sYXN0X3NlZW5fdW5peBgFIAEoAxIVCg1zbmFwc2hvdF91bml4GAYgASgDEhQKDGNhdGFsb2dfdW5peBgHIAEoAxIUCgxtYWNoaW5lX25hbWUYCCABKAkSEwoLc2V0c19yYW5rZWQYCSABKAUSGAoQZXhwbGFpbmVkX3BpZWNlcxgKIAEoBRIVCg1jb21wbGV0ZV9zZXRzGAsgASgFIhEKD0xpc3RMb3RzUmVxdWVzdCKnAQoDTG90EhAKCHBhcnRfbnVtGAEgASgJEhQKDGJyaWNrbGlua19pZBgCIAEoCRIMCgRuYW1lGAMgASgJEh0KBWNvbG9yGAQgASgLMg4ucGlsZS52MS5Db2xvchINCgVjb3VudBgFIAEoBRIRCglpbWFnZV91cmwYBiABKAkSEAoIY2F0ZWdvcnkYByABKAkSFwoPbWVhbl9jb25maWRlbmNlGAggASgCIlUKDFVubWF0Y2hlZExvdBIUCgxicmlja2xpbmtfaWQYASABKAkSDAoEbmFtZRgCIAEoCRISCgpjb2xvcl9uYW1lGAMgASgJEg0KBWNvdW50GAQgASgFIlgKEExpc3RMb3RzUmVzcG9uc2USGgoEbG90cxgBIAMoCzIMLnBpbGUudjEuTG90EigKCXVubWF0Y2hlZBgCIAMoCzIVLnBpbGUudjEuVW5tYXRjaGVkTG90IvcBCghTZXRNYXRjaBIPCgdzZXRfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSDAoEeWVhchgDIAEoBRINCgV0aGVtZRgEIAEoCRIRCglpbWFnZV91cmwYBSABKAkSDAoEaGF2ZRgGIAEoBRIMCgRuZWVkGAcgASgFEh0KFXdlaWdodGVkX2NvbXBsZXRlbmVzcxgIIAEoARIQCghldmlkZW5jZRgJIAEoARIVCg1wcmludGVkX3BhcnRzGAogASgFEhMKC21pbmlmaWd1cmVzGAsgASgFEhUKDXNhbWVfY29udGVudHMYDCADKAkSDAoEcGljaxgNIAEoBSJDCg9MaXN0U2V0c1JlcXVlc3QSIQoHcmFua2luZxgBIAEoDjIQLnBpbGUudjEuUmFua2luZxINCgVsaW1pdBgCIAEoBSIzChBMaXN0U2V0c1Jlc3BvbnNlEh8KBHNldHMYASADKAsyES5waWxlLnYxLlNldE1hdGNoIiAKDUdldFNldFJlcXVlc3QSDwoHc2V0X251bRgBIAEoCSKeAQoHU2V0TGluZRIQCghwYXJ0X251bRgBIAEoCRIMCgRuYW1lGAIgASgJEh0KBWNvbG9yGAMgASgLMg4ucGlsZS52MS5Db2xvchIMCgRuZWVkGAQgASgFEg8KB2luX3BpbGUYBSABKAUSEQoJZXhwbGFpbmVkGAYgASgFEhEKCWltYWdlX3VybBgHIAEoCRIPCgdwcmludGVkGAggASgIIlAKCk1pbmlmaWd1cmUSDwoHZmlnX251bRgBIAEoCRIMCgRuYW1lGAIgASgJEhAKCHF1YW50aXR5GAMgASgFEhEKCWltYWdlX3VybBgEIAEoCSK2AQoOR2V0U2V0UmVzcG9uc2USIAoFYWxvbmUYASABKAsyES5waWxlLnYxLlNldE1hdGNoEikKCWV4cGxhaW5lZBgCIAEoCzIRLnBpbGUudjEuU2V0TWF0Y2hIAIgBARIfCgVsaW5lcxgDIAMoCzIQLnBpbGUudjEuU2V0TGluZRIoCgttaW5pZmlndXJlcxgEIAMoCzITLnBpbGUudjEuTWluaWZpZ3VyZUIMCgpfZXhwbGFpbmVkKmIKB1JhbmtpbmcSFwoTUkFOS0lOR19VTlNQRUNJRklFRBAAEhUKEVJBTktJTkdfRVhQTEFJTkVEEAESEQoNUkFOS0lOR19BTE9ORRACEhQKEFJBTktJTkdfQ09NUExFVEUQAzKUAgoLUGlsZVNlcnZpY2USSAoLR2V0T3ZlcnZpZXcSGy5waWxlLnYxLkdldE92ZXJ2aWV3UmVxdWVzdBocLnBpbGUudjEuR2V0T3ZlcnZpZXdSZXNwb25zZRI/CghMaXN0TG90cxIYLnBpbGUudjEuTGlzdExvdHNSZXF1ZXN0GhkucGlsZS52MS5MaXN0TG90c1Jlc3BvbnNlEj8KCExpc3RTZXRzEhgucGlsZS52MS5MaXN0U2V0c1JlcXVlc3QaGS5waWxlLnYxLkxpc3RTZXRzUmVzcG9uc2USOQoGR2V0U2V0EhYucGlsZS52MS5HZXRTZXRSZXF1ZXN0GhcucGlsZS52MS5HZXRTZXRSZXNwb25zZUI0WjJnaXRodWIuY29tL2Jhc2ljYWxseXNvdXJjZS9waWxlL2dlbi9waWxlL3YxO3BpbGV2MWIGcHJvdG8z");
+  fileDesc("ChJwaWxlL3YxL3BpbGUucHJvdG8SB3BpbGUudjEiWQoFQ29sb3ISCgoCaWQYASABKAUSDAoEbmFtZRgCIAEoCRILCgNyZ2IYAyABKAkSEwoLdHJhbnNwYXJlbnQYBCABKAgSFAoMYnJpY2tsaW5rX2lkGAUgASgFIhQKEkdldE92ZXJ2aWV3UmVxdWVzdCKHAgoTR2V0T3ZlcnZpZXdSZXNwb25zZRIOCgZwaWVjZXMYASABKAUSDAoEbG90cxgCIAEoBRIYChB1bm1hdGNoZWRfcGllY2VzGAMgASgFEhcKD2ZpcnN0X3NlZW5fdW5peBgEIAEoAxIWCg5sYXN0X3NlZW5fdW5peBgFIAEoAxIVCg1zbmFwc2hvdF91bml4GAYgASgDEhQKDGNhdGFsb2dfdW5peBgHIAEoAxIUCgxtYWNoaW5lX25hbWUYCCABKAkSEwoLc2V0c19yYW5rZWQYCSABKAUSGAoQZXhwbGFpbmVkX3BpZWNlcxgKIAEoBRIVCg1jb21wbGV0ZV9zZXRzGAsgASgFIhEKD0xpc3RMb3RzUmVxdWVzdCKnAQoDTG90EhAKCHBhcnRfbnVtGAEgASgJEhQKDGJyaWNrbGlua19pZBgCIAEoCRIMCgRuYW1lGAMgASgJEh0KBWNvbG9yGAQgASgLMg4ucGlsZS52MS5Db2xvchINCgVjb3VudBgFIAEoBRIRCglpbWFnZV91cmwYBiABKAkSEAoIY2F0ZWdvcnkYByABKAkSFwoPbWVhbl9jb25maWRlbmNlGAggASgCIlUKDFVubWF0Y2hlZExvdBIUCgxicmlja2xpbmtfaWQYASABKAkSDAoEbmFtZRgCIAEoCRISCgpjb2xvcl9uYW1lGAMgASgJEg0KBWNvdW50GAQgASgFIlgKEExpc3RMb3RzUmVzcG9uc2USGgoEbG90cxgBIAMoCzIMLnBpbGUudjEuTG90EigKCXVubWF0Y2hlZBgCIAMoCzIVLnBpbGUudjEuVW5tYXRjaGVkTG90IvcBCghTZXRNYXRjaBIPCgdzZXRfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSDAoEeWVhchgDIAEoBRINCgV0aGVtZRgEIAEoCRIRCglpbWFnZV91cmwYBSABKAkSDAoEaGF2ZRgGIAEoBRIMCgRuZWVkGAcgASgFEh0KFXdlaWdodGVkX2NvbXBsZXRlbmVzcxgIIAEoARIQCghldmlkZW5jZRgJIAEoARIVCg1wcmludGVkX3BhcnRzGAogASgFEhMKC21pbmlmaWd1cmVzGAsgASgFEhUKDXNhbWVfY29udGVudHMYDCADKAkSDAoEcGljaxgNIAEoBSJDCg9MaXN0U2V0c1JlcXVlc3QSIQoHcmFua2luZxgBIAEoDjIQLnBpbGUudjEuUmFua2luZxINCgVsaW1pdBgCIAEoBSIzChBMaXN0U2V0c1Jlc3BvbnNlEh8KBHNldHMYASADKAsyES5waWxlLnYxLlNldE1hdGNoIiAKDUdldFNldFJlcXVlc3QSDwoHc2V0X251bRgBIAEoCSKLAQoHU2V0TGluZRIQCghwYXJ0X251bRgBIAEoCRIMCgRuYW1lGAIgASgJEh0KBWNvbG9yGAMgASgLMg4ucGlsZS52MS5Db2xvchIMCgRuZWVkGAQgASgFEg8KB2luX3BpbGUYBSABKAUSEQoJaW1hZ2VfdXJsGAYgASgJEg8KB3ByaW50ZWQYByABKAgiUAoKTWluaWZpZ3VyZRIPCgdmaWdfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSEAoIcXVhbnRpdHkYAyABKAUSEQoJaW1hZ2VfdXJsGAQgASgJInsKDkdldFNldFJlc3BvbnNlEh4KA3NldBgBIAEoCzIRLnBpbGUudjEuU2V0TWF0Y2gSHwoFbGluZXMYAiADKAsyEC5waWxlLnYxLlNldExpbmUSKAoLbWluaWZpZ3VyZXMYAyADKAsyEy5waWxlLnYxLk1pbmlmaWd1cmUqYgoHUmFua2luZxIXChNSQU5LSU5HX1VOU1BFQ0lGSUVEEAASFQoRUkFOS0lOR19FWFBMQUlORUQQARIRCg1SQU5LSU5HX0FMT05FEAISFAoQUkFOS0lOR19DT01QTEVURRADMpQCCgtQaWxlU2VydmljZRJICgtHZXRPdmVydmlldxIbLnBpbGUudjEuR2V0T3ZlcnZpZXdSZXF1ZXN0GhwucGlsZS52MS5HZXRPdmVydmlld1Jlc3BvbnNlEj8KCExpc3RMb3RzEhgucGlsZS52MS5MaXN0TG90c1JlcXVlc3QaGS5waWxlLnYxLkxpc3RMb3RzUmVzcG9uc2USPwoITGlzdFNldHMSGC5waWxlLnYxLkxpc3RTZXRzUmVxdWVzdBoZLnBpbGUudjEuTGlzdFNldHNSZXNwb25zZRI5CgZHZXRTZXQSFi5waWxlLnYxLkdldFNldFJlcXVlc3QaFy5waWxlLnYxLkdldFNldFJlc3BvbnNlQjRaMmdpdGh1Yi5jb20vYmFzaWNhbGx5c291cmNlL3BpbGUvZ2VuL3BpbGUvdjE7cGlsZXYxYgZwcm90bzM");
 
 /**
  * @generated from message pile.v1.Color
@@ -128,7 +128,7 @@ export type GetOverviewResponse = Message<"pile.v1.GetOverviewResponse"> & {
   setsRanked: number;
 
   /**
-   * Pieces the explaining sets account for.
+   * Pieces the explained sets account for, each piece once.
    *
    * @generated from field: int32 explained_pieces = 10;
    */
@@ -273,6 +273,8 @@ export const ListLotsResponseSchema: GenMessage<ListLotsResponse> = /*@__PURE__*
   messageDesc(file_pile_v1_pile, 6);
 
 /**
+ * A set against the whole pile.
+ *
  * @generated from message pile.v1.SetMatch
  */
 export type SetMatch = Message<"pile.v1.SetMatch"> & {
@@ -350,7 +352,7 @@ export type SetMatch = Message<"pile.v1.SetMatch"> & {
   sameContents: string[];
 
   /**
-   * In RANKING_EXPLAINED, its place in the order picked, from 1.
+   * Its place in the explained order, from 1; 0 when it was not picked.
    *
    * @generated from field: int32 pick = 13;
    */
@@ -447,28 +449,22 @@ export type SetLine = Message<"pile.v1.SetLine"> & {
   need: number;
 
   /**
-   * Pieces of this part and color (or a mold variant of it) in the whole pile.
+   * Pieces of this part and color (or a mold variant of it) in the pile, up
+   * to what the line needs.
    *
    * @generated from field: int32 in_pile = 5;
    */
   inPile: number;
 
   /**
-   * Of those, the ones given to this set when the pile was explained.
-   *
-   * @generated from field: int32 explained = 6;
-   */
-  explained: number;
-
-  /**
-   * @generated from field: string image_url = 7;
+   * @generated from field: string image_url = 6;
    */
   imageUrl: string;
 
   /**
    * A printed part or a sticker: shown, not counted.
    *
-   * @generated from field: bool printed = 8;
+   * @generated from field: bool printed = 7;
    */
   printed: boolean;
 };
@@ -517,26 +513,17 @@ export const MinifigureSchema: GenMessage<Minifigure> = /*@__PURE__*/
  */
 export type GetSetResponse = Message<"pile.v1.GetSetResponse"> & {
   /**
-   * Against the whole pile.
-   *
-   * @generated from field: pile.v1.SetMatch alone = 1;
+   * @generated from field: pile.v1.SetMatch set = 1;
    */
-  alone?: SetMatch | undefined;
+  set?: SetMatch | undefined;
 
   /**
-   * Its pick when the pile was explained, if it was picked.
-   *
-   * @generated from field: optional pile.v1.SetMatch explained = 2;
-   */
-  explained?: SetMatch | undefined;
-
-  /**
-   * @generated from field: repeated pile.v1.SetLine lines = 3;
+   * @generated from field: repeated pile.v1.SetLine lines = 2;
    */
   lines: SetLine[];
 
   /**
-   * @generated from field: repeated pile.v1.Minifigure minifigures = 4;
+   * @generated from field: repeated pile.v1.Minifigure minifigures = 3;
    */
   minifigures: Minifigure[];
 };
@@ -558,8 +545,11 @@ export enum Ranking {
   UNSPECIFIED = 0,
 
   /**
-   * Sets picked one at a time, each taking its pieces out of the pile before
-   * the next is picked, so two sets never claim the same piece.
+   * The sets the pile most likely came from: picked one at a time, best
+   * evidence first, each taking its pieces out of the pile before the next is
+   * picked, so a bucket of common bricks is picked once and the sets under it
+   * show. Only the order comes from that; a match's counts are still against
+   * the whole pile.
    *
    * @generated from enum value: RANKING_EXPLAINED = 1;
    */

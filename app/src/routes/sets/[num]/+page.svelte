@@ -1,8 +1,6 @@
 <!--
 	One set against the pile: how complete it is, and every line of its
-	inventory with how many of that part and color are there. "Whole pile"
-	counts everything sorted; "As explained" counts only the pieces this set
-	was given when the pile was explained, so pieces another set took are not.
+	inventory with how many of that part and color the pile holds.
 -->
 <script lang="ts">
 	import { page } from '$app/state';
@@ -21,26 +19,21 @@
 	import Alert from '$lib/components/Alert.svelte';
 	import { count, percent } from '$lib/format';
 
-	type Basis = 'pile' | 'explained';
 	type Show = 'missing' | 'all' | 'found';
 	let detail = $state<GetSetResponse | null>(null);
 	let error = $state<string | null>(null);
-	let basis = $state<Basis>('pile');
 	let show = $state<Show>('all');
 
 	$effect(() => {
 		const setNum = page.params.num ?? '';
 		detail = null;
 		pile.getSet({ setNum }).then(
-			(d) => {
-				detail = d;
-				basis = d.explained ? 'explained' : 'pile';
-			},
+			(d) => (detail = d),
 			(e) => (error = String(e))
 		);
 	});
 
-	const found = (l: SetLine) => (basis === 'pile' ? l.inPile : l.explained);
+	const found = (l: SetLine) => l.inPile;
 	const counted = $derived(detail?.lines.filter((l) => !l.printed) ?? []);
 	const printed = $derived(detail?.lines.filter((l) => l.printed) ?? []);
 	const lines = $derived(
@@ -50,7 +43,6 @@
 			)
 			.sort((a, b) => found(a) / a.need - found(b) / b.need)
 	);
-	const match = $derived(basis === 'explained' && detail?.explained ? detail.explained : detail?.alone);
 </script>
 
 <div>
@@ -59,23 +51,23 @@
 
 {#if error}
 	<Alert tone="danger" title="This set did not load">{error}</Alert>
-{:else if !detail || !match}
+{:else if !detail?.set}
 	<div aria-busy="true" class="flex flex-col gap-3">
 		<Skeleton class="h-10 w-80" />
 		<Skeleton class="h-24 w-full" />
 		<Skeleton class="h-96 w-full" />
 	</div>
 {:else}
-	{@const set = detail.alone!}
+	{@const set = detail.set}
 	<div class="flex flex-wrap items-start gap-4">
 		<PartImage src={set.imageUrl} class="size-28 shrink-0" />
 		<div class="min-w-0 flex-1">
 			<PageHeader title={set.name} description="{set.setNum} · {set.year} · {set.theme}">
 				<div class="flex flex-wrap gap-1.5">
-					{#if detail.explained}
-						<Badge tone="primary">picked {detail.explained.pick} explaining the pile</Badge>
+					{#if set.pick}
+						<Badge tone="primary">{set.pick} in the likely order</Badge>
 					{:else}
-						<Badge>not picked explaining the pile</Badge>
+						<Badge>not among the likely sets</Badge>
 					{/if}
 					{#if set.sameContents.length}<Badge tone="info"
 							>also sold as {set.sameContents.join(', ')}</Badge
@@ -89,29 +81,18 @@
 		<div class="grid grid-cols-2 divide-line md:grid-cols-4 md:divide-x">
 			<Stat
 				label="Complete"
-				value={percent(match.have / Math.max(1, match.need))}
-				hint="{count(match.have)} of {count(match.need)} pieces"
+				value={percent(set.have / Math.max(1, set.need))}
+				hint="{count(set.have)} of {count(set.need)} pieces"
 			/>
-			<Stat label="Of its rarer pieces" value={percent(match.weightedCompleteness)} />
-			<Stat label="Printed parts and stickers" value={match.printedParts} hint="not counted" />
-			<Stat label="Minifigures" value={match.minifigures} hint="not counted" />
+			<Stat label="Of its rarer pieces" value={percent(set.weightedCompleteness)} />
+			<Stat label="Printed parts and stickers" value={set.printedParts} hint="not counted" />
+			<Stat label="Minifigures" value={set.minifigures} hint="not counted" />
 		</div>
 	</Panel>
 
 	<Panel title="Inventory" flush>
 		{#snippet actions()}
 			<div class="flex flex-wrap gap-2">
-				{#if detail?.explained}
-					<SegmentedControl
-						label="Count from"
-						size="sm"
-						bind:value={basis}
-						options={[
-							{ value: 'explained', label: 'As explained' },
-							{ value: 'pile', label: 'Whole pile' }
-						]}
-					/>
-				{/if}
 				<SegmentedControl
 					label="Show"
 					size="sm"

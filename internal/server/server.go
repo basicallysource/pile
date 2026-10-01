@@ -104,25 +104,19 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("no set "+req.Msg.SetNum))
 	}
 	r := p.Result
-	alone := r.AloneMatch(set.Num)
-	if alone == nil {
-		alone = &match.Match{Set: set}
+	m := r.AloneMatch(set.Num)
+	if m == nil {
+		m = &match.Match{Set: set}
 	}
-	out := &pilev1.GetSetResponse{Alone: setMatch(alone)}
-	picked := r.Picked(set.Num)
-	if picked != nil {
-		out.Explained = setMatch(picked)
-	}
+	out := &pilev1.GetSetResponse{Set: setMatch(m)}
 	// Lines that share a part (or its variants) and color share the pile's
 	// pieces, first come first served.
-	inPile := map[catalog.PartColor]int32{}
-	claimed := map[catalog.PartColor]int32{}
+	left := map[catalog.PartColor]int32{}
 	for _, l := range set.Lines {
 		pc := catalog.PartColor{Part: l.Part, Color: l.Color}
 		canon := catalog.PartColor{Part: p.Catalog.Canon(l.Part), Color: l.Color}
-		if _, ok := inPile[canon]; !ok {
-			inPile[canon] = r.InPile(pc)
-			claimed[canon] = picked.Claimed(r, pc)
+		if _, ok := left[canon]; !ok {
+			left[canon] = r.InPile(pc)
 		}
 		part := p.Catalog.Parts[l.Part]
 		line := &pilev1.SetLine{PartNum: l.Part, Color: color(p.Catalog.Colors[l.Color]), Need: l.Quantity, ImageUrl: l.ImageURL}
@@ -130,10 +124,8 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 			line.Name, line.Printed = part.Name, part.Printed
 		}
 		if !line.Printed {
-			line.InPile = min(inPile[canon], l.Quantity)
-			inPile[canon] -= line.InPile
-			line.Explained = min(claimed[canon], l.Quantity)
-			claimed[canon] -= line.Explained
+			line.InPile = min(left[canon], l.Quantity)
+			left[canon] -= line.InPile
 		}
 		out.Lines = append(out.Lines, line)
 	}

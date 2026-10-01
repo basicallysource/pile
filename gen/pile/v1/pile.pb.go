@@ -25,8 +25,11 @@ type Ranking int32
 
 const (
 	Ranking_RANKING_UNSPECIFIED Ranking = 0
-	// Sets picked one at a time, each taking its pieces out of the pile before
-	// the next is picked, so two sets never claim the same piece.
+	// The sets the pile most likely came from: picked one at a time, best
+	// evidence first, each taking its pieces out of the pile before the next is
+	// picked, so a bucket of common bricks is picked once and the sets under it
+	// show. Only the order comes from that; a match's counts are still against
+	// the whole pile.
 	Ranking_RANKING_EXPLAINED Ranking = 1
 	// Every set scored against the whole pile on its own.
 	Ranking_RANKING_ALONE Ranking = 2
@@ -209,7 +212,7 @@ type GetOverviewResponse struct {
 	MachineName string `protobuf:"bytes,8,opt,name=machine_name,json=machineName,proto3" json:"machine_name,omitempty"`
 	// Sets with an inventory to rank (every set with a counted piece).
 	SetsRanked int32 `protobuf:"varint,9,opt,name=sets_ranked,json=setsRanked,proto3" json:"sets_ranked,omitempty"`
-	// Pieces the explaining sets account for.
+	// Pieces the explained sets account for, each piece once.
 	ExplainedPieces int32 `protobuf:"varint,10,opt,name=explained_pieces,json=explainedPieces,proto3" json:"explained_pieces,omitempty"`
 	// Sets the pile holds every counted piece of, each on its own.
 	CompleteSets  int32 `protobuf:"varint,11,opt,name=complete_sets,json=completeSets,proto3" json:"complete_sets,omitempty"`
@@ -582,6 +585,7 @@ func (x *ListLotsResponse) GetUnmatched() []*UnmatchedLot {
 	return nil
 }
 
+// A set against the whole pile.
 type SetMatch struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	SetNum   string                 `protobuf:"bytes,1,opt,name=set_num,json=setNum,proto3" json:"set_num,omitempty"`
@@ -603,7 +607,7 @@ type SetMatch struct {
 	Minifigures  int32 `protobuf:"varint,11,opt,name=minifigures,proto3" json:"minifigures,omitempty"`
 	// Other sets with exactly the same pieces (the same box sold under several numbers).
 	SameContents []string `protobuf:"bytes,12,rep,name=same_contents,json=sameContents,proto3" json:"same_contents,omitempty"`
-	// In RANKING_EXPLAINED, its place in the order picked, from 1.
+	// Its place in the explained order, from 1; 0 when it was not picked.
 	Pick          int32 `protobuf:"varint,13,opt,name=pick,proto3" json:"pick,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -877,13 +881,12 @@ type SetLine struct {
 	Name    string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Color   *Color                 `protobuf:"bytes,3,opt,name=color,proto3" json:"color,omitempty"`
 	Need    int32                  `protobuf:"varint,4,opt,name=need,proto3" json:"need,omitempty"`
-	// Pieces of this part and color (or a mold variant of it) in the whole pile.
-	InPile int32 `protobuf:"varint,5,opt,name=in_pile,json=inPile,proto3" json:"in_pile,omitempty"`
-	// Of those, the ones given to this set when the pile was explained.
-	Explained int32  `protobuf:"varint,6,opt,name=explained,proto3" json:"explained,omitempty"`
-	ImageUrl  string `protobuf:"bytes,7,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	// Pieces of this part and color (or a mold variant of it) in the pile, up
+	// to what the line needs.
+	InPile   int32  `protobuf:"varint,5,opt,name=in_pile,json=inPile,proto3" json:"in_pile,omitempty"`
+	ImageUrl string `protobuf:"bytes,6,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
 	// A printed part or a sticker: shown, not counted.
-	Printed       bool `protobuf:"varint,8,opt,name=printed,proto3" json:"printed,omitempty"`
+	Printed       bool `protobuf:"varint,7,opt,name=printed,proto3" json:"printed,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -949,13 +952,6 @@ func (x *SetLine) GetNeed() int32 {
 func (x *SetLine) GetInPile() int32 {
 	if x != nil {
 		return x.InPile
-	}
-	return 0
-}
-
-func (x *SetLine) GetExplained() int32 {
-	if x != nil {
-		return x.Explained
 	}
 	return 0
 }
@@ -1043,13 +1039,10 @@ func (x *Minifigure) GetImageUrl() string {
 }
 
 type GetSetResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Against the whole pile.
-	Alone *SetMatch `protobuf:"bytes,1,opt,name=alone,proto3" json:"alone,omitempty"`
-	// Its pick when the pile was explained, if it was picked.
-	Explained     *SetMatch     `protobuf:"bytes,2,opt,name=explained,proto3,oneof" json:"explained,omitempty"`
-	Lines         []*SetLine    `protobuf:"bytes,3,rep,name=lines,proto3" json:"lines,omitempty"`
-	Minifigures   []*Minifigure `protobuf:"bytes,4,rep,name=minifigures,proto3" json:"minifigures,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Set           *SetMatch              `protobuf:"bytes,1,opt,name=set,proto3" json:"set,omitempty"`
+	Lines         []*SetLine             `protobuf:"bytes,2,rep,name=lines,proto3" json:"lines,omitempty"`
+	Minifigures   []*Minifigure          `protobuf:"bytes,3,rep,name=minifigures,proto3" json:"minifigures,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1084,16 +1077,9 @@ func (*GetSetResponse) Descriptor() ([]byte, []int) {
 	return file_pile_v1_pile_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *GetSetResponse) GetAlone() *SetMatch {
+func (x *GetSetResponse) GetSet() *SetMatch {
 	if x != nil {
-		return x.Alone
-	}
-	return nil
-}
-
-func (x *GetSetResponse) GetExplained() *SetMatch {
-	if x != nil {
-		return x.Explained
+		return x.Set
 	}
 	return nil
 }
@@ -1178,29 +1164,25 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x10ListSetsResponse\x12%\n" +
 	"\x04sets\x18\x01 \x03(\v2\x11.pile.v1.SetMatchR\x04sets\"(\n" +
 	"\rGetSetRequest\x12\x17\n" +
-	"\aset_num\x18\x01 \x01(\tR\x06setNum\"\xe0\x01\n" +
+	"\aset_num\x18\x01 \x01(\tR\x06setNum\"\xc2\x01\n" +
 	"\aSetLine\x12\x19\n" +
 	"\bpart_num\x18\x01 \x01(\tR\apartNum\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12$\n" +
 	"\x05color\x18\x03 \x01(\v2\x0e.pile.v1.ColorR\x05color\x12\x12\n" +
 	"\x04need\x18\x04 \x01(\x05R\x04need\x12\x17\n" +
-	"\ain_pile\x18\x05 \x01(\x05R\x06inPile\x12\x1c\n" +
-	"\texplained\x18\x06 \x01(\x05R\texplained\x12\x1b\n" +
-	"\timage_url\x18\a \x01(\tR\bimageUrl\x12\x18\n" +
-	"\aprinted\x18\b \x01(\bR\aprinted\"r\n" +
+	"\ain_pile\x18\x05 \x01(\x05R\x06inPile\x12\x1b\n" +
+	"\timage_url\x18\x06 \x01(\tR\bimageUrl\x12\x18\n" +
+	"\aprinted\x18\a \x01(\bR\aprinted\"r\n" +
 	"\n" +
 	"Minifigure\x12\x17\n" +
 	"\afig_num\x18\x01 \x01(\tR\x06figNum\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
 	"\bquantity\x18\x03 \x01(\x05R\bquantity\x12\x1b\n" +
-	"\timage_url\x18\x04 \x01(\tR\bimageUrl\"\xdc\x01\n" +
-	"\x0eGetSetResponse\x12'\n" +
-	"\x05alone\x18\x01 \x01(\v2\x11.pile.v1.SetMatchR\x05alone\x124\n" +
-	"\texplained\x18\x02 \x01(\v2\x11.pile.v1.SetMatchH\x00R\texplained\x88\x01\x01\x12&\n" +
-	"\x05lines\x18\x03 \x03(\v2\x10.pile.v1.SetLineR\x05lines\x125\n" +
-	"\vminifigures\x18\x04 \x03(\v2\x13.pile.v1.MinifigureR\vminifiguresB\f\n" +
-	"\n" +
-	"_explained*b\n" +
+	"\timage_url\x18\x04 \x01(\tR\bimageUrl\"\x94\x01\n" +
+	"\x0eGetSetResponse\x12#\n" +
+	"\x03set\x18\x01 \x01(\v2\x11.pile.v1.SetMatchR\x03set\x12&\n" +
+	"\x05lines\x18\x02 \x03(\v2\x10.pile.v1.SetLineR\x05lines\x125\n" +
+	"\vminifigures\x18\x03 \x03(\v2\x13.pile.v1.MinifigureR\vminifigures*b\n" +
 	"\aRanking\x12\x17\n" +
 	"\x13RANKING_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11RANKING_EXPLAINED\x10\x01\x12\x11\n" +
@@ -1250,23 +1232,22 @@ var file_pile_v1_pile_proto_depIdxs = []int32{
 	0,  // 3: pile.v1.ListSetsRequest.ranking:type_name -> pile.v1.Ranking
 	8,  // 4: pile.v1.ListSetsResponse.sets:type_name -> pile.v1.SetMatch
 	1,  // 5: pile.v1.SetLine.color:type_name -> pile.v1.Color
-	8,  // 6: pile.v1.GetSetResponse.alone:type_name -> pile.v1.SetMatch
-	8,  // 7: pile.v1.GetSetResponse.explained:type_name -> pile.v1.SetMatch
-	12, // 8: pile.v1.GetSetResponse.lines:type_name -> pile.v1.SetLine
-	13, // 9: pile.v1.GetSetResponse.minifigures:type_name -> pile.v1.Minifigure
-	2,  // 10: pile.v1.PileService.GetOverview:input_type -> pile.v1.GetOverviewRequest
-	4,  // 11: pile.v1.PileService.ListLots:input_type -> pile.v1.ListLotsRequest
-	9,  // 12: pile.v1.PileService.ListSets:input_type -> pile.v1.ListSetsRequest
-	11, // 13: pile.v1.PileService.GetSet:input_type -> pile.v1.GetSetRequest
-	3,  // 14: pile.v1.PileService.GetOverview:output_type -> pile.v1.GetOverviewResponse
-	7,  // 15: pile.v1.PileService.ListLots:output_type -> pile.v1.ListLotsResponse
-	10, // 16: pile.v1.PileService.ListSets:output_type -> pile.v1.ListSetsResponse
-	14, // 17: pile.v1.PileService.GetSet:output_type -> pile.v1.GetSetResponse
-	14, // [14:18] is the sub-list for method output_type
-	10, // [10:14] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	8,  // 6: pile.v1.GetSetResponse.set:type_name -> pile.v1.SetMatch
+	12, // 7: pile.v1.GetSetResponse.lines:type_name -> pile.v1.SetLine
+	13, // 8: pile.v1.GetSetResponse.minifigures:type_name -> pile.v1.Minifigure
+	2,  // 9: pile.v1.PileService.GetOverview:input_type -> pile.v1.GetOverviewRequest
+	4,  // 10: pile.v1.PileService.ListLots:input_type -> pile.v1.ListLotsRequest
+	9,  // 11: pile.v1.PileService.ListSets:input_type -> pile.v1.ListSetsRequest
+	11, // 12: pile.v1.PileService.GetSet:input_type -> pile.v1.GetSetRequest
+	3,  // 13: pile.v1.PileService.GetOverview:output_type -> pile.v1.GetOverviewResponse
+	7,  // 14: pile.v1.PileService.ListLots:output_type -> pile.v1.ListLotsResponse
+	10, // 15: pile.v1.PileService.ListSets:output_type -> pile.v1.ListSetsResponse
+	14, // 16: pile.v1.PileService.GetSet:output_type -> pile.v1.GetSetResponse
+	13, // [13:17] is the sub-list for method output_type
+	9,  // [9:13] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_pile_v1_pile_proto_init() }
@@ -1274,7 +1255,6 @@ func file_pile_v1_pile_proto_init() {
 	if File_pile_v1_pile_proto != nil {
 		return
 	}
-	file_pile_v1_pile_proto_msgTypes[13].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

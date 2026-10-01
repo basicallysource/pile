@@ -71,7 +71,7 @@
 		<Badge>12 printed not counted</Badge>
 		<Badge>3 minifigures</Badge>
 		<Badge tone="info">also sold as 3033-1</Badge>
-		<Badge tone="primary">picked 2 explaining the pile</Badge>
+		<Badge tone="primary">2 in the likely order</Badge>
 	</div>
 </Panel>
 
