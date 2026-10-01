@@ -1,6 +1,6 @@
 <!--
 	The pile's totals in one row: how many pieces, how many lots, how much of it
-	the sets explain, and what no set can claim.
+	the sets explain, how many sets it completes, and what no set can claim.
 -->
 <script lang="ts">
 	import type { GetOverviewResponse } from '$lib/gen/pile/v1/pile_pb';
@@ -12,7 +12,7 @@
 </script>
 
 <Panel flush>
-	<div class="grid grid-cols-2 divide-line md:grid-cols-4 md:divide-x">
+	<div class="grid grid-cols-2 divide-line md:grid-cols-5 md:divide-x">
 		<Stat label="Pieces" value={count(overview.pieces)} />
 		<Stat label="Lots" value={count(overview.lots)} hint="parts in a color" />
 		<Stat
@@ -20,6 +20,7 @@
 			value={percent(overview.explainedPieces / Math.max(1, overview.pieces))}
 			hint="{count(overview.explainedPieces)} pieces"
 		/>
+		<Stat label="Complete sets" value={count(overview.completeSets)} hint="each on its own" />
 		<Stat
 			label="Not in the catalog"
 			value={count(overview.unmatchedPieces)}

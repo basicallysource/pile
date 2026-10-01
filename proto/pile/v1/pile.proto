@@ -42,10 +42,12 @@ message GetOverviewResponse {
   // When the Rebrickable catalog was downloaded.
   int64 catalog_unix = 7;
   string machine_name = 8;
-  // Sets with an inventory big enough to rank.
+  // Sets with an inventory to rank (every set with a counted piece).
   int32 sets_ranked = 9;
   // Pieces the explaining sets account for.
   int32 explained_pieces = 10;
+  // Sets the pile holds every counted piece of, each on its own.
+  int32 complete_sets = 11;
 }
 
 message ListLotsRequest {}
@@ -110,6 +112,7 @@ message SetMatch {
 
 message ListSetsRequest {
   Ranking ranking = 1;
+  // At most this many; 0 is every set.
   int32 limit = 2;
 }
 

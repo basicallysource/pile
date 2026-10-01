@@ -1,8 +1,9 @@
 <!--
-	The sets the pile looks like. "Explains the pile" picks sets one at a time,
-	each taking its pieces before the next is picked, so a bucket of basic
-	bricks is picked once and the sets under it show; "Each on its own" scores
-	every set against the whole pile.
+	The sets the pile looks like, every one of them. "Explains the pile" picks
+	sets one at a time, each taking its pieces before the next is picked, so a
+	bucket of basic bricks is picked once and the sets under it show; "Each on
+	its own" is every set with a piece in the pile, scored against the whole
+	pile, in the order chosen. Rows are drawn a page at a time.
 -->
 <script lang="ts">
 	import { Ranking, type GetOverviewResponse, type SetMatch } from '$lib/gen/pile/v1/pile_pb';
@@ -10,17 +11,23 @@
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Panel from '$lib/components/Panel.svelte';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
+	import Select from '$lib/components/Select.svelte';
 	import Input from '$lib/components/Input.svelte';
+	import Button from '$lib/components/Button.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Alert from '$lib/components/Alert.svelte';
 	import Overview from '$lib/pile/Overview.svelte';
 	import SetRow from '$lib/pile/SetRow.svelte';
-	import { dayOf, dayTimeOf } from '$lib/format';
+	import { count, dayOf, dayTimeOf } from '$lib/format';
 
+	const PAGE = 100;
 	type Mode = 'explained' | 'alone';
+	type Order = 'evidence' | 'complete' | 'found';
 	let mode = $state<Mode>('explained');
+	let order = $state<Order>('complete');
 	let query = $state('');
+	let drawn = $state(PAGE);
 	let overview = $state<GetOverviewResponse | null>(null);
 	let sets = $state<SetMatch[] | null>(null);
 	let error = $state<string | null>(null);
@@ -32,18 +39,34 @@
 	$effect(() => {
 		const ranking = mode === 'explained' ? Ranking.EXPLAINED : Ranking.ALONE;
 		sets = null;
-		pile.listSets({ ranking, limit: mode === 'alone' ? 300 : 0 }).then(
+		pile.listSets({ ranking, limit: 0 }).then(
 			(r) => (sets = r.sets),
 			(e) => (error = String(e))
 		);
 	});
 
+	const share = (s: SetMatch) => s.have / Math.max(1, s.need);
+	const orders: Record<Order, (a: SetMatch, b: SetMatch) => number> = {
+		evidence: (a, b) => b.evidence * b.weightedCompleteness - a.evidence * a.weightedCompleteness,
+		complete: (a, b) => share(b) - share(a) || b.need - a.need,
+		found: (a, b) => b.have - a.have || share(b) - share(a)
+	};
+
 	const shown = $derived.by(() => {
+		if (!sets) return null;
 		const q = query.trim().toLowerCase();
-		if (!sets || !q) return sets;
-		return sets.filter((s) =>
-			[s.name, s.setNum, s.theme, String(s.year)].some((v) => v.toLowerCase().includes(q))
-		);
+		const list = q
+			? sets.filter((s) =>
+					[s.name, s.setNum, s.theme, String(s.year)].some((v) => v.toLowerCase().includes(q))
+				)
+			: [...sets];
+		return mode === 'alone' ? list.sort(orders[order]) : list;
+	});
+
+	// A new list starts at its first page.
+	$effect(() => {
+		void [mode, order, query];
+		drawn = PAGE;
 	});
 </script>
 
@@ -57,7 +80,7 @@
 		<p class="text-xs text-ink-faint">
 			Records copied {dayTimeOf(overview.snapshotUnix)} · Rebrickable catalog of {dayOf(
 				overview.catalogUnix
-			)} · {overview.setsRanked.toLocaleString()} sets ranked. Printed parts, stickers and minifigures
+			)} · every one of {count(overview.setsRanked)} sets checked. Printed parts, stickers and minifigures
 			are left out of every count.
 		</p>
 	{/if}
@@ -79,6 +102,18 @@
 				{ value: 'alone', label: 'Each on its own' }
 			]}
 		/>
+		{#if mode === 'alone'}
+			<Select
+				label="Order"
+				class="w-48"
+				bind:value={order}
+				options={[
+					{ value: 'complete', label: 'Most complete' },
+					{ value: 'found', label: 'Most pieces found' },
+					{ value: 'evidence', label: 'Best evidence' }
+				]}
+			/>
+		{/if}
 		<Input
 			type="search"
 			placeholder="Filter by name, number, theme or year"
@@ -92,7 +127,9 @@
 			Picked in order, best evidence first; each pick's pieces are taken out of the pile before the
 			next, so no piece counts twice.
 		{:else}
-			Every set against the whole pile, ranked by how much of its rarer pieces are there.
+			Every set with a piece in the pile{shown ? ` (${count(shown.length)})` : ''}, each against the
+			whole pile, so two sets can count the same piece. Sets made only of common bricks are complete
+			in almost any big pile.
 		{/if}
 	</p>
 	{#if shown === null}
@@ -105,7 +142,14 @@
 		</div>
 	{:else}
 		<div class="divide-y divide-line">
-			{#each shown as set (set.setNum + set.pick)}<SetRow {set} />{/each}
+			{#each shown.slice(0, drawn) as set (set.setNum + set.pick)}<SetRow {set} />{/each}
 		</div>
+		{#if shown.length > drawn}
+			<div class="border-t border-line px-(--pad-panel) py-3">
+				<Button onclick={() => (drawn += PAGE)}
+					>Show {Math.min(PAGE, shown.length - drawn)} more of {count(shown.length - drawn)}</Button
+				>
+			</div>
+		{/if}
 	{/if}
 </Panel>

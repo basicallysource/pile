@@ -23,14 +23,11 @@ import (
 )
 
 const (
-	// Sets smaller than this are not ranked: a polybag of a few common parts
-	// is complete in any pile and says nothing.
-	minSetPieces = 10
 	// A pick needs this weighted completeness...
 	minPickWeighted = 0.3
-	// ...and this much evidence (the rarity-weighted pieces it claims).
-	minPickEvidence = 40
-	maxPicks        = 120
+	// ...and this much evidence (the rarity-weighted pieces it claims, about
+	// three uncommon pieces), so a pick is more than one common brick.
+	minPickEvidence = 10
 )
 
 // Key is a part (standing for its mold variants and alternates) in a color.
@@ -67,6 +64,7 @@ type Result struct {
 	Explained []*Match // in the order picked
 	Explains  int32    // pieces the picks claim
 	Ranked    int      // sets considered
+	Complete  int      // sets the pile holds every counted piece of
 
 	keys  map[catalog.PartColor]Key
 	pile  map[Key]int32
@@ -137,13 +135,13 @@ func Run(cat *catalog.Catalog, pile map[catalog.PartColor]int32) *Result {
 
 	var pool []*setLines
 	for _, sl := range sets {
-		if sl.need < minSetPieces {
-			continue
-		}
 		r.Ranked++
 		m := score(sl, r.pile)
 		if m.Have == 0 {
 			continue
+		}
+		if m.Have == m.Need {
+			r.Complete++
 		}
 		r.Alone = append(r.Alone, m)
 		r.alone[sl.set.Num] = m
@@ -157,7 +155,7 @@ func Run(cat *catalog.Catalog, pile map[catalog.PartColor]int32) *Result {
 	for k, v := range r.pile {
 		left[k] = v
 	}
-	for len(r.Explained) < maxPicks {
+	for {
 		var best *Match
 		var bestLines *setLines
 		for _, sl := range pool {
@@ -223,8 +221,8 @@ func dedupe(sets []*setLines) []*setLines {
 	return out
 }
 
-// Alone is the set's match against the whole pile (nil if it has no pieces
-// there, is too small to rank, or shares its contents with another set).
+// AloneMatch is the set's match against the whole pile (nil if it has no
+// pieces there, or shares its contents with another set).
 func (r *Result) AloneMatch(setNum string) *Match { return r.alone[setNum] }
 
 // Picked is the set's first pick in the explained ranking, if any.

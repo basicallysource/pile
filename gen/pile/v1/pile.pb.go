@@ -202,12 +202,14 @@ type GetOverviewResponse struct {
 	// When the Rebrickable catalog was downloaded.
 	CatalogUnix int64  `protobuf:"varint,7,opt,name=catalog_unix,json=catalogUnix,proto3" json:"catalog_unix,omitempty"`
 	MachineName string `protobuf:"bytes,8,opt,name=machine_name,json=machineName,proto3" json:"machine_name,omitempty"`
-	// Sets with an inventory big enough to rank.
+	// Sets with an inventory to rank (every set with a counted piece).
 	SetsRanked int32 `protobuf:"varint,9,opt,name=sets_ranked,json=setsRanked,proto3" json:"sets_ranked,omitempty"`
 	// Pieces the explaining sets account for.
 	ExplainedPieces int32 `protobuf:"varint,10,opt,name=explained_pieces,json=explainedPieces,proto3" json:"explained_pieces,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Sets the pile holds every counted piece of, each on its own.
+	CompleteSets  int32 `protobuf:"varint,11,opt,name=complete_sets,json=completeSets,proto3" json:"complete_sets,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetOverviewResponse) Reset() {
@@ -306,6 +308,13 @@ func (x *GetOverviewResponse) GetSetsRanked() int32 {
 func (x *GetOverviewResponse) GetExplainedPieces() int32 {
 	if x != nil {
 		return x.ExplainedPieces
+	}
+	return 0
+}
+
+func (x *GetOverviewResponse) GetCompleteSets() int32 {
+	if x != nil {
+		return x.CompleteSets
 	}
 	return 0
 }
@@ -717,9 +726,10 @@ func (x *SetMatch) GetPick() int32 {
 }
 
 type ListSetsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ranking       Ranking                `protobuf:"varint,1,opt,name=ranking,proto3,enum=pile.v1.Ranking" json:"ranking,omitempty"`
-	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Ranking Ranking                `protobuf:"varint,1,opt,name=ranking,proto3,enum=pile.v1.Ranking" json:"ranking,omitempty"`
+	// At most this many; 0 is every set.
+	Limit         int32 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1108,7 +1118,7 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x03rgb\x18\x03 \x01(\tR\x03rgb\x12 \n" +
 	"\vtransparent\x18\x04 \x01(\bR\vtransparent\x12!\n" +
 	"\fbricklink_id\x18\x05 \x01(\x05R\vbricklinkId\"\x14\n" +
-	"\x12GetOverviewRequest\"\xf1\x02\n" +
+	"\x12GetOverviewRequest\"\x96\x03\n" +
 	"\x13GetOverviewResponse\x12\x16\n" +
 	"\x06pieces\x18\x01 \x01(\x05R\x06pieces\x12\x12\n" +
 	"\x04lots\x18\x02 \x01(\x05R\x04lots\x12)\n" +
@@ -1121,7 +1131,8 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\vsets_ranked\x18\t \x01(\x05R\n" +
 	"setsRanked\x12)\n" +
 	"\x10explained_pieces\x18\n" +
-	" \x01(\x05R\x0fexplainedPieces\"\x11\n" +
+	" \x01(\x05R\x0fexplainedPieces\x12#\n" +
+	"\rcomplete_sets\x18\v \x01(\x05R\fcompleteSets\"\x11\n" +
 	"\x0fListLotsRequest\"\xf5\x01\n" +
 	"\x03Lot\x12\x19\n" +
 	"\bpart_num\x18\x01 \x01(\tR\apartNum\x12!\n" +

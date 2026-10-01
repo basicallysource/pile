@@ -52,6 +52,7 @@ func (s *Service) GetOverview(_ context.Context, _ *connect.Request[pilev1.GetOv
 		MachineName:     p.Machine,
 		SetsRanked:      int32(p.Result.Ranked),
 		ExplainedPieces: p.Result.Explains,
+		CompleteSets:    int32(p.Result.Complete),
 	}), nil
 }
 
