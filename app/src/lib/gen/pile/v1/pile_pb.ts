@@ -10,7 +10,43 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pile/v1/pile.proto.
  */
 export const file_pile_v1_pile: GenFile = /*@__PURE__*/
-  fileDesc("ChJwaWxlL3YxL3BpbGUucHJvdG8SB3BpbGUudjEiWQoFQ29sb3ISCgoCaWQYASABKAUSDAoEbmFtZRgCIAEoCRILCgNyZ2IYAyABKAkSEwoLdHJhbnNwYXJlbnQYBCABKAgSFAoMYnJpY2tsaW5rX2lkGAUgASgFIhQKEkdldE92ZXJ2aWV3UmVxdWVzdCKHAgoTR2V0T3ZlcnZpZXdSZXNwb25zZRIOCgZwaWVjZXMYASABKAUSDAoEbG90cxgCIAEoBRIYChB1bm1hdGNoZWRfcGllY2VzGAMgASgFEhcKD2ZpcnN0X3NlZW5fdW5peBgEIAEoAxIWCg5sYXN0X3NlZW5fdW5peBgFIAEoAxIVCg1zbmFwc2hvdF91bml4GAYgASgDEhQKDGNhdGFsb2dfdW5peBgHIAEoAxIUCgxtYWNoaW5lX25hbWUYCCABKAkSEwoLc2V0c19yYW5rZWQYCSABKAUSGAoQZXhwbGFpbmVkX3BpZWNlcxgKIAEoBRIVCg1jb21wbGV0ZV9zZXRzGAsgASgFIhEKD0xpc3RMb3RzUmVxdWVzdCKnAQoDTG90EhAKCHBhcnRfbnVtGAEgASgJEhQKDGJyaWNrbGlua19pZBgCIAEoCRIMCgRuYW1lGAMgASgJEh0KBWNvbG9yGAQgASgLMg4ucGlsZS52MS5Db2xvchINCgVjb3VudBgFIAEoBRIRCglpbWFnZV91cmwYBiABKAkSEAoIY2F0ZWdvcnkYByABKAkSFwoPbWVhbl9jb25maWRlbmNlGAggASgCIlUKDFVubWF0Y2hlZExvdBIUCgxicmlja2xpbmtfaWQYASABKAkSDAoEbmFtZRgCIAEoCRISCgpjb2xvcl9uYW1lGAMgASgJEg0KBWNvdW50GAQgASgFIlgKEExpc3RMb3RzUmVzcG9uc2USGgoEbG90cxgBIAMoCzIMLnBpbGUudjEuTG90EigKCXVubWF0Y2hlZBgCIAMoCzIVLnBpbGUudjEuVW5tYXRjaGVkTG90IqkCCghTZXRNYXRjaBIPCgdzZXRfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSDAoEeWVhchgDIAEoBRINCgV0aGVtZRgEIAEoCRIRCglpbWFnZV91cmwYBSABKAkSDAoEaGF2ZRgGIAEoBRIMCgRuZWVkGAcgASgFEh0KFXdlaWdodGVkX2NvbXBsZXRlbmVzcxgIIAEoARIQCghldmlkZW5jZRgJIAEoARIVCg1wcmludGVkX3BhcnRzGAogASgFEhMKC21pbmlmaWd1cmVzGAsgASgFEhUKDXNhbWVfY29udGVudHMYDCADKAkSDAoEcGljaxgNIAEoBRIYChBtaW5pZmlndXJlX3BhcnRzGA4gASgFEhYKDm1pbmlmaWd1cmVfc2V0GA8gASgIIkMKD0xpc3RTZXRzUmVxdWVzdBIhCgdyYW5raW5nGAEgASgOMhAucGlsZS52MS5SYW5raW5nEg0KBWxpbWl0GAIgASgFIjMKEExpc3RTZXRzUmVzcG9uc2USHwoEc2V0cxgBIAMoCzIRLnBpbGUudjEuU2V0TWF0Y2giIAoNR2V0U2V0UmVxdWVzdBIPCgdzZXRfbnVtGAEgASgJIp8BCgdTZXRMaW5lEhAKCHBhcnRfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSHQoFY29sb3IYAyABKAsyDi5waWxlLnYxLkNvbG9yEgwKBG5lZWQYBCABKAUSDwoHaW5fcGlsZRgFIAEoBRIRCglpbWFnZV91cmwYBiABKAkSIwoIY291bnRpbmcYByABKA4yES5waWxlLnYxLkNvdW50aW5nIlAKCk1pbmlmaWd1cmUSDwoHZmlnX251bRgBIAEoCRIMCgRuYW1lGAIgASgJEhAKCHF1YW50aXR5GAMgASgFEhEKCWltYWdlX3VybBgEIAEoCSJ7Cg5HZXRTZXRSZXNwb25zZRIeCgNzZXQYASABKAsyES5waWxlLnYxLlNldE1hdGNoEh8KBWxpbmVzGAIgAygLMhAucGlsZS52MS5TZXRMaW5lEigKC21pbmlmaWd1cmVzGAMgAygLMhMucGlsZS52MS5NaW5pZmlndXJlKmIKB1JhbmtpbmcSFwoTUkFOS0lOR19VTlNQRUNJRklFRBAAEhUKEVJBTktJTkdfRVhQTEFJTkVEEAESEQoNUkFOS0lOR19BTE9ORRACEhQKEFJBTktJTkdfQ09NUExFVEUQAyppCghDb3VudGluZxIYChRDT1VOVElOR19VTlNQRUNJRklFRBAAEhQKEENPVU5USU5HX0NPVU5URUQQARIUChBDT1VOVElOR19QUklOVEVEEAISFwoTQ09VTlRJTkdfTUlOSUZJR1VSRRADMpQCCgtQaWxlU2VydmljZRJICgtHZXRPdmVydmlldxIbLnBpbGUudjEuR2V0T3ZlcnZpZXdSZXF1ZXN0GhwucGlsZS52MS5HZXRPdmVydmlld1Jlc3BvbnNlEj8KCExpc3RMb3RzEhgucGlsZS52MS5MaXN0TG90c1JlcXVlc3QaGS5waWxlLnYxLkxpc3RMb3RzUmVzcG9uc2USPwoITGlzdFNldHMSGC5waWxlLnYxLkxpc3RTZXRzUmVxdWVzdBoZLnBpbGUudjEuTGlzdFNldHNSZXNwb25zZRI5CgZHZXRTZXQSFi5waWxlLnYxLkdldFNldFJlcXVlc3QaFy5waWxlLnYxLkdldFNldFJlc3BvbnNlQjRaMmdpdGh1Yi5jb20vYmFzaWNhbGx5c291cmNlL3BpbGUvZ2VuL3BpbGUvdjE7cGlsZXYxYgZwcm90bzM");
+  fileDesc("ChJwaWxlL3YxL3BpbGUucHJvdG8SB3BpbGUudjEiOwoEVmlldxIOCgZsb3RfaWQYASABKAkSEQoJYW55X2NvbG9yGAIgASgIEhAKCHNvcnRfb3V0GAMgAygJIlkKBUNvbG9yEgoKAmlkGAEgASgFEgwKBG5hbWUYAiABKAkSCwoDcmdiGAMgASgJEhMKC3RyYW5zcGFyZW50GAQgASgIEhQKDGJyaWNrbGlua19pZBgFIAEoBSL2AQoDTG90EgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSFAoMbWFjaGluZV9uYW1lGAQgASgJEg4KBnBpZWNlcxgFIAEoBRITCgtwYXJ0X2NvbG9ycxgGIAEoBRIYChB1bm1hdGNoZWRfcGllY2VzGAcgASgFEhcKD2ZpcnN0X3NlZW5fdW5peBgIIAEoAxIWCg5sYXN0X3NlZW5fdW5peBgJIAEoAxIVCg1zbmFwc2hvdF91bml4GAogASgDEiMKBmNvbG9ycxgLIAMoCzITLnBpbGUudjEuQ29sb3JTaGFyZSI7CgpDb2xvclNoYXJlEh0KBWNvbG9yGAEgASgLMg4ucGlsZS52MS5Db2xvchIOCgZwaWVjZXMYAiABKAUiLQoNQ2F0ZWdvcnlTaGFyZRIMCgRuYW1lGAEgASgJEg4KBnBpZWNlcxgCIAEoBSIRCg9MaXN0TG90c1JlcXVlc3QieQoQTGlzdExvdHNSZXNwb25zZRIaCgRsb3RzGAEgAygLMgwucGlsZS52MS5Mb3QSFAoMY2F0YWxvZ191bml4GAIgASgDEhQKDHNldHNfY2hlY2tlZBgDIAEoBRIdChVjdXN0b21fbW9kZWxzX2NoZWNrZWQYBCABKAUi+gIKCFNldE1hdGNoEg8KB3NldF9udW0YASABKAkSDAoEbmFtZRgCIAEoCRIMCgR5ZWFyGAMgASgFEg0KBXRoZW1lGAQgASgJEhEKCWltYWdlX3VybBgFIAEoCRIMCgRoYXZlGAYgASgFEgwKBG5lZWQYByABKAUSHQoVd2VpZ2h0ZWRfY29tcGxldGVuZXNzGAggASgBEhAKCGV2aWRlbmNlGAkgASgBEhUKDXByaW50ZWRfcGFydHMYCiABKAUSEwoLbWluaWZpZ3VyZXMYCyABKAUSFQoNc2FtZV9jb250ZW50cxgMIAMoCRIMCgRwaWNrGA0gASgFEhgKEG1pbmlmaWd1cmVfcGFydHMYDiABKAUSFgoObWluaWZpZ3VyZV9zZXQYDyABKAgSGwoEa2luZBgQIAEoDjINLnBpbGUudjEuS2luZBIQCghkZXNpZ25lchgRIAEoCRILCgN1cmwYEiABKAkSEwoLd3JvbmdfY29sb3IYEyABKAUiOQoHU2VjdGlvbhIfCgRzZXRzGAEgAygLMhEucGlsZS52MS5TZXRNYXRjaBINCgV0b3RhbBgCIAEoBSIsCg1HZXRMb3RSZXF1ZXN0EhsKBHZpZXcYASABKAsyDS5waWxlLnYxLlZpZXci4QIKDkdldExvdFJlc3BvbnNlEhkKA2xvdBgBIAEoCzIMLnBpbGUudjEuTG90EioKCmNhdGVnb3JpZXMYAiADKAsyFi5waWxlLnYxLkNhdGVnb3J5U2hhcmUSIwoIc29ydF9vdXQYAyADKAsyES5waWxlLnYxLlNldE1hdGNoEhMKC3BpZWNlc19sZWZ0GAQgASgFEiIKCGNvbXBsZXRlGAUgASgLMhAucGlsZS52MS5TZWN0aW9uEiAKBmFsbW9zdBgGIAEoCzIQLnBpbGUudjEuU2VjdGlvbhIgCgZsaWtlbHkYByABKAsyEC5waWxlLnYxLlNlY3Rpb24SIAoGY3VzdG9tGAggASgLMhAucGlsZS52MS5TZWN0aW9uEiQKCm1pbmlmaWd1cmUYCSABKAsyEC5waWxlLnYxLlNlY3Rpb24SHgoEdGlueRgKIAEoCzIQLnBpbGUudjEuU2VjdGlvbiJqCg9MaXN0U2V0c1JlcXVlc3QSGwoEdmlldxgBIAEoCzINLnBpbGUudjEuVmlldxIdCgVvcmRlchgCIAEoDjIOLnBpbGUudjEuT3JkZXISGwoEa2luZBgDIAEoDjINLnBpbGUudjEuS2luZCIzChBMaXN0U2V0c1Jlc3BvbnNlEh8KBHNldHMYASADKAsyES5waWxlLnYxLlNldE1hdGNoIj0KDUdldFNldFJlcXVlc3QSGwoEdmlldxgBIAEoCzINLnBpbGUudjEuVmlldxIPCgdzZXRfbnVtGAIgASgJIrIBCgdTZXRMaW5lEhAKCHBhcnRfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSHQoFY29sb3IYAyABKAsyDi5waWxlLnYxLkNvbG9yEgwKBG5lZWQYBCABKAUSDQoFZm91bmQYBSABKAUSEwoLd3JvbmdfY29sb3IYBiABKAUSEQoJaW1hZ2VfdXJsGAcgASgJEiMKCGNvdW50aW5nGAggASgOMhEucGlsZS52MS5Db3VudGluZyJQCgpNaW5pZmlndXJlEg8KB2ZpZ19udW0YASABKAkSDAoEbmFtZRgCIAEoCRIQCghxdWFudGl0eRgDIAEoBRIRCglpbWFnZV91cmwYBCABKAkikwEKDkdldFNldFJlc3BvbnNlEh4KA3NldBgBIAEoCzIRLnBpbGUudjEuU2V0TWF0Y2gSHwoFbGluZXMYAiADKAsyEC5waWxlLnYxLlNldExpbmUSKAoLbWluaWZpZ3VyZXMYAyADKAsyEy5waWxlLnYxLk1pbmlmaWd1cmUSFgoOc29ydF9vdXRfcGxhY2UYBCABKAUiIgoQTGlzdFBhcnRzUmVxdWVzdBIOCgZsb3RfaWQYASABKAkirQEKCVBhcnRDb3VudBIQCghwYXJ0X251bRgBIAEoCRIUCgxicmlja2xpbmtfaWQYAiABKAkSDAoEbmFtZRgDIAEoCRIdCgVjb2xvchgEIAEoCzIOLnBpbGUudjEuQ29sb3ISDQoFY291bnQYBSABKAUSEQoJaW1hZ2VfdXJsGAYgASgJEhAKCGNhdGVnb3J5GAcgASgJEhcKD21lYW5fY29uZmlkZW5jZRgIIAEoAiJWCg1Vbm1hdGNoZWRQYXJ0EhQKDGJyaWNrbGlua19pZBgBIAEoCRIMCgRuYW1lGAIgASgJEhIKCmNvbG9yX25hbWUYAyABKAkSDQoFY291bnQYBCABKAUiYQoRTGlzdFBhcnRzUmVzcG9uc2USIQoFcGFydHMYASADKAsyEi5waWxlLnYxLlBhcnRDb3VudBIpCgl1bm1hdGNoZWQYAiADKAsyFi5waWxlLnYxLlVubWF0Y2hlZFBhcnQqOwoES2luZBIUChBLSU5EX1VOU1BFQ0lGSUVEEAASDAoIS0lORF9TRVQQARIPCgtLSU5EX0NVU1RPTRACKlcKBU9yZGVyEhUKEU9SREVSX1VOU1BFQ0lGSUVEEAASEgoOT1JERVJfQ09NUExFVEUQARIPCgtPUkRFUl9GT1VORBACEhIKDk9SREVSX0VWSURFTkNFEAMqaQoIQ291bnRpbmcSGAoUQ09VTlRJTkdfVU5TUEVDSUZJRUQQABIUChBDT1VOVElOR19DT1VOVEVEEAESFAoQQ09VTlRJTkdfUFJJTlRFRBACEhcKE0NPVU5USU5HX01JTklGSUdVUkUQAzLJAgoLUGlsZVNlcnZpY2USPwoITGlzdExvdHMSGC5waWxlLnYxLkxpc3RMb3RzUmVxdWVzdBoZLnBpbGUudjEuTGlzdExvdHNSZXNwb25zZRI5CgZHZXRMb3QSFi5waWxlLnYxLkdldExvdFJlcXVlc3QaFy5waWxlLnYxLkdldExvdFJlc3BvbnNlEj8KCExpc3RTZXRzEhgucGlsZS52MS5MaXN0U2V0c1JlcXVlc3QaGS5waWxlLnYxLkxpc3RTZXRzUmVzcG9uc2USOQoGR2V0U2V0EhYucGlsZS52MS5HZXRTZXRSZXF1ZXN0GhcucGlsZS52MS5HZXRTZXRSZXNwb25zZRJCCglMaXN0UGFydHMSGS5waWxlLnYxLkxpc3RQYXJ0c1JlcXVlc3QaGi5waWxlLnYxLkxpc3RQYXJ0c1Jlc3BvbnNlQjRaMmdpdGh1Yi5jb20vYmFzaWNhbGx5c291cmNlL3BpbGUvZ2VuL3BpbGUvdjE7cGlsZXYxYgZwcm90bzM");
+
+/**
+ * How a lot is looked at.
+ *
+ * @generated from message pile.v1.View
+ */
+export type View = Message<"pile.v1.View"> & {
+  /**
+   * @generated from field: string lot_id = 1;
+   */
+  lotId: string;
+
+  /**
+   * Match parts in any color: a set counts a piece of the right part in
+   * another color as found, and says how many of its pieces are.
+   *
+   * @generated from field: bool any_color = 2;
+   */
+  anyColor: boolean;
+
+  /**
+   * Sets and custom models to sort out, most wanted first. Each takes its
+   * pieces from what the ones before it left; everything else is matched
+   * against what is left after all of them.
+   *
+   * @generated from field: repeated string sort_out = 3;
+   */
+  sortOut: string[];
+};
+
+/**
+ * Describes the message pile.v1.View.
+ * Use `create(ViewSchema)` to create a new message.
+ */
+export const ViewSchema: GenMessage<View> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 0);
 
 /**
  * @generated from message pile.v1.Color
@@ -51,103 +87,130 @@ export type Color = Message<"pile.v1.Color"> & {
  * Use `create(ColorSchema)` to create a new message.
  */
 export const ColorSchema: GenMessage<Color> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 0);
-
-/**
- * @generated from message pile.v1.GetOverviewRequest
- */
-export type GetOverviewRequest = Message<"pile.v1.GetOverviewRequest"> & {
-};
-
-/**
- * Describes the message pile.v1.GetOverviewRequest.
- * Use `create(GetOverviewRequestSchema)` to create a new message.
- */
-export const GetOverviewRequestSchema: GenMessage<GetOverviewRequest> = /*@__PURE__*/
   messageDesc(file_pile_v1_pile, 1);
 
 /**
- * @generated from message pile.v1.GetOverviewResponse
+ * @generated from message pile.v1.Lot
  */
-export type GetOverviewResponse = Message<"pile.v1.GetOverviewResponse"> & {
+export type Lot = Message<"pile.v1.Lot"> & {
   /**
-   * Pieces the machine classified in the window.
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * One sentence: where the pieces came from.
    *
-   * @generated from field: int32 pieces = 1;
+   * @generated from field: string description = 3;
+   */
+  description: string;
+
+  /**
+   * @generated from field: string machine_name = 4;
+   */
+  machineName: string;
+
+  /**
+   * Pieces the machine classified in the lot.
+   *
+   * @generated from field: int32 pieces = 5;
    */
   pieces: number;
 
   /**
    * Distinct part and color pairs among them.
    *
-   * @generated from field: int32 lots = 2;
+   * @generated from field: int32 part_colors = 6;
    */
-  lots: number;
+  partColors: number;
 
   /**
-   * Pieces whose part or color has no Rebrickable match, so no set can claim them.
+   * Pieces whose part or color has no Rebrickable match.
    *
-   * @generated from field: int32 unmatched_pieces = 3;
+   * @generated from field: int32 unmatched_pieces = 7;
    */
   unmatchedPieces: number;
 
   /**
-   * @generated from field: int64 first_seen_unix = 4;
+   * @generated from field: int64 first_seen_unix = 8;
    */
   firstSeenUnix: bigint;
 
   /**
-   * @generated from field: int64 last_seen_unix = 5;
+   * @generated from field: int64 last_seen_unix = 9;
    */
   lastSeenUnix: bigint;
 
   /**
    * When the machine's records were copied.
    *
-   * @generated from field: int64 snapshot_unix = 6;
+   * @generated from field: int64 snapshot_unix = 10;
    */
   snapshotUnix: bigint;
 
   /**
-   * When the Rebrickable catalog was downloaded.
+   * The lot's colors by share of its pieces, most first.
    *
-   * @generated from field: int64 catalog_unix = 7;
+   * @generated from field: repeated pile.v1.ColorShare colors = 11;
    */
-  catalogUnix: bigint;
-
-  /**
-   * @generated from field: string machine_name = 8;
-   */
-  machineName: string;
-
-  /**
-   * Sets with an inventory to rank (every set with a counted piece).
-   *
-   * @generated from field: int32 sets_ranked = 9;
-   */
-  setsRanked: number;
-
-  /**
-   * Pieces the explained sets account for, each piece once.
-   *
-   * @generated from field: int32 explained_pieces = 10;
-   */
-  explainedPieces: number;
-
-  /**
-   * Sets the pile holds every counted piece of, each on its own.
-   *
-   * @generated from field: int32 complete_sets = 11;
-   */
-  completeSets: number;
+  colors: ColorShare[];
 };
 
 /**
- * Describes the message pile.v1.GetOverviewResponse.
- * Use `create(GetOverviewResponseSchema)` to create a new message.
+ * Describes the message pile.v1.Lot.
+ * Use `create(LotSchema)` to create a new message.
  */
-export const GetOverviewResponseSchema: GenMessage<GetOverviewResponse> = /*@__PURE__*/
+export const LotSchema: GenMessage<Lot> = /*@__PURE__*/
   messageDesc(file_pile_v1_pile, 2);
+
+/**
+ * @generated from message pile.v1.ColorShare
+ */
+export type ColorShare = Message<"pile.v1.ColorShare"> & {
+  /**
+   * @generated from field: pile.v1.Color color = 1;
+   */
+  color?: Color | undefined;
+
+  /**
+   * @generated from field: int32 pieces = 2;
+   */
+  pieces: number;
+};
+
+/**
+ * Describes the message pile.v1.ColorShare.
+ * Use `create(ColorShareSchema)` to create a new message.
+ */
+export const ColorShareSchema: GenMessage<ColorShare> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 3);
+
+/**
+ * @generated from message pile.v1.CategoryShare
+ */
+export type CategoryShare = Message<"pile.v1.CategoryShare"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * @generated from field: int32 pieces = 2;
+   */
+  pieces: number;
+};
+
+/**
+ * Describes the message pile.v1.CategoryShare.
+ * Use `create(CategoryShareSchema)` to create a new message.
+ */
+export const CategoryShareSchema: GenMessage<CategoryShare> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 4);
 
 /**
  * @generated from message pile.v1.ListLotsRequest
@@ -160,12 +223,517 @@ export type ListLotsRequest = Message<"pile.v1.ListLotsRequest"> & {
  * Use `create(ListLotsRequestSchema)` to create a new message.
  */
 export const ListLotsRequestSchema: GenMessage<ListLotsRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 3);
+  messageDesc(file_pile_v1_pile, 5);
 
 /**
- * @generated from message pile.v1.Lot
+ * @generated from message pile.v1.ListLotsResponse
  */
-export type Lot = Message<"pile.v1.Lot"> & {
+export type ListLotsResponse = Message<"pile.v1.ListLotsResponse"> & {
+  /**
+   * @generated from field: repeated pile.v1.Lot lots = 1;
+   */
+  lots: Lot[];
+
+  /**
+   * When the Rebrickable catalog was downloaded.
+   *
+   * @generated from field: int64 catalog_unix = 2;
+   */
+  catalogUnix: bigint;
+
+  /**
+   * Sets and custom models every lot is matched against.
+   *
+   * @generated from field: int32 sets_checked = 3;
+   */
+  setsChecked: number;
+
+  /**
+   * @generated from field: int32 custom_models_checked = 4;
+   */
+  customModelsChecked: number;
+};
+
+/**
+ * Describes the message pile.v1.ListLotsResponse.
+ * Use `create(ListLotsResponseSchema)` to create a new message.
+ */
+export const ListLotsResponseSchema: GenMessage<ListLotsResponse> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 6);
+
+/**
+ * A set or custom model against the pieces a view leaves.
+ *
+ * @generated from message pile.v1.SetMatch
+ */
+export type SetMatch = Message<"pile.v1.SetMatch"> & {
+  /**
+   * @generated from field: string set_num = 1;
+   */
+  setNum: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * @generated from field: int32 year = 3;
+   */
+  year: number;
+
+  /**
+   * @generated from field: string theme = 4;
+   */
+  theme: string;
+
+  /**
+   * @generated from field: string image_url = 5;
+   */
+  imageUrl: string;
+
+  /**
+   * Pieces of it found, each line capped at what it needs.
+   *
+   * @generated from field: int32 have = 6;
+   */
+  have: number;
+
+  /**
+   * Pieces in it, not counting printed parts, stickers, minifigures or
+   * minifigure parts.
+   *
+   * @generated from field: int32 need = 7;
+   */
+  need: number;
+
+  /**
+   * The same, weighted by how rare each part (and color) is across all sets:
+   * finding its unusual pieces counts for more than its 2x4 bricks.
+   *
+   * @generated from field: double weighted_completeness = 8;
+   */
+  weightedCompleteness: number;
+
+  /**
+   * How much distinctive evidence the pieces hold for it.
+   *
+   * @generated from field: double evidence = 9;
+   */
+  evidence: number;
+
+  /**
+   * Printed parts and stickers, left out of `need`.
+   *
+   * @generated from field: int32 printed_parts = 10;
+   */
+  printedParts: number;
+
+  /**
+   * @generated from field: int32 minifigures = 11;
+   */
+  minifigures: number;
+
+  /**
+   * Other sets with exactly the same pieces (the same box sold under several numbers).
+   *
+   * @generated from field: repeated string same_contents = 12;
+   */
+  sameContents: string[];
+
+  /**
+   * Its place in the likely order (judged in exact colors), from 1; 0 when
+   * it is not among them.
+   *
+   * @generated from field: int32 pick = 13;
+   */
+  pick: number;
+
+  /**
+   * Loose minifigure parts, left out of `need`.
+   *
+   * @generated from field: int32 minifigure_parts = 14;
+   */
+  minifigureParts: number;
+
+  /**
+   * Basically a minifigure: its figures (about four pieces each) and loose
+   * figure parts outweigh its counted pieces.
+   *
+   * @generated from field: bool minifigure_set = 15;
+   */
+  minifigureSet: boolean;
+
+  /**
+   * @generated from field: pile.v1.Kind kind = 16;
+   */
+  kind: Kind;
+
+  /**
+   * A custom model's designer.
+   *
+   * @generated from field: string designer = 17;
+   */
+  designer: string;
+
+  /**
+   * Its page on Rebrickable.
+   *
+   * @generated from field: string url = 18;
+   */
+  url: string;
+
+  /**
+   * In an any-color view, the pieces of `have` that are another color.
+   *
+   * @generated from field: int32 wrong_color = 19;
+   */
+  wrongColor: number;
+};
+
+/**
+ * Describes the message pile.v1.SetMatch.
+ * Use `create(SetMatchSchema)` to create a new message.
+ */
+export const SetMatchSchema: GenMessage<SetMatch> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 7);
+
+/**
+ * The first sets of a section, and how many it has.
+ *
+ * @generated from message pile.v1.Section
+ */
+export type Section = Message<"pile.v1.Section"> & {
+  /**
+   * @generated from field: repeated pile.v1.SetMatch sets = 1;
+   */
+  sets: SetMatch[];
+
+  /**
+   * @generated from field: int32 total = 2;
+   */
+  total: number;
+};
+
+/**
+ * Describes the message pile.v1.Section.
+ * Use `create(SectionSchema)` to create a new message.
+ */
+export const SectionSchema: GenMessage<Section> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 8);
+
+/**
+ * @generated from message pile.v1.GetLotRequest
+ */
+export type GetLotRequest = Message<"pile.v1.GetLotRequest"> & {
+  /**
+   * @generated from field: pile.v1.View view = 1;
+   */
+  view?: View | undefined;
+};
+
+/**
+ * Describes the message pile.v1.GetLotRequest.
+ * Use `create(GetLotRequestSchema)` to create a new message.
+ */
+export const GetLotRequestSchema: GenMessage<GetLotRequest> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 9);
+
+/**
+ * @generated from message pile.v1.GetLotResponse
+ */
+export type GetLotResponse = Message<"pile.v1.GetLotResponse"> & {
+  /**
+   * @generated from field: pile.v1.Lot lot = 1;
+   */
+  lot?: Lot | undefined;
+
+  /**
+   * The parts' categories by share of the lot's pieces, most first.
+   *
+   * @generated from field: repeated pile.v1.CategoryShare categories = 2;
+   */
+  categories: CategoryShare[];
+
+  /**
+   * The sort-out queue in order, each against what the ones before it left.
+   *
+   * @generated from field: repeated pile.v1.SetMatch sort_out = 3;
+   */
+  sortOut: SetMatch[];
+
+  /**
+   * Pieces left once the queue has taken its pieces.
+   *
+   * @generated from field: int32 pieces_left = 4;
+   */
+  piecesLeft: number;
+
+  /**
+   * Every counted piece is there. Rarest pieces first.
+   *
+   * @generated from field: pile.v1.Section complete = 5;
+   */
+  complete?: Section | undefined;
+
+  /**
+   * At least 80% there and not complete. Rarest pieces first.
+   *
+   * @generated from field: pile.v1.Section almost = 6;
+   */
+  almost?: Section | undefined;
+
+  /**
+   * The sets the pieces most likely came from (judged in exact colors) that
+   * are neither complete nor almost, most likely first.
+   *
+   * @generated from field: pile.v1.Section likely = 7;
+   */
+  likely?: Section | undefined;
+
+  /**
+   * Free custom models at least 60% there, most complete first.
+   *
+   * @generated from field: pile.v1.Section custom = 8;
+   */
+  custom?: Section | undefined;
+
+  /**
+   * Sets that are basically a minifigure, complete, almost or likely.
+   *
+   * @generated from field: pile.v1.Section minifigure = 9;
+   */
+  minifigure?: Section | undefined;
+
+  /**
+   * Complete sets of under five counted pieces (key chains, gear).
+   *
+   * @generated from field: pile.v1.Section tiny = 10;
+   */
+  tiny?: Section | undefined;
+};
+
+/**
+ * Describes the message pile.v1.GetLotResponse.
+ * Use `create(GetLotResponseSchema)` to create a new message.
+ */
+export const GetLotResponseSchema: GenMessage<GetLotResponse> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 10);
+
+/**
+ * @generated from message pile.v1.ListSetsRequest
+ */
+export type ListSetsRequest = Message<"pile.v1.ListSetsRequest"> & {
+  /**
+   * @generated from field: pile.v1.View view = 1;
+   */
+  view?: View | undefined;
+
+  /**
+   * @generated from field: pile.v1.Order order = 2;
+   */
+  order: Order;
+
+  /**
+   * KIND_UNSPECIFIED is both.
+   *
+   * @generated from field: pile.v1.Kind kind = 3;
+   */
+  kind: Kind;
+};
+
+/**
+ * Describes the message pile.v1.ListSetsRequest.
+ * Use `create(ListSetsRequestSchema)` to create a new message.
+ */
+export const ListSetsRequestSchema: GenMessage<ListSetsRequest> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 11);
+
+/**
+ * @generated from message pile.v1.ListSetsResponse
+ */
+export type ListSetsResponse = Message<"pile.v1.ListSetsResponse"> & {
+  /**
+   * @generated from field: repeated pile.v1.SetMatch sets = 1;
+   */
+  sets: SetMatch[];
+};
+
+/**
+ * Describes the message pile.v1.ListSetsResponse.
+ * Use `create(ListSetsResponseSchema)` to create a new message.
+ */
+export const ListSetsResponseSchema: GenMessage<ListSetsResponse> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 12);
+
+/**
+ * @generated from message pile.v1.GetSetRequest
+ */
+export type GetSetRequest = Message<"pile.v1.GetSetRequest"> & {
+  /**
+   * @generated from field: pile.v1.View view = 1;
+   */
+  view?: View | undefined;
+
+  /**
+   * @generated from field: string set_num = 2;
+   */
+  setNum: string;
+};
+
+/**
+ * Describes the message pile.v1.GetSetRequest.
+ * Use `create(GetSetRequestSchema)` to create a new message.
+ */
+export const GetSetRequestSchema: GenMessage<GetSetRequest> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 13);
+
+/**
+ * @generated from message pile.v1.SetLine
+ */
+export type SetLine = Message<"pile.v1.SetLine"> & {
+  /**
+   * @generated from field: string part_num = 1;
+   */
+  partNum: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * @generated from field: pile.v1.Color color = 3;
+   */
+  color?: Color | undefined;
+
+  /**
+   * @generated from field: int32 need = 4;
+   */
+  need: number;
+
+  /**
+   * Pieces of this part (or a mold variant) found for this line, up to `need`:
+   * in its color, or in an any-color view in any color.
+   *
+   * @generated from field: int32 found = 5;
+   */
+  found: number;
+
+  /**
+   * Of `found`, the pieces in another color.
+   *
+   * @generated from field: int32 wrong_color = 6;
+   */
+  wrongColor: number;
+
+  /**
+   * @generated from field: string image_url = 7;
+   */
+  imageUrl: string;
+
+  /**
+   * @generated from field: pile.v1.Counting counting = 8;
+   */
+  counting: Counting;
+};
+
+/**
+ * Describes the message pile.v1.SetLine.
+ * Use `create(SetLineSchema)` to create a new message.
+ */
+export const SetLineSchema: GenMessage<SetLine> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 14);
+
+/**
+ * @generated from message pile.v1.Minifigure
+ */
+export type Minifigure = Message<"pile.v1.Minifigure"> & {
+  /**
+   * @generated from field: string fig_num = 1;
+   */
+  figNum: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * @generated from field: int32 quantity = 3;
+   */
+  quantity: number;
+
+  /**
+   * @generated from field: string image_url = 4;
+   */
+  imageUrl: string;
+};
+
+/**
+ * Describes the message pile.v1.Minifigure.
+ * Use `create(MinifigureSchema)` to create a new message.
+ */
+export const MinifigureSchema: GenMessage<Minifigure> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 15);
+
+/**
+ * @generated from message pile.v1.GetSetResponse
+ */
+export type GetSetResponse = Message<"pile.v1.GetSetResponse"> & {
+  /**
+   * @generated from field: pile.v1.SetMatch set = 1;
+   */
+  set?: SetMatch | undefined;
+
+  /**
+   * @generated from field: repeated pile.v1.SetLine lines = 2;
+   */
+  lines: SetLine[];
+
+  /**
+   * @generated from field: repeated pile.v1.Minifigure minifigures = 3;
+   */
+  minifigures: Minifigure[];
+
+  /**
+   * Its place in the view's sort-out queue, from 1; 0 when not in it.
+   *
+   * @generated from field: int32 sort_out_place = 4;
+   */
+  sortOutPlace: number;
+};
+
+/**
+ * Describes the message pile.v1.GetSetResponse.
+ * Use `create(GetSetResponseSchema)` to create a new message.
+ */
+export const GetSetResponseSchema: GenMessage<GetSetResponse> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 16);
+
+/**
+ * @generated from message pile.v1.ListPartsRequest
+ */
+export type ListPartsRequest = Message<"pile.v1.ListPartsRequest"> & {
+  /**
+   * @generated from field: string lot_id = 1;
+   */
+  lotId: string;
+};
+
+/**
+ * Describes the message pile.v1.ListPartsRequest.
+ * Use `create(ListPartsRequestSchema)` to create a new message.
+ */
+export const ListPartsRequestSchema: GenMessage<ListPartsRequest> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 17);
+
+/**
+ * A part in a color, and how many the lot has.
+ *
+ * @generated from message pile.v1.PartCount
+ */
+export type PartCount = Message<"pile.v1.PartCount"> & {
   /**
    * @generated from field: string part_num = 1;
    */
@@ -210,18 +778,18 @@ export type Lot = Message<"pile.v1.Lot"> & {
 };
 
 /**
- * Describes the message pile.v1.Lot.
- * Use `create(LotSchema)` to create a new message.
+ * Describes the message pile.v1.PartCount.
+ * Use `create(PartCountSchema)` to create a new message.
  */
-export const LotSchema: GenMessage<Lot> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 4);
+export const PartCountSchema: GenMessage<PartCount> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 18);
 
 /**
- * A piece the catalog cannot place: the classifier's own names.
+ * Pieces the catalog cannot place: the classifier's own names.
  *
- * @generated from message pile.v1.UnmatchedLot
+ * @generated from message pile.v1.UnmatchedPart
  */
-export type UnmatchedLot = Message<"pile.v1.UnmatchedLot"> & {
+export type UnmatchedPart = Message<"pile.v1.UnmatchedPart"> & {
   /**
    * @generated from field: string bricklink_id = 1;
    */
@@ -244,355 +812,97 @@ export type UnmatchedLot = Message<"pile.v1.UnmatchedLot"> & {
 };
 
 /**
- * Describes the message pile.v1.UnmatchedLot.
- * Use `create(UnmatchedLotSchema)` to create a new message.
+ * Describes the message pile.v1.UnmatchedPart.
+ * Use `create(UnmatchedPartSchema)` to create a new message.
  */
-export const UnmatchedLotSchema: GenMessage<UnmatchedLot> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 5);
+export const UnmatchedPartSchema: GenMessage<UnmatchedPart> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 19);
 
 /**
- * @generated from message pile.v1.ListLotsResponse
+ * @generated from message pile.v1.ListPartsResponse
  */
-export type ListLotsResponse = Message<"pile.v1.ListLotsResponse"> & {
+export type ListPartsResponse = Message<"pile.v1.ListPartsResponse"> & {
   /**
-   * @generated from field: repeated pile.v1.Lot lots = 1;
+   * @generated from field: repeated pile.v1.PartCount parts = 1;
    */
-  lots: Lot[];
+  parts: PartCount[];
 
   /**
-   * @generated from field: repeated pile.v1.UnmatchedLot unmatched = 2;
+   * @generated from field: repeated pile.v1.UnmatchedPart unmatched = 2;
    */
-  unmatched: UnmatchedLot[];
+  unmatched: UnmatchedPart[];
 };
 
 /**
- * Describes the message pile.v1.ListLotsResponse.
- * Use `create(ListLotsResponseSchema)` to create a new message.
+ * Describes the message pile.v1.ListPartsResponse.
+ * Use `create(ListPartsResponseSchema)` to create a new message.
  */
-export const ListLotsResponseSchema: GenMessage<ListLotsResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 6);
+export const ListPartsResponseSchema: GenMessage<ListPartsResponse> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 20);
 
 /**
- * A set against the whole pile.
- *
- * @generated from message pile.v1.SetMatch
+ * @generated from enum pile.v1.Kind
  */
-export type SetMatch = Message<"pile.v1.SetMatch"> & {
+export enum Kind {
   /**
-   * @generated from field: string set_num = 1;
-   */
-  setNum: string;
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name: string;
-
-  /**
-   * @generated from field: int32 year = 3;
-   */
-  year: number;
-
-  /**
-   * @generated from field: string theme = 4;
-   */
-  theme: string;
-
-  /**
-   * @generated from field: string image_url = 5;
-   */
-  imageUrl: string;
-
-  /**
-   * Pieces of the set found in the pile, each line capped at what the set needs.
-   *
-   * @generated from field: int32 have = 6;
-   */
-  have: number;
-
-  /**
-   * Pieces in the set, not counting printed parts, stickers, minifigures or
-   * minifigure parts.
-   *
-   * @generated from field: int32 need = 7;
-   */
-  need: number;
-
-  /**
-   * The same, weighted by how rare each part and color is across all sets:
-   * finding a set's unusual pieces counts for more than its 2x4 bricks.
-   *
-   * @generated from field: double weighted_completeness = 8;
-   */
-  weightedCompleteness: number;
-
-  /**
-   * How much distinctive evidence the pile holds for this set.
-   *
-   * @generated from field: double evidence = 9;
-   */
-  evidence: number;
-
-  /**
-   * Printed parts and stickers in the set, left out of `need`.
-   *
-   * @generated from field: int32 printed_parts = 10;
-   */
-  printedParts: number;
-
-  /**
-   * @generated from field: int32 minifigures = 11;
-   */
-  minifigures: number;
-
-  /**
-   * Other sets with exactly the same pieces (the same box sold under several numbers).
-   *
-   * @generated from field: repeated string same_contents = 12;
-   */
-  sameContents: string[];
-
-  /**
-   * Its place in the explained order, from 1; 0 when it was not picked.
-   *
-   * @generated from field: int32 pick = 13;
-   */
-  pick: number;
-
-  /**
-   * Loose minifigure parts in its inventory, left out of `need`.
-   *
-   * @generated from field: int32 minifigure_parts = 14;
-   */
-  minifigureParts: number;
-
-  /**
-   * Basically a minifigure: its figures (about four pieces each) and loose
-   * figure parts outweigh its counted pieces.
-   *
-   * @generated from field: bool minifigure_set = 15;
-   */
-  minifigureSet: boolean;
-};
-
-/**
- * Describes the message pile.v1.SetMatch.
- * Use `create(SetMatchSchema)` to create a new message.
- */
-export const SetMatchSchema: GenMessage<SetMatch> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 7);
-
-/**
- * @generated from message pile.v1.ListSetsRequest
- */
-export type ListSetsRequest = Message<"pile.v1.ListSetsRequest"> & {
-  /**
-   * @generated from field: pile.v1.Ranking ranking = 1;
-   */
-  ranking: Ranking;
-
-  /**
-   * At most this many; 0 is every set.
-   *
-   * @generated from field: int32 limit = 2;
-   */
-  limit: number;
-};
-
-/**
- * Describes the message pile.v1.ListSetsRequest.
- * Use `create(ListSetsRequestSchema)` to create a new message.
- */
-export const ListSetsRequestSchema: GenMessage<ListSetsRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 8);
-
-/**
- * @generated from message pile.v1.ListSetsResponse
- */
-export type ListSetsResponse = Message<"pile.v1.ListSetsResponse"> & {
-  /**
-   * @generated from field: repeated pile.v1.SetMatch sets = 1;
-   */
-  sets: SetMatch[];
-};
-
-/**
- * Describes the message pile.v1.ListSetsResponse.
- * Use `create(ListSetsResponseSchema)` to create a new message.
- */
-export const ListSetsResponseSchema: GenMessage<ListSetsResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 9);
-
-/**
- * @generated from message pile.v1.GetSetRequest
- */
-export type GetSetRequest = Message<"pile.v1.GetSetRequest"> & {
-  /**
-   * @generated from field: string set_num = 1;
-   */
-  setNum: string;
-};
-
-/**
- * Describes the message pile.v1.GetSetRequest.
- * Use `create(GetSetRequestSchema)` to create a new message.
- */
-export const GetSetRequestSchema: GenMessage<GetSetRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 10);
-
-/**
- * @generated from message pile.v1.SetLine
- */
-export type SetLine = Message<"pile.v1.SetLine"> & {
-  /**
-   * @generated from field: string part_num = 1;
-   */
-  partNum: string;
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name: string;
-
-  /**
-   * @generated from field: pile.v1.Color color = 3;
-   */
-  color?: Color | undefined;
-
-  /**
-   * @generated from field: int32 need = 4;
-   */
-  need: number;
-
-  /**
-   * Pieces of this part and color (or a mold variant of it) in the pile, up
-   * to what the line needs.
-   *
-   * @generated from field: int32 in_pile = 5;
-   */
-  inPile: number;
-
-  /**
-   * @generated from field: string image_url = 6;
-   */
-  imageUrl: string;
-
-  /**
-   * @generated from field: pile.v1.Counting counting = 7;
-   */
-  counting: Counting;
-};
-
-/**
- * Describes the message pile.v1.SetLine.
- * Use `create(SetLineSchema)` to create a new message.
- */
-export const SetLineSchema: GenMessage<SetLine> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 11);
-
-/**
- * @generated from message pile.v1.Minifigure
- */
-export type Minifigure = Message<"pile.v1.Minifigure"> & {
-  /**
-   * @generated from field: string fig_num = 1;
-   */
-  figNum: string;
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name: string;
-
-  /**
-   * @generated from field: int32 quantity = 3;
-   */
-  quantity: number;
-
-  /**
-   * @generated from field: string image_url = 4;
-   */
-  imageUrl: string;
-};
-
-/**
- * Describes the message pile.v1.Minifigure.
- * Use `create(MinifigureSchema)` to create a new message.
- */
-export const MinifigureSchema: GenMessage<Minifigure> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 12);
-
-/**
- * @generated from message pile.v1.GetSetResponse
- */
-export type GetSetResponse = Message<"pile.v1.GetSetResponse"> & {
-  /**
-   * @generated from field: pile.v1.SetMatch set = 1;
-   */
-  set?: SetMatch | undefined;
-
-  /**
-   * @generated from field: repeated pile.v1.SetLine lines = 2;
-   */
-  lines: SetLine[];
-
-  /**
-   * @generated from field: repeated pile.v1.Minifigure minifigures = 3;
-   */
-  minifigures: Minifigure[];
-};
-
-/**
- * Describes the message pile.v1.GetSetResponse.
- * Use `create(GetSetResponseSchema)` to create a new message.
- */
-export const GetSetResponseSchema: GenMessage<GetSetResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 13);
-
-/**
- * @generated from enum pile.v1.Ranking
- */
-export enum Ranking {
-  /**
-   * @generated from enum value: RANKING_UNSPECIFIED = 0;
+   * @generated from enum value: KIND_UNSPECIFIED = 0;
    */
   UNSPECIFIED = 0,
 
   /**
-   * The sets the pile most likely came from: picked one at a time, best
-   * evidence first, each taking its pieces out of the pile before the next is
-   * picked, so a bucket of common bricks is picked once and the sets under it
-   * show. Only the order comes from that; a match's counts are still against
-   * the whole pile.
+   * A set LEGO sold.
    *
-   * @generated from enum value: RANKING_EXPLAINED = 1;
+   * @generated from enum value: KIND_SET = 1;
    */
-  EXPLAINED = 1,
+  SET = 1,
 
   /**
-   * Every set scored against the whole pile on its own.
+   * A free custom model (MOC) on Rebrickable.
    *
-   * @generated from enum value: RANKING_ALONE = 2;
+   * @generated from enum value: KIND_CUSTOM = 2;
    */
-  ALONE = 2,
-
-  /**
-   * The sets the pile holds every counted piece of, the ones with the rarest
-   * pieces on average first.
-   *
-   * @generated from enum value: RANKING_COMPLETE = 3;
-   */
-  COMPLETE = 3,
+  CUSTOM = 2,
 }
 
 /**
- * Describes the enum pile.v1.Ranking.
+ * Describes the enum pile.v1.Kind.
  */
-export const RankingSchema: GenEnum<Ranking> = /*@__PURE__*/
+export const KindSchema: GenEnum<Kind> = /*@__PURE__*/
   enumDesc(file_pile_v1_pile, 0);
 
 /**
- * Whether a part counts toward a set's completeness.
+ * @generated from enum pile.v1.Order
+ */
+export enum Order {
+  /**
+   * @generated from enum value: ORDER_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: ORDER_COMPLETE = 1;
+   */
+  COMPLETE = 1,
+
+  /**
+   * @generated from enum value: ORDER_FOUND = 2;
+   */
+  FOUND = 2,
+
+  /**
+   * @generated from enum value: ORDER_EVIDENCE = 3;
+   */
+  EVIDENCE = 3,
+}
+
+/**
+ * Describes the enum pile.v1.Order.
+ */
+export const OrderSchema: GenEnum<Order> = /*@__PURE__*/
+  enumDesc(file_pile_v1_pile, 1);
+
+/**
+ * Whether a part counts toward completeness.
  *
  * @generated from enum pile.v1.Counting
  */
@@ -626,26 +936,17 @@ export enum Counting {
  * Describes the enum pile.v1.Counting.
  */
 export const CountingSchema: GenEnum<Counting> = /*@__PURE__*/
-  enumDesc(file_pile_v1_pile, 1);
+  enumDesc(file_pile_v1_pile, 2);
 
 /**
- * What a sorter sorted, and which LEGO sets those pieces make up.
+ * A collection of sorted pieces, kept as lots (one box, one sort), and the
+ * LEGO sets and custom models each lot's pieces make up.
  *
  * @generated from service pile.v1.PileService
  */
 export const PileService: GenService<{
   /**
-   * The totals: how many pieces, from when, and how much the sets explain.
-   *
-   * @generated from rpc pile.v1.PileService.GetOverview
-   */
-  getOverview: {
-    methodKind: "unary";
-    input: typeof GetOverviewRequestSchema;
-    output: typeof GetOverviewResponseSchema;
-  },
-  /**
-   * The bulk catalog: every part in every color, with its count.
+   * The collection: every lot, with its totals.
    *
    * @generated from rpc pile.v1.PileService.ListLots
    */
@@ -655,7 +956,19 @@ export const PileService: GenService<{
     output: typeof ListLotsResponseSchema;
   },
   /**
-   * The sets the pile looks like, ranked.
+   * One lot as seen through a view: its totals, what its pieces are, the sets
+   * it completes, nearly completes and most likely came from, the custom
+   * models it can build, and the sort-out queue.
+   *
+   * @generated from rpc pile.v1.PileService.GetLot
+   */
+  getLot: {
+    methodKind: "unary";
+    input: typeof GetLotRequestSchema;
+    output: typeof GetLotResponseSchema;
+  },
+  /**
+   * Every set and custom model with a piece in the lot, through a view.
    *
    * @generated from rpc pile.v1.PileService.ListSets
    */
@@ -665,7 +978,7 @@ export const PileService: GenService<{
     output: typeof ListSetsResponseSchema;
   },
   /**
-   * One set, line by line, against the pile.
+   * One set or custom model, line by line, through a view.
    *
    * @generated from rpc pile.v1.PileService.GetSet
    */
@@ -673,6 +986,16 @@ export const PileService: GenService<{
     methodKind: "unary";
     input: typeof GetSetRequestSchema;
     output: typeof GetSetResponseSchema;
+  },
+  /**
+   * The lot's bulk catalog: every part in every color, with its count.
+   *
+   * @generated from rpc pile.v1.PileService.ListParts
+   */
+  listParts: {
+    methodKind: "unary";
+    input: typeof ListPartsRequestSchema;
+    output: typeof ListPartsResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_pile_v1_pile, 0);

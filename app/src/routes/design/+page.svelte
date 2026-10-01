@@ -26,7 +26,7 @@
 	let mode = $state<'explained' | 'alone'>('explained');
 	const red = { name: 'Red', rgb: 'C91A09' };
 	const img = 'https://cdn.rebrickable.com/media/parts/elements/300121.jpg';
-	const sample = (setNum: string, have: number, need: number, pick = 0) =>
+	const sample = (setNum: string, have: number, need: number, wrongColor = 0) =>
 		create(SetMatchSchema, {
 			setNum,
 			name: 'Speedboat',
@@ -35,7 +35,7 @@
 			imageUrl: 'https://cdn.rebrickable.com/media/sets/7610-1.jpg',
 			have,
 			need,
-			pick
+			wrongColor
 		});
 </script>
 
@@ -86,6 +86,7 @@
 		<Badge>3 minifigures</Badge>
 		<Badge tone="info">also sold as 3033-1</Badge>
 		<Badge tone="primary">2 in the likely order</Badge>
+		<Badge tone="info">custom model</Badge>
 	</div>
 </Panel>
 
@@ -101,10 +102,13 @@
 
 <Panel
 	title="Sets"
-	description="SetGrid of SetTiles: the picture, a small caption, a thin bar for how much the pile holds, green when complete."
+	description="SetGrid of SetTiles: the picture, a small caption, a thin bar for how much the pile holds, green when complete, recolors in an any-color view. The corner button queues it for sorting out."
 	flush
 >
-	<SetGrid sets={[sample('7610-1', 18, 18), sample('7610-2', 15, 18), sample('7610-3', 4, 18)]} />
+	<SetGrid
+		lot="design"
+		sets={[sample('7610-1', 18, 18), sample('7610-2', 15, 18, 3), sample('7610-3', 4, 18)]}
+	/>
 </Panel>
 
 <Panel title="Progress" description="How complete a set is: the bar, the share, and the pieces.">

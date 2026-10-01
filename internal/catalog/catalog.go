@@ -56,11 +56,16 @@ type Minifigure struct {
 }
 
 type Set struct {
-	Num         string
-	Name        string
-	Year        int32
-	Theme       string
-	ImageURL    string
+	Num      string
+	Name     string
+	Year     int32
+	Theme    string
+	ImageURL string
+	// A free custom model (MOC) rather than a set LEGO sold.
+	Custom bool
+	// A custom model's designer and its page on Rebrickable.
+	Designer    string
+	URL         string
 	Lines       []Line
 	Minifigures []Minifigure
 }
@@ -85,8 +90,9 @@ type PartColor struct {
 	Color int32
 }
 
-// Load reads the Rebrickable CSVs in dir and the BrickLink mapping in hivePartsDB.
-func Load(dir, hivePartsDB string) (*Catalog, error) {
+// Load reads the Rebrickable CSVs in dir, the BrickLink mapping in
+// hivePartsDB, and the custom models in customModels (skipped when absent).
+func Load(dir, hivePartsDB, customModels string) (*Catalog, error) {
 	c := &Catalog{
 		Colors:    map[int32]*Color{},
 		Parts:     map[string]*Part{},
@@ -105,6 +111,9 @@ func Load(dir, hivePartsDB string) (*Catalog, error) {
 	}
 	if err := c.loadBrickLink(hivePartsDB); err != nil {
 		return nil, fmt.Errorf("bricklink mapping from %s: %w", hivePartsDB, err)
+	}
+	if err := c.loadCustom(customModels); err != nil {
+		return nil, fmt.Errorf("custom models from %s: %w", customModels, err)
 	}
 	return c, nil
 }
@@ -239,7 +248,8 @@ func (c *Catalog) loadSets(dir string) error {
 		return err
 	}
 	if err := each(dir, "sets", func(row func(string) string) error {
-		c.Sets[row("set_num")] = &Set{Num: row("set_num"), Name: row("name"), Year: num(row("year")), Theme: themes[row("theme_id")], ImageURL: row("img_url")}
+		n := row("set_num")
+		c.Sets[n] = &Set{Num: n, Name: row("name"), Year: num(row("year")), Theme: themes[row("theme_id")], ImageURL: row("img_url"), URL: "https://rebrickable.com/sets/" + n + "/"}
 		return nil
 	}); err != nil {
 		return err

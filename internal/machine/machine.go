@@ -31,10 +31,10 @@ type Records struct {
 	LastSeen  int64
 }
 
-// Read returns the pieces classified from since on: the ones not lost
-// (dead) and not marked wrong by a person, with a person's color correction
-// in place of the classifier's color.
-func Read(path string, since time.Time) (*Records, error) {
+// Read returns the pieces classified from from up to until (the zero time
+// for no end): the ones not lost (dead) and not marked wrong by a person,
+// with a person's color correction in place of the classifier's color.
+func Read(path string, from, until time.Time) (*Records, error) {
 	st, err := os.Stat(path)
 	if err != nil {
 		return nil, err
@@ -48,9 +48,9 @@ func Read(path string, since time.Time) (*Records, error) {
 		select part_id, coalesce(part_name, ''), coalesce(nullif(color_corrected_id, ''), color_id),
 		       coalesce(color_name, ''), coalesce(confidence, 0), seen_at
 		from piece_records
-		where seen_at >= ? and classification_status = 'classified' and dead = 0
+		where seen_at >= ? and seen_at < ? and classification_status = 'classified' and dead = 0
 		  and coalesce(part_correct, 1) != 0 and part_id is not null
-		order by seen_at`, since.Unix())
+		order by seen_at`, from.Unix(), end(until))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
@@ -74,4 +74,11 @@ func Read(path string, since time.Time) (*Records, error) {
 		r.Pieces = append(r.Pieces, p)
 	}
 	return r, rows.Err()
+}
+
+func end(t time.Time) int64 {
+	if t.IsZero() {
+		return 1 << 62
+	}
+	return t.Unix()
 }

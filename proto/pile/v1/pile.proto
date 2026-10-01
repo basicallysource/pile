@@ -4,16 +4,33 @@ package pile.v1;
 
 option go_package = "github.com/basicallysource/pile/gen/pile/v1;pilev1";
 
-// What a sorter sorted, and which LEGO sets those pieces make up.
+// A collection of sorted pieces, kept as lots (one box, one sort), and the
+// LEGO sets and custom models each lot's pieces make up.
 service PileService {
-  // The totals: how many pieces, from when, and how much the sets explain.
-  rpc GetOverview(GetOverviewRequest) returns (GetOverviewResponse);
-  // The bulk catalog: every part in every color, with its count.
+  // The collection: every lot, with its totals.
   rpc ListLots(ListLotsRequest) returns (ListLotsResponse);
-  // The sets the pile looks like, ranked.
+  // One lot as seen through a view: its totals, what its pieces are, the sets
+  // it completes, nearly completes and most likely came from, the custom
+  // models it can build, and the sort-out queue.
+  rpc GetLot(GetLotRequest) returns (GetLotResponse);
+  // Every set and custom model with a piece in the lot, through a view.
   rpc ListSets(ListSetsRequest) returns (ListSetsResponse);
-  // One set, line by line, against the pile.
+  // One set or custom model, line by line, through a view.
   rpc GetSet(GetSetRequest) returns (GetSetResponse);
+  // The lot's bulk catalog: every part in every color, with its count.
+  rpc ListParts(ListPartsRequest) returns (ListPartsResponse);
+}
+
+// How a lot is looked at.
+message View {
+  string lot_id = 1;
+  // Match parts in any color: a set counts a piece of the right part in
+  // another color as found, and says how many of its pieces are.
+  bool any_color = 2;
+  // Sets and custom models to sort out, most wanted first. Each takes its
+  // pieces from what the ones before it left; everything else is matched
+  // against what is left after all of them.
+  repeated string sort_out = 3;
 }
 
 message Color {
@@ -26,107 +43,139 @@ message Color {
   int32 bricklink_id = 5;
 }
 
-message GetOverviewRequest {}
-
-message GetOverviewResponse {
-  // Pieces the machine classified in the window.
-  int32 pieces = 1;
+message Lot {
+  string id = 1;
+  string name = 2;
+  // One sentence: where the pieces came from.
+  string description = 3;
+  string machine_name = 4;
+  // Pieces the machine classified in the lot.
+  int32 pieces = 5;
   // Distinct part and color pairs among them.
-  int32 lots = 2;
-  // Pieces whose part or color has no Rebrickable match, so no set can claim them.
-  int32 unmatched_pieces = 3;
-  int64 first_seen_unix = 4;
-  int64 last_seen_unix = 5;
+  int32 part_colors = 6;
+  // Pieces whose part or color has no Rebrickable match.
+  int32 unmatched_pieces = 7;
+  int64 first_seen_unix = 8;
+  int64 last_seen_unix = 9;
   // When the machine's records were copied.
-  int64 snapshot_unix = 6;
-  // When the Rebrickable catalog was downloaded.
-  int64 catalog_unix = 7;
-  string machine_name = 8;
-  // Sets with an inventory to rank (every set with a counted piece).
-  int32 sets_ranked = 9;
-  // Pieces the explained sets account for, each piece once.
-  int32 explained_pieces = 10;
-  // Sets the pile holds every counted piece of, each on its own.
-  int32 complete_sets = 11;
+  int64 snapshot_unix = 10;
+  // The lot's colors by share of its pieces, most first.
+  repeated ColorShare colors = 11;
+}
+
+message ColorShare {
+  Color color = 1;
+  int32 pieces = 2;
+}
+
+message CategoryShare {
+  string name = 1;
+  int32 pieces = 2;
 }
 
 message ListLotsRequest {}
 
-message Lot {
-  string part_num = 1;
-  string bricklink_id = 2;
-  string name = 3;
-  Color color = 4;
-  int32 count = 5;
-  string image_url = 6;
-  string category = 7;
-  // The classifier's mean confidence over these pieces, 0 to 1.
-  float mean_confidence = 8;
-}
-
-// A piece the catalog cannot place: the classifier's own names.
-message UnmatchedLot {
-  string bricklink_id = 1;
-  string name = 2;
-  string color_name = 3;
-  int32 count = 4;
-}
-
 message ListLotsResponse {
   repeated Lot lots = 1;
-  repeated UnmatchedLot unmatched = 2;
+  // When the Rebrickable catalog was downloaded.
+  int64 catalog_unix = 2;
+  // Sets and custom models every lot is matched against.
+  int32 sets_checked = 3;
+  int32 custom_models_checked = 4;
 }
 
-enum Ranking {
-  RANKING_UNSPECIFIED = 0;
-  // The sets the pile most likely came from: picked one at a time, best
-  // evidence first, each taking its pieces out of the pile before the next is
-  // picked, so a bucket of common bricks is picked once and the sets under it
-  // show. Only the order comes from that; a match's counts are still against
-  // the whole pile.
-  RANKING_EXPLAINED = 1;
-  // Every set scored against the whole pile on its own.
-  RANKING_ALONE = 2;
-  // The sets the pile holds every counted piece of, the ones with the rarest
-  // pieces on average first.
-  RANKING_COMPLETE = 3;
+enum Kind {
+  KIND_UNSPECIFIED = 0;
+  // A set LEGO sold.
+  KIND_SET = 1;
+  // A free custom model (MOC) on Rebrickable.
+  KIND_CUSTOM = 2;
 }
 
-// A set against the whole pile.
+// A set or custom model against the pieces a view leaves.
 message SetMatch {
   string set_num = 1;
   string name = 2;
   int32 year = 3;
   string theme = 4;
   string image_url = 5;
-  // Pieces of the set found in the pile, each line capped at what the set needs.
+  // Pieces of it found, each line capped at what it needs.
   int32 have = 6;
-  // Pieces in the set, not counting printed parts, stickers, minifigures or
+  // Pieces in it, not counting printed parts, stickers, minifigures or
   // minifigure parts.
   int32 need = 7;
-  // The same, weighted by how rare each part and color is across all sets:
-  // finding a set's unusual pieces counts for more than its 2x4 bricks.
+  // The same, weighted by how rare each part (and color) is across all sets:
+  // finding its unusual pieces counts for more than its 2x4 bricks.
   double weighted_completeness = 8;
-  // How much distinctive evidence the pile holds for this set.
+  // How much distinctive evidence the pieces hold for it.
   double evidence = 9;
-  // Printed parts and stickers in the set, left out of `need`.
+  // Printed parts and stickers, left out of `need`.
   int32 printed_parts = 10;
   int32 minifigures = 11;
   // Other sets with exactly the same pieces (the same box sold under several numbers).
   repeated string same_contents = 12;
-  // Its place in the explained order, from 1; 0 when it was not picked.
+  // Its place in the likely order (judged in exact colors), from 1; 0 when
+  // it is not among them.
   int32 pick = 13;
-  // Loose minifigure parts in its inventory, left out of `need`.
+  // Loose minifigure parts, left out of `need`.
   int32 minifigure_parts = 14;
   // Basically a minifigure: its figures (about four pieces each) and loose
   // figure parts outweigh its counted pieces.
   bool minifigure_set = 15;
+  Kind kind = 16;
+  // A custom model's designer.
+  string designer = 17;
+  // Its page on Rebrickable.
+  string url = 18;
+  // In an any-color view, the pieces of `have` that are another color.
+  int32 wrong_color = 19;
+}
+
+// The first sets of a section, and how many it has.
+message Section {
+  repeated SetMatch sets = 1;
+  int32 total = 2;
+}
+
+message GetLotRequest {
+  View view = 1;
+}
+
+message GetLotResponse {
+  Lot lot = 1;
+  // The parts' categories by share of the lot's pieces, most first.
+  repeated CategoryShare categories = 2;
+  // The sort-out queue in order, each against what the ones before it left.
+  repeated SetMatch sort_out = 3;
+  // Pieces left once the queue has taken its pieces.
+  int32 pieces_left = 4;
+  // Every counted piece is there. Rarest pieces first.
+  Section complete = 5;
+  // At least 80% there and not complete. Rarest pieces first.
+  Section almost = 6;
+  // The sets the pieces most likely came from (judged in exact colors) that
+  // are neither complete nor almost, most likely first.
+  Section likely = 7;
+  // Free custom models at least 60% there, most complete first.
+  Section custom = 8;
+  // Sets that are basically a minifigure, complete, almost or likely.
+  Section minifigure = 9;
+  // Complete sets of under five counted pieces (key chains, gear).
+  Section tiny = 10;
+}
+
+enum Order {
+  ORDER_UNSPECIFIED = 0;
+  ORDER_COMPLETE = 1;
+  ORDER_FOUND = 2;
+  ORDER_EVIDENCE = 3;
 }
 
 message ListSetsRequest {
-  Ranking ranking = 1;
-  // At most this many; 0 is every set.
-  int32 limit = 2;
+  View view = 1;
+  Order order = 2;
+  // KIND_UNSPECIFIED is both.
+  Kind kind = 3;
 }
 
 message ListSetsResponse {
@@ -134,22 +183,11 @@ message ListSetsResponse {
 }
 
 message GetSetRequest {
-  string set_num = 1;
+  View view = 1;
+  string set_num = 2;
 }
 
-message SetLine {
-  string part_num = 1;
-  string name = 2;
-  Color color = 3;
-  int32 need = 4;
-  // Pieces of this part and color (or a mold variant of it) in the pile, up
-  // to what the line needs.
-  int32 in_pile = 5;
-  string image_url = 6;
-  Counting counting = 7;
-}
-
-// Whether a part counts toward a set's completeness.
+// Whether a part counts toward completeness.
 enum Counting {
   COUNTING_UNSPECIFIED = 0;
   COUNTING_COUNTED = 1;
@@ -157,6 +195,20 @@ enum Counting {
   COUNTING_PRINTED = 2;
   // A minifigure part (head, torso, legs, hair, hat, a figure's tool): shown, not counted.
   COUNTING_MINIFIGURE = 3;
+}
+
+message SetLine {
+  string part_num = 1;
+  string name = 2;
+  Color color = 3;
+  int32 need = 4;
+  // Pieces of this part (or a mold variant) found for this line, up to `need`:
+  // in its color, or in an any-color view in any color.
+  int32 found = 5;
+  // Of `found`, the pieces in another color.
+  int32 wrong_color = 6;
+  string image_url = 7;
+  Counting counting = 8;
 }
 
 message Minifigure {
@@ -170,4 +222,36 @@ message GetSetResponse {
   SetMatch set = 1;
   repeated SetLine lines = 2;
   repeated Minifigure minifigures = 3;
+  // Its place in the view's sort-out queue, from 1; 0 when not in it.
+  int32 sort_out_place = 4;
+}
+
+message ListPartsRequest {
+  string lot_id = 1;
+}
+
+// A part in a color, and how many the lot has.
+message PartCount {
+  string part_num = 1;
+  string bricklink_id = 2;
+  string name = 3;
+  Color color = 4;
+  int32 count = 5;
+  string image_url = 6;
+  string category = 7;
+  // The classifier's mean confidence over these pieces, 0 to 1.
+  float mean_confidence = 8;
+}
+
+// Pieces the catalog cannot place: the classifier's own names.
+message UnmatchedPart {
+  string bricklink_id = 1;
+  string name = 2;
+  string color_name = 3;
+  int32 count = 4;
+}
+
+message ListPartsResponse {
+  repeated PartCount parts = 1;
+  repeated UnmatchedPart unmatched = 2;
 }

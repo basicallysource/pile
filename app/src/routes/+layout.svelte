@@ -1,6 +1,7 @@
 <!--
-	The shell: the top bar with the app's pages, and the page under it. Pages
-	scroll as one column; the top bar stays.
+	The shell: the top bar and the page under it. In a lot the bar holds the
+	lot's pages and the color mode, which applies on all of them; outside one
+	it holds the collection and the design page.
 -->
 <script lang="ts">
 	import '../app.css';
@@ -8,24 +9,47 @@
 	import '@fontsource-variable/geist-mono';
 	// Applies the saved mode and primary color, and keeps them applied.
 	import '$lib/theme.svelte';
+	import { page } from '$app/state';
 	import TopBar from '$lib/components/TopBar.svelte';
 	import Wordmark from '$lib/components/Wordmark.svelte';
+	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
+	import { view } from '$lib/view.svelte';
 
 	let { children } = $props();
+	const lot = $derived(page.params.lot);
+	const items = $derived(
+		lot
+			? [
+					{ href: `/lots/${lot}`, label: 'Overview' },
+					{ href: `/lots/${lot}/sets`, label: 'Every set' },
+					{ href: `/lots/${lot}/parts`, label: 'Parts' }
+				]
+			: [
+					{ href: '/', label: 'Collection' },
+					{ href: '/design', label: 'Design' }
+				]
+	);
 </script>
 
 <div class="flex min-h-dvh flex-col">
-	<TopBar
-		items={[
-			{ href: '/', label: 'Sets' },
-			{ href: '/sets', label: 'Every set' },
-			{ href: '/pile', label: 'Pile' },
-			{ href: '/design', label: 'Design' }
-		]}
-	>
+	<TopBar {items} collapse="sm">
 		{#snippet brand()}<Wordmark name="Pile" href="/" />{/snippet}
+		{#snippet end()}
+			{#if lot}
+				<SegmentedControl
+					label="Colors"
+					size="sm"
+					value={view.anyColor ? 'any' : 'exact'}
+					onchange={(v) => view.setAnyColor(v === 'any')}
+					options={[
+						{ value: 'exact', label: 'Exact colors' },
+						{ value: 'any', label: 'Any color' }
+					]}
+				/>
+			{/if}
+		{/snippet}
 	</TopBar>
-	<main class="mx-auto flex w-full max-w-6xl flex-col gap-(--gap-panels) p-4 md:p-6">
+	<main class="mx-auto flex w-full max-w-7xl flex-col gap-(--gap-panels) p-4 md:p-6">
 		{@render children()}
 	</main>
 </div>

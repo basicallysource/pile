@@ -1,11 +1,11 @@
 // The pile as a BrickLink XML list (for a wanted list or an inventory upload),
 // in the sorter's own BrickLink part ids and colors.
-import type { Lot } from '$lib/gen/pile/v1/pile_pb';
+import type { PartCount } from '$lib/gen/pile/v1/pile_pb';
 
 const escape = (s: string) =>
 	s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-export function bricklinkXML(lots: Lot[]): string {
+export function bricklinkXML(lots: PartCount[]): string {
 	const items = lots
 		.filter((l) => l.color?.bricklinkId)
 		.map(

@@ -56,21 +56,26 @@ the public record).
 
 ## Working on it
 
-- **Shape.** One Go binary (`cmd/pile`) loads three inputs from a data
-  folder at start and serves the app and the API from memory:
-  `rebrickable/` (Rebrickable's CSV downloads), `parts.db` (a sorter Hive's
-  parts database, for BrickLink-to-Rebrickable part and color ids) and
-  `machine/local_state.sqlite` (a copy of the sorter's own records). Fresh
-  data means a restart.
+- **Shape.** One Go binary (`cmd/pile`) loads a data folder at start and
+  serves the app and the API from memory: `rebrickable/` (Rebrickable's CSV
+  downloads), `parts.db` (a sorter Hive's parts database, for
+  BrickLink-to-Rebrickable part and color ids), `custom-models.json` (free
+  custom models: `docs/custom-models.md`), `lots.json` (the collection's lots:
+  each a named stretch of one sorter's records) and
+  `machines/<name>/local_state.sqlite` (each sorter's records). Fresh data
+  means a restart.
+- **Lots and views.** The collection is lots (`internal/lots`); every request
+  about a lot carries a View: the lot, any-color matching, and a sort-out
+  queue whose sets take their pieces first (`internal/server/view.go`).
 - **Contract.** `proto/pile/v1/pile.proto`, served with Connect;
   `buf generate` writes `gen/` (Go) and `app/src/lib/gen/` (TypeScript).
   Generated code is committed.
-- **Matching** is `internal/match` (its package comment says how the sets
-  are scored and picked). Pieces come from `internal/machine`, the catalog
-  from `internal/catalog`, the handlers from `internal/server`.
+- **Matching** is `internal/match` (its package comment says how sets are
+  scored, in exact or any color, and how the likely order is picked). Pieces
+  come from `internal/machine`, the catalog (sets and custom models) from
+  `internal/catalog`, the handlers from `internal/server`.
 - **App.** SvelteKit 5 + Tailwind, static, in `app/`, embedded into the
   binary (`embed.go`). It follows the Sorter design system
   (`docs/design-system/README.md`).
 - **Build:** `scripts/build.sh` (packages, generate, app build, vet, binary
-  to `bin/pile`). Run: `bin/pile -data DIR -since YYYY-MM-DD -machine NAME
-  -addr :PORT`.
+  to `bin/pile`). Run: `bin/pile -data DIR -addr :PORT`.
