@@ -86,3 +86,16 @@ the public record).
 - **Build:** `scripts/build.sh` (packages, generate, app build, vet, every
   command to `bin/`). Run: `bin/pile -data DIR -addr :PORT`. Test:
   `go test ./...`.
+- **Served as a service.** Where it is kept up, pile runs as a systemd user
+  unit named `pile` with lingering on for its user, so it starts at boot and
+  comes back after a reboot: `WorkingDirectory` the checkout,
+  `ExecStart=BIN/pile -data DIR -addr :PORT`, `Restart=on-failure`,
+  `Nice=10`, `WantedBy=default.target`. After a build or new data in the
+  folder: `systemctl --user restart pile`; `systemctl --user status pile`
+  for its state, `journalctl --user -u pile -f` for its log. It reads the
+  whole folder into memory before it listens: about 3 minutes for the big
+  lots and 1.5 more for each lot's collect times (longer from a busy disk),
+  so the page is down that long on every restart, and the data must be on a
+  disk that exists at boot. Never start a second copy by hand on the unit's
+  port: stop the unit first. Machine, paths and the unit as installed:
+  `AGENTS.local.md`.
