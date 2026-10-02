@@ -24,8 +24,11 @@ or with an admin's sign-in every machine on the Hive. It only reads.
   read answers 404 and is skipped.
 - A later pull reads only what is new: it stops a little below the newest
   piece it has (`overlap` in `internal/hive/pull.go`), so pieces still being
-  classified then are read again. `-full` reads everything again.
-- `-hive URL` picks the Hive (the default is the production one).
+  classified then are read again. A machine whose pull stopped part way (it
+  has pieces and no `machines` row) is then read on down from its oldest
+  piece. `-full` reads everything again.
+- `-hive URL` picks the Hive (the default is the production one);
+  `-machines NAME,NAME` pulls only those machines (by name or id).
 
 `hive.sqlite` holds `machines` (id, name, whether it is the user's own, when
 pulled, pieces) and `pieces` (as Hive gave them: BrickLink part and color

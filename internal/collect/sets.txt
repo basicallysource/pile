@@ -1,5 +1,6 @@
-# The sets the collect-time research measures: a set number, then why it is
-# here. Big and small, cheap and dear, new and old, model and bulk.
+# The sets pile times by default (its "Time to collect" page and
+# scripts/research/run.sh): a set number, then why it is here. Big and small,
+# cheap and dear, new and old, model and bulk.
 75192-1 Millennium Falcon (2017, UCS): the biggest Star Wars set for years
 6212-1 X-wing Fighter (2006): the standard X-wing of about 2007
 10179-1 Millennium Falcon (2007, UCS): the first UCS Falcon

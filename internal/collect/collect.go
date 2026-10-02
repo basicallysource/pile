@@ -46,6 +46,7 @@ package collect
 import (
 	"cmp"
 	"database/sql"
+	_ "embed"
 	"fmt"
 	"math"
 	"slices"
@@ -484,4 +485,19 @@ func nelderMead(f func([]float64) float64, x0, step []float64) []float64 {
 		}
 	}
 	return pts[0]
+}
+
+//go:embed sets.txt
+var standard string
+
+// Standard is the sets timed by default, by number: big and small, cheap and
+// dear, new and old, model and bulk (sets.txt says why each is there).
+func Standard() []string {
+	var out []string
+	for _, line := range strings.Split(standard, "\n") {
+		if f := strings.Fields(line); len(f) > 0 && !strings.HasPrefix(f[0], "#") {
+			out = append(out, f[0])
+		}
+	}
+	return out
 }

@@ -24,7 +24,8 @@
 			? [
 					{ href: `/lots/${lot}`, label: 'Overview' },
 					{ href: `/lots/${lot}/sets`, label: 'Every set' },
-					{ href: `/lots/${lot}/parts`, label: 'Parts' }
+					{ href: `/lots/${lot}/parts`, label: 'Parts' },
+					{ href: `/lots/${lot}/collect`, label: 'Time to collect' }
 				]
 			: [
 					{ href: '/', label: 'Collection' },

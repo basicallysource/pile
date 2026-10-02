@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
+	"strings"
 	"time"
 )
 
@@ -49,15 +51,19 @@ const (
 	pause = 150 * time.Millisecond
 )
 
-// Pull copies every machine the client may read into the store: all of each
-// machine's pieces when full, else the ones newer than the store has (and the
-// last few it has). It reports each machine on progress.
-func Pull(ctx context.Context, c *Client, s *Store, full bool, progress func(name string, pieces int)) error {
+// Pull copies every machine the client may read into the store, or only the
+// ones named in only: all of each machine's pieces when full, else the ones
+// newer than the store has (and the last few it has). It reports each machine
+// on progress.
+func Pull(ctx context.Context, c *Client, s *Store, full bool, only []string, progress func(name string, pieces int)) error {
 	var ms []machine
 	if err := c.Get(ctx, "/api/machines?scope=all&include_archived=true", &ms); err != nil {
 		return fmt.Errorf("list machines: %w", err)
 	}
 	for _, m := range ms {
+		if len(only) > 0 && !slices.ContainsFunc(only, func(n string) bool { return strings.EqualFold(n, m.Name) || n == m.ID }) {
+			continue
+		}
 		n, err := pullMachine(ctx, c, s, m, full)
 		if errors.Is(err, ErrNotFound) {
 			// Someone else's machine, and this user is not an admin.
@@ -75,17 +81,27 @@ func Pull(ctx context.Context, c *Client, s *Store, full bool, progress func(nam
 }
 
 func pullMachine(ctx context.Context, c *Client, s *Store, m machine, full bool) (int, error) {
-	var stop int64 = -1
-	if !full {
-		newest, err := s.newest(m.ID)
-		if err != nil {
-			return 0, err
-		}
-		if newest > 0 {
-			stop = newest - overlap
-		}
+	newest, oldest, done, err := s.held(m.ID)
+	if err != nil {
+		return 0, err
 	}
-	var cursor *int64
+	if full || newest == 0 {
+		return pages(ctx, c, s, m.ID, nil, -1)
+	}
+	// What is new since, from the top down to a little below the newest held.
+	n, err := pages(ctx, c, s, m.ID, nil, newest-overlap)
+	if err != nil || done {
+		return n, err
+	}
+	// A pull that stopped part way through this machine: on down from the
+	// oldest piece it got.
+	more, err := pages(ctx, c, s, m.ID, &oldest, -1)
+	return n + more, err
+}
+
+// pages reads a machine's pieces newest first from below cursor (nil for the
+// top), until a page reaches stop or there are no more.
+func pages(ctx context.Context, c *Client, s *Store, machine string, cursor *int64, stop int64) (int, error) {
 	n := 0
 	for {
 		q := url.Values{"limit": {fmt.Sprint(pageSize)}}
@@ -96,10 +112,10 @@ func pullMachine(ctx context.Context, c *Client, s *Store, m machine, full bool)
 			Items      []piece `json:"items"`
 			NextCursor *int64  `json:"next_cursor"`
 		}
-		if err := c.Get(ctx, "/api/machines/"+m.ID+"/pieces?"+q.Encode(), &page); err != nil {
+		if err := c.Get(ctx, "/api/machines/"+machine+"/pieces?"+q.Encode(), &page); err != nil {
 			return n, err
 		}
-		if err := s.putPieces(m.ID, page.Items); err != nil {
+		if err := s.putPieces(machine, page.Items); err != nil {
 			return n, err
 		}
 		n += len(page.Items)

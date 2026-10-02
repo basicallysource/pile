@@ -6,11 +6,20 @@ piece of a set: in exact colors, in near colors (old and new grays and
 browns count as one), and in any color. The mix of pieces comes from what
 your sorters actually sorted; the speed from how fast they sort. It also says
 how long to half, nine tenths and 99% of the set, how sure the answer is, and
-which pieces hold it up the longest.
+which pieces hold it up the longest. Every lot has it on its "Time to
+collect" page, worked out again whenever pile starts with fresh data; add any
+set there by its number.
 <!-- /human -->
 
-`bin/collect-time -data DIR -lots LOT,LOT -sets NUM,NUM [-rate N] [-json FILE]`
-prints, for each lot (a stream) and each set, the hours of sorting to 50%,
+The page (`app/src/routes/lots/[lot]/collect`) asks `GetCollectTimes`. The
+server (`internal/server/collect.go`) works it out in the background from
+the data it loaded: at start it fits every lot's model (smallest lot first),
+then times the standard sets (`internal/collect/sets.txt`), then any set a
+page asks for, one at a time, with 50 resamplings; the page shows what is
+done and asks again while anything is on its way.
+
+`bin/collect-time -data DIR -lots LOT,LOT [-sets NUM,NUM] [-rate N] [-json FILE]`
+(the standard sets when `-sets` is empty) prints, for each lot (a stream) and each set, the hours of sorting to 50%,
 90% and 99% of the set's pieces, and to all of them; `-json` writes every
 number, the fitted model, the sorting time per machine and each set's slowest
 pieces. The method is in the package comment of `internal/collect`; in short:

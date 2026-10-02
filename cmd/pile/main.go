@@ -1,5 +1,6 @@
 // pile serves a collection of sorted LEGO pieces, kept as lots: every part
-// and color in each, and which sets and custom models the pieces make up.
+// and color in each, which sets and custom models the pieces make up, and how
+// long one sorter fed bulk like each lot takes to collect a set.
 package main
 
 import (
@@ -11,6 +12,7 @@ import (
 
 	pile "github.com/basicallysource/pile"
 	"github.com/basicallysource/pile/internal/catalog"
+	"github.com/basicallysource/pile/internal/collect"
 	"github.com/basicallysource/pile/internal/lots"
 	"github.com/basicallysource/pile/internal/server"
 )
@@ -29,7 +31,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	s := server.New(cat, ls)
+	sizes, err := collect.LoadSizes(filepath.Join(*data, "parts.db"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	s := server.New(cat, ls, sizes, filepath.Join(*data, "hive.sqlite"))
 	log.Printf("%d lots ready in %s", len(ls), time.Since(start).Round(time.Millisecond))
 	log.Printf("listening on %s", *addr)
 	log.Fatal(http.ListenAndServe(*addr, server.Handler(s, pile.App())))

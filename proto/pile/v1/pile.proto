@@ -19,6 +19,9 @@ service PileService {
   rpc GetSet(GetSetRequest) returns (GetSetResponse);
   // The lot's bulk catalog: every part in every color, with its count.
   rpc ListParts(ListPartsRequest) returns (ListPartsResponse);
+  // How long one sorter, fed bulk mixed like the lot, takes to come across
+  // every piece of each set: the standard sets and any others asked for.
+  rpc GetCollectTimes(GetCollectTimesRequest) returns (GetCollectTimesResponse);
 }
 
 // How a lot is looked at.
@@ -292,4 +295,97 @@ message UnmatchedPart {
 message ListPartsResponse {
   repeated PartCount parts = 1;
   repeated UnmatchedPart unmatched = 2;
+}
+
+message GetCollectTimesRequest {
+  string lot_id = 1;
+  // Sets to time besides the standard ones.
+  repeated string extra = 2;
+}
+
+// What a lot's times rest on.
+message CollectBasis {
+  // Classified pieces, the mix the times assume.
+  int32 pieces = 1;
+  // The sorters they came from, when there are three or fewer.
+  string machine_name = 2;
+  // Hours the sorters spent sorting (a gap of a minute or less between two
+  // pieces counts), and the classified pieces an hour that turns into time.
+  double sorting_hours = 3;
+  double rate_per_hour = 4;
+  int64 first_seen_unix = 5;
+  int64 last_seen_unix = 6;
+  // When the records were pulled or copied.
+  int64 snapshot_unix = 7;
+}
+
+// One piece that holds a set up.
+message SlowPiece {
+  string part_num = 1;
+  string name = 2;
+  // Unset in any-color mode.
+  Color color = 3;
+  int32 need = 4;
+  // Pieces of it in the lot.
+  int32 seen = 5;
+  // Hours of sorting before its count is expected.
+  double wait_hours = 6;
+  string image_url = 7;
+}
+
+// A set's times in one color mode, in hours of sorting on one machine running
+// nonstop; -1 is never.
+message CollectTime {
+  // Expected share of its pieces found: half, nine in ten, 99 in 100.
+  double half = 1;
+  double most = 2;
+  double nearly = 3;
+  // Every piece: the median, and one run in ten faster or slower.
+  double all = 4;
+  double all_fast = 5;
+  double all_slow = 6;
+  // The 5th to 95th percentile of `most` and `all` over resamplings of the
+  // lot's machine-days: how much they hang on which bulk came in.
+  double most_low = 7;
+  double most_high = 8;
+  double all_low = 9;
+  double all_high = 10;
+  // Every part-color the lot has had a piece of: a floor from data alone.
+  double all_seen = 11;
+  // Every piece, were the part-colors never seen ten times rarer.
+  double all_rarer = 12;
+  // Its part-colors, and the ones (and their pieces) the lot never had.
+  int32 keys = 13;
+  int32 unseen_keys = 14;
+  int32 unseen_pieces = 15;
+  // The pieces that hold it up the longest, longest first.
+  repeated SlowPiece slowest = 16;
+}
+
+message SetCollectTimes {
+  string set_num = 1;
+  string name = 2;
+  int32 year = 3;
+  string theme = 4;
+  string image_url = 5;
+  // Pieces counted, and the ones left out by reason (printed or sticker,
+  // minifigure part, specialty mold, too big for a sorter...).
+  int32 pieces = 6;
+  map<string, int32> left_out = 7;
+  int32 minifigures = 8;
+  CollectTime exact = 9;
+  CollectTime near = 10;
+  CollectTime any = 11;
+  // Not worked out yet; it is on its way.
+  bool pending = 12;
+  // Asked for, and the catalog has no such set with counted pieces.
+  bool unknown = 13;
+}
+
+message GetCollectTimesResponse {
+  CollectBasis basis = 1;
+  repeated SetCollectTimes sets = 2;
+  // When the lot's model was fitted (the server works it out at start, from
+  // the data it loaded); 0 while it is being fitted.
+  int64 fitted_unix = 3;
 }

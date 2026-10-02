@@ -44,7 +44,7 @@ type Store struct{ db *sql.DB }
 
 // Open opens (making it if need be) the store at path.
 func Open(path string) (*Store, error) {
-	db, err := sql.Open("sqlite", "file:"+path+"?_pragma=journal_mode(wal)&_pragma=busy_timeout(10000)")
+	db, err := sql.Open("sqlite", "file:"+path+"?_pragma=journal_mode(wal)&_pragma=busy_timeout(300000)")
 	if err != nil {
 		return nil, err
 	}
@@ -58,11 +58,15 @@ func Open(path string) (*Store, error) {
 
 func (s *Store) Close() error { return s.db.Close() }
 
-// newest is the highest local id stored for a machine, 0 for none.
-func (s *Store) newest(machine string) (int64, error) {
-	var n sql.NullInt64
-	err := s.db.QueryRow(`select max(local_id) from pieces where machine_id = ?`, machine).Scan(&n)
-	return n.Int64, err
+// held is the highest and lowest local id stored for a machine (0 for
+// none), and whether a pull of it ever finished (it then has a machines row).
+func (s *Store) held(machine string) (newest, oldest int64, done bool, err error) {
+	var hi, lo sql.NullInt64
+	if err = s.db.QueryRow(`select max(local_id), min(local_id) from pieces where machine_id = ?`, machine).Scan(&hi, &lo); err != nil {
+		return
+	}
+	err = s.db.QueryRow(`select count(*) > 0 from machines where id = ?`, machine).Scan(&done)
+	return hi.Int64, lo.Int64, done, err
 }
 
 func (s *Store) putPieces(machine string, ps []piece) error {

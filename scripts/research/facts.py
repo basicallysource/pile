@@ -26,7 +26,8 @@ import numpy as np
 
 GRAMS_PER_POUND = 453.59237
 OLD_NEW = {"Light Gray (old) to Light Bluish Gray": (7, 71), "Dark Gray (old) to Dark Bluish Gray": (8, 72), "Brown (old) to Reddish Brown": (6, 70)}
-SURE = 0.8  # classifier confidence for the "rarest" and "most valuable" picks
+SURE = 0.8  # classifier confidence for the "rarest" and "biggest" picks
+SURER = 0.9  # and for "most valuable", where one misread color makes a fortune
 
 
 def read_lot(path):
@@ -131,17 +132,18 @@ def lot_facts(rows, weight, price, size):
         old[label] = {"old": co, "new": cn, "old_share": co / (co + cn) if co + cn else None}
     out["old_colors"] = old
 
-    sure = [r for r in rows if r["mean_confidence"] >= SURE and r["rb_part"] and r["sets_with_part"] is not None]
+    # Counted parts only: printed and minifigure parts have no count of sets.
+    sure = [r for r in rows if r["mean_confidence"] >= SURE and r["rb_part"] and r["sets_with_part"]]
     rare = sorted(sure, key=lambda r: (r["sets_with_part"], -r["count"]))[:15]
     out["rarest_molds_seen"] = [{"part": r["rb_part"], "name": r["rb_part_name"], "color": r["rb_color_name"], "sets_with_part": r["sets_with_part"], "pieces": r["count"], "machine": r["machine"], "confidence": r["mean_confidence"]} for r in rare]
     valued = []
     for r in sure:
-        if r["bl_color"] and (r["bl_part"], int(r["bl_color"])) in price:
+        if r["mean_confidence"] >= SURER and r["bl_color"] and (r["bl_part"], int(r["bl_color"])) in price:
             valued.append((price[(r["bl_part"], int(r["bl_color"]))], r))
     valued.sort(key=lambda x: -x[0])
     out["most_valuable_seen"] = [{"part": r["rb_part"], "name": r["rb_part_name"], "color": r["rb_color_name"], "usd_used_sold_avg": p, "pieces": r["count"], "machine": r["machine"], "confidence": r["mean_confidence"]} for p, r in valued[:15]]
     big.sort(key=lambda x: -x[0])
-    out["biggest_seen"] = [{"part": r["rb_part"], "name": r["rb_part_name"], "max_extent_mm": e, "pieces": n, "confidence": r["mean_confidence"]} for e, n, r in big[:10] if r["mean_confidence"] >= SURE]
+    out["biggest_seen"] = [{"part": r["rb_part"], "name": r["rb_part_name"], "max_extent_mm": e, "pieces": n, "confidence": r["mean_confidence"]} for e, n, r in big if r["mean_confidence"] >= SURE][:10]
     sized = sum(n for _, n, _ in big)
     out["share_over_mm"] = {str(mm): sum(n for e, n, _ in big if e > mm) / sized for mm in (32, 48, 64, 80)} if sized else {}
 

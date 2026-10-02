@@ -43,6 +43,9 @@ const (
 	PileServiceGetSetProcedure = "/pile.v1.PileService/GetSet"
 	// PileServiceListPartsProcedure is the fully-qualified name of the PileService's ListParts RPC.
 	PileServiceListPartsProcedure = "/pile.v1.PileService/ListParts"
+	// PileServiceGetCollectTimesProcedure is the fully-qualified name of the PileService's
+	// GetCollectTimes RPC.
+	PileServiceGetCollectTimesProcedure = "/pile.v1.PileService/GetCollectTimes"
 )
 
 // PileServiceClient is a client for the pile.v1.PileService service.
@@ -59,6 +62,9 @@ type PileServiceClient interface {
 	GetSet(context.Context, *connect.Request[v1.GetSetRequest]) (*connect.Response[v1.GetSetResponse], error)
 	// The lot's bulk catalog: every part in every color, with its count.
 	ListParts(context.Context, *connect.Request[v1.ListPartsRequest]) (*connect.Response[v1.ListPartsResponse], error)
+	// How long one sorter, fed bulk mixed like the lot, takes to come across
+	// every piece of each set: the standard sets and any others asked for.
+	GetCollectTimes(context.Context, *connect.Request[v1.GetCollectTimesRequest]) (*connect.Response[v1.GetCollectTimesResponse], error)
 }
 
 // NewPileServiceClient constructs a client for the pile.v1.PileService service. By default, it uses
@@ -102,16 +108,23 @@ func NewPileServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(pileServiceMethods.ByName("ListParts")),
 			connect.WithClientOptions(opts...),
 		),
+		getCollectTimes: connect.NewClient[v1.GetCollectTimesRequest, v1.GetCollectTimesResponse](
+			httpClient,
+			baseURL+PileServiceGetCollectTimesProcedure,
+			connect.WithSchema(pileServiceMethods.ByName("GetCollectTimes")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // pileServiceClient implements PileServiceClient.
 type pileServiceClient struct {
-	listLots  *connect.Client[v1.ListLotsRequest, v1.ListLotsResponse]
-	getLot    *connect.Client[v1.GetLotRequest, v1.GetLotResponse]
-	listSets  *connect.Client[v1.ListSetsRequest, v1.ListSetsResponse]
-	getSet    *connect.Client[v1.GetSetRequest, v1.GetSetResponse]
-	listParts *connect.Client[v1.ListPartsRequest, v1.ListPartsResponse]
+	listLots        *connect.Client[v1.ListLotsRequest, v1.ListLotsResponse]
+	getLot          *connect.Client[v1.GetLotRequest, v1.GetLotResponse]
+	listSets        *connect.Client[v1.ListSetsRequest, v1.ListSetsResponse]
+	getSet          *connect.Client[v1.GetSetRequest, v1.GetSetResponse]
+	listParts       *connect.Client[v1.ListPartsRequest, v1.ListPartsResponse]
+	getCollectTimes *connect.Client[v1.GetCollectTimesRequest, v1.GetCollectTimesResponse]
 }
 
 // ListLots calls pile.v1.PileService.ListLots.
@@ -139,6 +152,11 @@ func (c *pileServiceClient) ListParts(ctx context.Context, req *connect.Request[
 	return c.listParts.CallUnary(ctx, req)
 }
 
+// GetCollectTimes calls pile.v1.PileService.GetCollectTimes.
+func (c *pileServiceClient) GetCollectTimes(ctx context.Context, req *connect.Request[v1.GetCollectTimesRequest]) (*connect.Response[v1.GetCollectTimesResponse], error) {
+	return c.getCollectTimes.CallUnary(ctx, req)
+}
+
 // PileServiceHandler is an implementation of the pile.v1.PileService service.
 type PileServiceHandler interface {
 	// The collection: every lot, with its totals.
@@ -153,6 +171,9 @@ type PileServiceHandler interface {
 	GetSet(context.Context, *connect.Request[v1.GetSetRequest]) (*connect.Response[v1.GetSetResponse], error)
 	// The lot's bulk catalog: every part in every color, with its count.
 	ListParts(context.Context, *connect.Request[v1.ListPartsRequest]) (*connect.Response[v1.ListPartsResponse], error)
+	// How long one sorter, fed bulk mixed like the lot, takes to come across
+	// every piece of each set: the standard sets and any others asked for.
+	GetCollectTimes(context.Context, *connect.Request[v1.GetCollectTimesRequest]) (*connect.Response[v1.GetCollectTimesResponse], error)
 }
 
 // NewPileServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -192,6 +213,12 @@ func NewPileServiceHandler(svc PileServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(pileServiceMethods.ByName("ListParts")),
 		connect.WithHandlerOptions(opts...),
 	)
+	pileServiceGetCollectTimesHandler := connect.NewUnaryHandler(
+		PileServiceGetCollectTimesProcedure,
+		svc.GetCollectTimes,
+		connect.WithSchema(pileServiceMethods.ByName("GetCollectTimes")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/pile.v1.PileService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PileServiceListLotsProcedure:
@@ -204,6 +231,8 @@ func NewPileServiceHandler(svc PileServiceHandler, opts ...connect.HandlerOption
 			pileServiceGetSetHandler.ServeHTTP(w, r)
 		case PileServiceListPartsProcedure:
 			pileServiceListPartsHandler.ServeHTTP(w, r)
+		case PileServiceGetCollectTimesProcedure:
+			pileServiceGetCollectTimesHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -231,4 +260,8 @@ func (UnimplementedPileServiceHandler) GetSet(context.Context, *connect.Request[
 
 func (UnimplementedPileServiceHandler) ListParts(context.Context, *connect.Request[v1.ListPartsRequest]) (*connect.Response[v1.ListPartsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.ListParts is not implemented"))
+}
+
+func (UnimplementedPileServiceHandler) GetCollectTimes(context.Context, *connect.Request[v1.GetCollectTimesRequest]) (*connect.Response[v1.GetCollectTimesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.GetCollectTimes is not implemented"))
 }

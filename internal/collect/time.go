@@ -208,8 +208,7 @@ func (c *Catalog) Time(md *Model, num string, reps int, seed uint64) (*Result, e
 	var most, all []float64
 	for _, pb := range md.resample(nd.Keys, reps, seed) {
 		most = append(most, share(nd, pb, 0.9))
-		a, _, _ := complete(nd, pb)
-		all = append(all, a)
+		all = append(all, solve(func(t float64) float64 { return completeLog(nd, pb, t) }, math.Log(0.5)))
 	}
 	r.MostLow, r.MostHigh = percentile(most, 0.05), percentile(most, 0.95)
 	r.AllLow, r.AllHigh = percentile(all, 0.05), percentile(all, 0.95)

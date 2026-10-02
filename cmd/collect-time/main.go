@@ -15,7 +15,9 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/basicallysource/pile/internal/catalog"
@@ -28,7 +30,7 @@ import (
 func main() {
 	data := flag.String("data", "data", "pile's data folder")
 	lotIDs := flag.String("lots", "", "the lots to use as streams, by id, comma separated")
-	setList := flag.String("sets", "", "the sets, by number (75192-1), comma separated")
+	setList := flag.String("sets", "", "the sets, by number (75192-1), comma separated; empty for the standard ones (internal/collect/sets.txt)")
 	rate := flag.Float64("rate", 0, "classified pieces an hour of sorting; 0 for each lot's own, from its Hive records")
 	reps := flag.Int("resamples", 200, "resamplings of each stream's machine-days, for the uncertainty")
 	simulate := flag.Int("simulate", 0, "also run the sorter piece by piece this many times per set, to check the closed form")
@@ -52,6 +54,9 @@ func main() {
 	log.Printf("catalog and lots in %s", time.Since(start).Round(time.Millisecond))
 
 	sets := split(*setList)
+	if len(sets) == 0 {
+		sets = collect.Standard()
+	}
 	var report []lotReport
 	for _, id := range split(*lotIDs) {
 		l := find(all, id)
@@ -79,17 +84,30 @@ func main() {
 		for _, mode := range []collect.Mode{collect.Exact, collect.Near, collect.Any} {
 			md := c.Fit(s, mode)
 			r.Models = append(r.Models, model{mode.String(), md.A, md.B, md.C, md.G0, md.G1, md.Keys, md.SeenKeys, md.SeenPieces})
-			for _, num := range sets {
-				res, err := c.Time(md, num, *reps, 1)
-				if err != nil {
-					log.Fatal(err)
-				}
-				row := result(c, res, l.ID, r.Rate)
-				if *simulate > 0 {
-					row.Simulated = c.Simulate(md, num, *simulate, 1, 3e8)
-				}
-				r.Results = append(r.Results, row)
+			// The sets are independent: work them out side by side.
+			rows := make([]row, len(sets))
+			var wg sync.WaitGroup
+			work := make(chan int)
+			for range runtime.NumCPU() {
+				wg.Go(func() {
+					for i := range work {
+						res, err := c.Time(md, sets[i], *reps, 1)
+						if err != nil {
+							log.Fatal(err)
+						}
+						rows[i] = result(c, res, l.ID, r.Rate)
+						if *simulate > 0 {
+							rows[i].Simulated = c.Simulate(md, sets[i], *simulate, 1, 3e8)
+						}
+					}
+				})
 			}
+			for i := range sets {
+				work <- i
+			}
+			close(work)
+			wg.Wait()
+			r.Results = append(r.Results, rows...)
 			log.Printf("%s, %s: %d sets in %s", l.ID, mode, len(sets), time.Since(start).Round(time.Second))
 		}
 		report = append(report, r)

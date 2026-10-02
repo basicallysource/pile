@@ -1921,6 +1921,633 @@ func (x *ListPartsResponse) GetUnmatched() []*UnmatchedPart {
 	return nil
 }
 
+type GetCollectTimesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	LotId string                 `protobuf:"bytes,1,opt,name=lot_id,json=lotId,proto3" json:"lot_id,omitempty"`
+	// Sets to time besides the standard ones.
+	Extra         []string `protobuf:"bytes,2,rep,name=extra,proto3" json:"extra,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCollectTimesRequest) Reset() {
+	*x = GetCollectTimesRequest{}
+	mi := &file_pile_v1_pile_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCollectTimesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCollectTimesRequest) ProtoMessage() {}
+
+func (x *GetCollectTimesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCollectTimesRequest.ProtoReflect.Descriptor instead.
+func (*GetCollectTimesRequest) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *GetCollectTimesRequest) GetLotId() string {
+	if x != nil {
+		return x.LotId
+	}
+	return ""
+}
+
+func (x *GetCollectTimesRequest) GetExtra() []string {
+	if x != nil {
+		return x.Extra
+	}
+	return nil
+}
+
+// What a lot's times rest on.
+type CollectBasis struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Classified pieces, the mix the times assume.
+	Pieces int32 `protobuf:"varint,1,opt,name=pieces,proto3" json:"pieces,omitempty"`
+	// The sorters they came from, when there are three or fewer.
+	MachineName string `protobuf:"bytes,2,opt,name=machine_name,json=machineName,proto3" json:"machine_name,omitempty"`
+	// Hours the sorters spent sorting (a gap of a minute or less between two
+	// pieces counts), and the classified pieces an hour that turns into time.
+	SortingHours  float64 `protobuf:"fixed64,3,opt,name=sorting_hours,json=sortingHours,proto3" json:"sorting_hours,omitempty"`
+	RatePerHour   float64 `protobuf:"fixed64,4,opt,name=rate_per_hour,json=ratePerHour,proto3" json:"rate_per_hour,omitempty"`
+	FirstSeenUnix int64   `protobuf:"varint,5,opt,name=first_seen_unix,json=firstSeenUnix,proto3" json:"first_seen_unix,omitempty"`
+	LastSeenUnix  int64   `protobuf:"varint,6,opt,name=last_seen_unix,json=lastSeenUnix,proto3" json:"last_seen_unix,omitempty"`
+	// When the records were pulled or copied.
+	SnapshotUnix  int64 `protobuf:"varint,7,opt,name=snapshot_unix,json=snapshotUnix,proto3" json:"snapshot_unix,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CollectBasis) Reset() {
+	*x = CollectBasis{}
+	mi := &file_pile_v1_pile_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CollectBasis) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CollectBasis) ProtoMessage() {}
+
+func (x *CollectBasis) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CollectBasis.ProtoReflect.Descriptor instead.
+func (*CollectBasis) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CollectBasis) GetPieces() int32 {
+	if x != nil {
+		return x.Pieces
+	}
+	return 0
+}
+
+func (x *CollectBasis) GetMachineName() string {
+	if x != nil {
+		return x.MachineName
+	}
+	return ""
+}
+
+func (x *CollectBasis) GetSortingHours() float64 {
+	if x != nil {
+		return x.SortingHours
+	}
+	return 0
+}
+
+func (x *CollectBasis) GetRatePerHour() float64 {
+	if x != nil {
+		return x.RatePerHour
+	}
+	return 0
+}
+
+func (x *CollectBasis) GetFirstSeenUnix() int64 {
+	if x != nil {
+		return x.FirstSeenUnix
+	}
+	return 0
+}
+
+func (x *CollectBasis) GetLastSeenUnix() int64 {
+	if x != nil {
+		return x.LastSeenUnix
+	}
+	return 0
+}
+
+func (x *CollectBasis) GetSnapshotUnix() int64 {
+	if x != nil {
+		return x.SnapshotUnix
+	}
+	return 0
+}
+
+// One piece that holds a set up.
+type SlowPiece struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	PartNum string                 `protobuf:"bytes,1,opt,name=part_num,json=partNum,proto3" json:"part_num,omitempty"`
+	Name    string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Unset in any-color mode.
+	Color *Color `protobuf:"bytes,3,opt,name=color,proto3" json:"color,omitempty"`
+	Need  int32  `protobuf:"varint,4,opt,name=need,proto3" json:"need,omitempty"`
+	// Pieces of it in the lot.
+	Seen int32 `protobuf:"varint,5,opt,name=seen,proto3" json:"seen,omitempty"`
+	// Hours of sorting before its count is expected.
+	WaitHours     float64 `protobuf:"fixed64,6,opt,name=wait_hours,json=waitHours,proto3" json:"wait_hours,omitempty"`
+	ImageUrl      string  `protobuf:"bytes,7,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SlowPiece) Reset() {
+	*x = SlowPiece{}
+	mi := &file_pile_v1_pile_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SlowPiece) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SlowPiece) ProtoMessage() {}
+
+func (x *SlowPiece) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SlowPiece.ProtoReflect.Descriptor instead.
+func (*SlowPiece) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *SlowPiece) GetPartNum() string {
+	if x != nil {
+		return x.PartNum
+	}
+	return ""
+}
+
+func (x *SlowPiece) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SlowPiece) GetColor() *Color {
+	if x != nil {
+		return x.Color
+	}
+	return nil
+}
+
+func (x *SlowPiece) GetNeed() int32 {
+	if x != nil {
+		return x.Need
+	}
+	return 0
+}
+
+func (x *SlowPiece) GetSeen() int32 {
+	if x != nil {
+		return x.Seen
+	}
+	return 0
+}
+
+func (x *SlowPiece) GetWaitHours() float64 {
+	if x != nil {
+		return x.WaitHours
+	}
+	return 0
+}
+
+func (x *SlowPiece) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
+	}
+	return ""
+}
+
+// A set's times in one color mode, in hours of sorting on one machine running
+// nonstop; -1 is never.
+type CollectTime struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Expected share of its pieces found: half, nine in ten, 99 in 100.
+	Half   float64 `protobuf:"fixed64,1,opt,name=half,proto3" json:"half,omitempty"`
+	Most   float64 `protobuf:"fixed64,2,opt,name=most,proto3" json:"most,omitempty"`
+	Nearly float64 `protobuf:"fixed64,3,opt,name=nearly,proto3" json:"nearly,omitempty"`
+	// Every piece: the median, and one run in ten faster or slower.
+	All     float64 `protobuf:"fixed64,4,opt,name=all,proto3" json:"all,omitempty"`
+	AllFast float64 `protobuf:"fixed64,5,opt,name=all_fast,json=allFast,proto3" json:"all_fast,omitempty"`
+	AllSlow float64 `protobuf:"fixed64,6,opt,name=all_slow,json=allSlow,proto3" json:"all_slow,omitempty"`
+	// The 5th to 95th percentile of `most` and `all` over resamplings of the
+	// lot's machine-days: how much they hang on which bulk came in.
+	MostLow  float64 `protobuf:"fixed64,7,opt,name=most_low,json=mostLow,proto3" json:"most_low,omitempty"`
+	MostHigh float64 `protobuf:"fixed64,8,opt,name=most_high,json=mostHigh,proto3" json:"most_high,omitempty"`
+	AllLow   float64 `protobuf:"fixed64,9,opt,name=all_low,json=allLow,proto3" json:"all_low,omitempty"`
+	AllHigh  float64 `protobuf:"fixed64,10,opt,name=all_high,json=allHigh,proto3" json:"all_high,omitempty"`
+	// Every part-color the lot has had a piece of: a floor from data alone.
+	AllSeen float64 `protobuf:"fixed64,11,opt,name=all_seen,json=allSeen,proto3" json:"all_seen,omitempty"`
+	// Every piece, were the part-colors never seen ten times rarer.
+	AllRarer float64 `protobuf:"fixed64,12,opt,name=all_rarer,json=allRarer,proto3" json:"all_rarer,omitempty"`
+	// Its part-colors, and the ones (and their pieces) the lot never had.
+	Keys         int32 `protobuf:"varint,13,opt,name=keys,proto3" json:"keys,omitempty"`
+	UnseenKeys   int32 `protobuf:"varint,14,opt,name=unseen_keys,json=unseenKeys,proto3" json:"unseen_keys,omitempty"`
+	UnseenPieces int32 `protobuf:"varint,15,opt,name=unseen_pieces,json=unseenPieces,proto3" json:"unseen_pieces,omitempty"`
+	// The pieces that hold it up the longest, longest first.
+	Slowest       []*SlowPiece `protobuf:"bytes,16,rep,name=slowest,proto3" json:"slowest,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CollectTime) Reset() {
+	*x = CollectTime{}
+	mi := &file_pile_v1_pile_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CollectTime) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CollectTime) ProtoMessage() {}
+
+func (x *CollectTime) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CollectTime.ProtoReflect.Descriptor instead.
+func (*CollectTime) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *CollectTime) GetHalf() float64 {
+	if x != nil {
+		return x.Half
+	}
+	return 0
+}
+
+func (x *CollectTime) GetMost() float64 {
+	if x != nil {
+		return x.Most
+	}
+	return 0
+}
+
+func (x *CollectTime) GetNearly() float64 {
+	if x != nil {
+		return x.Nearly
+	}
+	return 0
+}
+
+func (x *CollectTime) GetAll() float64 {
+	if x != nil {
+		return x.All
+	}
+	return 0
+}
+
+func (x *CollectTime) GetAllFast() float64 {
+	if x != nil {
+		return x.AllFast
+	}
+	return 0
+}
+
+func (x *CollectTime) GetAllSlow() float64 {
+	if x != nil {
+		return x.AllSlow
+	}
+	return 0
+}
+
+func (x *CollectTime) GetMostLow() float64 {
+	if x != nil {
+		return x.MostLow
+	}
+	return 0
+}
+
+func (x *CollectTime) GetMostHigh() float64 {
+	if x != nil {
+		return x.MostHigh
+	}
+	return 0
+}
+
+func (x *CollectTime) GetAllLow() float64 {
+	if x != nil {
+		return x.AllLow
+	}
+	return 0
+}
+
+func (x *CollectTime) GetAllHigh() float64 {
+	if x != nil {
+		return x.AllHigh
+	}
+	return 0
+}
+
+func (x *CollectTime) GetAllSeen() float64 {
+	if x != nil {
+		return x.AllSeen
+	}
+	return 0
+}
+
+func (x *CollectTime) GetAllRarer() float64 {
+	if x != nil {
+		return x.AllRarer
+	}
+	return 0
+}
+
+func (x *CollectTime) GetKeys() int32 {
+	if x != nil {
+		return x.Keys
+	}
+	return 0
+}
+
+func (x *CollectTime) GetUnseenKeys() int32 {
+	if x != nil {
+		return x.UnseenKeys
+	}
+	return 0
+}
+
+func (x *CollectTime) GetUnseenPieces() int32 {
+	if x != nil {
+		return x.UnseenPieces
+	}
+	return 0
+}
+
+func (x *CollectTime) GetSlowest() []*SlowPiece {
+	if x != nil {
+		return x.Slowest
+	}
+	return nil
+}
+
+type SetCollectTimes struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	SetNum   string                 `protobuf:"bytes,1,opt,name=set_num,json=setNum,proto3" json:"set_num,omitempty"`
+	Name     string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Year     int32                  `protobuf:"varint,3,opt,name=year,proto3" json:"year,omitempty"`
+	Theme    string                 `protobuf:"bytes,4,opt,name=theme,proto3" json:"theme,omitempty"`
+	ImageUrl string                 `protobuf:"bytes,5,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	// Pieces counted, and the ones left out by reason (printed or sticker,
+	// minifigure part, specialty mold, too big for a sorter...).
+	Pieces      int32            `protobuf:"varint,6,opt,name=pieces,proto3" json:"pieces,omitempty"`
+	LeftOut     map[string]int32 `protobuf:"bytes,7,rep,name=left_out,json=leftOut,proto3" json:"left_out,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	Minifigures int32            `protobuf:"varint,8,opt,name=minifigures,proto3" json:"minifigures,omitempty"`
+	Exact       *CollectTime     `protobuf:"bytes,9,opt,name=exact,proto3" json:"exact,omitempty"`
+	Near        *CollectTime     `protobuf:"bytes,10,opt,name=near,proto3" json:"near,omitempty"`
+	Any         *CollectTime     `protobuf:"bytes,11,opt,name=any,proto3" json:"any,omitempty"`
+	// Not worked out yet; it is on its way.
+	Pending bool `protobuf:"varint,12,opt,name=pending,proto3" json:"pending,omitempty"`
+	// Asked for, and the catalog has no such set with counted pieces.
+	Unknown       bool `protobuf:"varint,13,opt,name=unknown,proto3" json:"unknown,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetCollectTimes) Reset() {
+	*x = SetCollectTimes{}
+	mi := &file_pile_v1_pile_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetCollectTimes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetCollectTimes) ProtoMessage() {}
+
+func (x *SetCollectTimes) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetCollectTimes.ProtoReflect.Descriptor instead.
+func (*SetCollectTimes) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *SetCollectTimes) GetSetNum() string {
+	if x != nil {
+		return x.SetNum
+	}
+	return ""
+}
+
+func (x *SetCollectTimes) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SetCollectTimes) GetYear() int32 {
+	if x != nil {
+		return x.Year
+	}
+	return 0
+}
+
+func (x *SetCollectTimes) GetTheme() string {
+	if x != nil {
+		return x.Theme
+	}
+	return ""
+}
+
+func (x *SetCollectTimes) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
+	}
+	return ""
+}
+
+func (x *SetCollectTimes) GetPieces() int32 {
+	if x != nil {
+		return x.Pieces
+	}
+	return 0
+}
+
+func (x *SetCollectTimes) GetLeftOut() map[string]int32 {
+	if x != nil {
+		return x.LeftOut
+	}
+	return nil
+}
+
+func (x *SetCollectTimes) GetMinifigures() int32 {
+	if x != nil {
+		return x.Minifigures
+	}
+	return 0
+}
+
+func (x *SetCollectTimes) GetExact() *CollectTime {
+	if x != nil {
+		return x.Exact
+	}
+	return nil
+}
+
+func (x *SetCollectTimes) GetNear() *CollectTime {
+	if x != nil {
+		return x.Near
+	}
+	return nil
+}
+
+func (x *SetCollectTimes) GetAny() *CollectTime {
+	if x != nil {
+		return x.Any
+	}
+	return nil
+}
+
+func (x *SetCollectTimes) GetPending() bool {
+	if x != nil {
+		return x.Pending
+	}
+	return false
+}
+
+func (x *SetCollectTimes) GetUnknown() bool {
+	if x != nil {
+		return x.Unknown
+	}
+	return false
+}
+
+type GetCollectTimesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Basis *CollectBasis          `protobuf:"bytes,1,opt,name=basis,proto3" json:"basis,omitempty"`
+	Sets  []*SetCollectTimes     `protobuf:"bytes,2,rep,name=sets,proto3" json:"sets,omitempty"`
+	// When the lot's model was fitted (the server works it out at start, from
+	// the data it loaded); 0 while it is being fitted.
+	FittedUnix    int64 `protobuf:"varint,3,opt,name=fitted_unix,json=fittedUnix,proto3" json:"fitted_unix,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCollectTimesResponse) Reset() {
+	*x = GetCollectTimesResponse{}
+	mi := &file_pile_v1_pile_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCollectTimesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCollectTimesResponse) ProtoMessage() {}
+
+func (x *GetCollectTimesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCollectTimesResponse.ProtoReflect.Descriptor instead.
+func (*GetCollectTimesResponse) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *GetCollectTimesResponse) GetBasis() *CollectBasis {
+	if x != nil {
+		return x.Basis
+	}
+	return nil
+}
+
+func (x *GetCollectTimesResponse) GetSets() []*SetCollectTimes {
+	if x != nil {
+		return x.Sets
+	}
+	return nil
+}
+
+func (x *GetCollectTimesResponse) GetFittedUnix() int64 {
+	if x != nil {
+		return x.FittedUnix
+	}
+	return 0
+}
+
 var File_pile_v1_pile_proto protoreflect.FileDescriptor
 
 const file_pile_v1_pile_proto_rawDesc = "" +
@@ -2074,7 +2701,69 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x05count\x18\x04 \x01(\x05R\x05count\"s\n" +
 	"\x11ListPartsResponse\x12(\n" +
 	"\x05parts\x18\x01 \x03(\v2\x12.pile.v1.PartCountR\x05parts\x124\n" +
-	"\tunmatched\x18\x02 \x03(\v2\x16.pile.v1.UnmatchedPartR\tunmatched*;\n" +
+	"\tunmatched\x18\x02 \x03(\v2\x16.pile.v1.UnmatchedPartR\tunmatched\"E\n" +
+	"\x16GetCollectTimesRequest\x12\x15\n" +
+	"\x06lot_id\x18\x01 \x01(\tR\x05lotId\x12\x14\n" +
+	"\x05extra\x18\x02 \x03(\tR\x05extra\"\x85\x02\n" +
+	"\fCollectBasis\x12\x16\n" +
+	"\x06pieces\x18\x01 \x01(\x05R\x06pieces\x12!\n" +
+	"\fmachine_name\x18\x02 \x01(\tR\vmachineName\x12#\n" +
+	"\rsorting_hours\x18\x03 \x01(\x01R\fsortingHours\x12\"\n" +
+	"\rrate_per_hour\x18\x04 \x01(\x01R\vratePerHour\x12&\n" +
+	"\x0ffirst_seen_unix\x18\x05 \x01(\x03R\rfirstSeenUnix\x12$\n" +
+	"\x0elast_seen_unix\x18\x06 \x01(\x03R\flastSeenUnix\x12#\n" +
+	"\rsnapshot_unix\x18\a \x01(\x03R\fsnapshotUnix\"\xc4\x01\n" +
+	"\tSlowPiece\x12\x19\n" +
+	"\bpart_num\x18\x01 \x01(\tR\apartNum\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12$\n" +
+	"\x05color\x18\x03 \x01(\v2\x0e.pile.v1.ColorR\x05color\x12\x12\n" +
+	"\x04need\x18\x04 \x01(\x05R\x04need\x12\x12\n" +
+	"\x04seen\x18\x05 \x01(\x05R\x04seen\x12\x1d\n" +
+	"\n" +
+	"wait_hours\x18\x06 \x01(\x01R\twaitHours\x12\x1b\n" +
+	"\timage_url\x18\a \x01(\tR\bimageUrl\"\xc1\x03\n" +
+	"\vCollectTime\x12\x12\n" +
+	"\x04half\x18\x01 \x01(\x01R\x04half\x12\x12\n" +
+	"\x04most\x18\x02 \x01(\x01R\x04most\x12\x16\n" +
+	"\x06nearly\x18\x03 \x01(\x01R\x06nearly\x12\x10\n" +
+	"\x03all\x18\x04 \x01(\x01R\x03all\x12\x19\n" +
+	"\ball_fast\x18\x05 \x01(\x01R\aallFast\x12\x19\n" +
+	"\ball_slow\x18\x06 \x01(\x01R\aallSlow\x12\x19\n" +
+	"\bmost_low\x18\a \x01(\x01R\amostLow\x12\x1b\n" +
+	"\tmost_high\x18\b \x01(\x01R\bmostHigh\x12\x17\n" +
+	"\aall_low\x18\t \x01(\x01R\x06allLow\x12\x19\n" +
+	"\ball_high\x18\n" +
+	" \x01(\x01R\aallHigh\x12\x19\n" +
+	"\ball_seen\x18\v \x01(\x01R\aallSeen\x12\x1b\n" +
+	"\tall_rarer\x18\f \x01(\x01R\ballRarer\x12\x12\n" +
+	"\x04keys\x18\r \x01(\x05R\x04keys\x12\x1f\n" +
+	"\vunseen_keys\x18\x0e \x01(\x05R\n" +
+	"unseenKeys\x12#\n" +
+	"\runseen_pieces\x18\x0f \x01(\x05R\funseenPieces\x12,\n" +
+	"\aslowest\x18\x10 \x03(\v2\x12.pile.v1.SlowPieceR\aslowest\"\xef\x03\n" +
+	"\x0fSetCollectTimes\x12\x17\n" +
+	"\aset_num\x18\x01 \x01(\tR\x06setNum\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
+	"\x04year\x18\x03 \x01(\x05R\x04year\x12\x14\n" +
+	"\x05theme\x18\x04 \x01(\tR\x05theme\x12\x1b\n" +
+	"\timage_url\x18\x05 \x01(\tR\bimageUrl\x12\x16\n" +
+	"\x06pieces\x18\x06 \x01(\x05R\x06pieces\x12@\n" +
+	"\bleft_out\x18\a \x03(\v2%.pile.v1.SetCollectTimes.LeftOutEntryR\aleftOut\x12 \n" +
+	"\vminifigures\x18\b \x01(\x05R\vminifigures\x12*\n" +
+	"\x05exact\x18\t \x01(\v2\x14.pile.v1.CollectTimeR\x05exact\x12(\n" +
+	"\x04near\x18\n" +
+	" \x01(\v2\x14.pile.v1.CollectTimeR\x04near\x12&\n" +
+	"\x03any\x18\v \x01(\v2\x14.pile.v1.CollectTimeR\x03any\x12\x18\n" +
+	"\apending\x18\f \x01(\bR\apending\x12\x18\n" +
+	"\aunknown\x18\r \x01(\bR\aunknown\x1a:\n" +
+	"\fLeftOutEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"\x95\x01\n" +
+	"\x17GetCollectTimesResponse\x12+\n" +
+	"\x05basis\x18\x01 \x01(\v2\x15.pile.v1.CollectBasisR\x05basis\x12,\n" +
+	"\x04sets\x18\x02 \x03(\v2\x18.pile.v1.SetCollectTimesR\x04sets\x12\x1f\n" +
+	"\vfitted_unix\x18\x03 \x01(\x03R\n" +
+	"fittedUnix*;\n" +
 	"\x04Kind\x12\x14\n" +
 	"\x10KIND_UNSPECIFIED\x10\x00\x12\f\n" +
 	"\bKIND_SET\x10\x01\x12\x0f\n" +
@@ -2090,13 +2779,14 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x14COUNTING_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10COUNTING_COUNTED\x10\x01\x12\x14\n" +
 	"\x10COUNTING_PRINTED\x10\x02\x12\x17\n" +
-	"\x13COUNTING_MINIFIGURE\x10\x032\xc9\x02\n" +
+	"\x13COUNTING_MINIFIGURE\x10\x032\x9f\x03\n" +
 	"\vPileService\x12?\n" +
 	"\bListLots\x12\x18.pile.v1.ListLotsRequest\x1a\x19.pile.v1.ListLotsResponse\x129\n" +
 	"\x06GetLot\x12\x16.pile.v1.GetLotRequest\x1a\x17.pile.v1.GetLotResponse\x12?\n" +
 	"\bListSets\x12\x18.pile.v1.ListSetsRequest\x1a\x19.pile.v1.ListSetsResponse\x129\n" +
 	"\x06GetSet\x12\x16.pile.v1.GetSetRequest\x1a\x17.pile.v1.GetSetResponse\x12B\n" +
-	"\tListParts\x12\x19.pile.v1.ListPartsRequest\x1a\x1a.pile.v1.ListPartsResponseB4Z2github.com/basicallysource/pile/gen/pile/v1;pilev1b\x06proto3"
+	"\tListParts\x12\x19.pile.v1.ListPartsRequest\x1a\x1a.pile.v1.ListPartsResponse\x12T\n" +
+	"\x0fGetCollectTimes\x12\x1f.pile.v1.GetCollectTimesRequest\x1a .pile.v1.GetCollectTimesResponseB4Z2github.com/basicallysource/pile/gen/pile/v1;pilev1b\x06proto3"
 
 var (
 	file_pile_v1_pile_proto_rawDescOnce sync.Once
@@ -2111,33 +2801,40 @@ func file_pile_v1_pile_proto_rawDescGZIP() []byte {
 }
 
 var file_pile_v1_pile_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_pile_v1_pile_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_pile_v1_pile_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_pile_v1_pile_proto_goTypes = []any{
-	(Kind)(0),                 // 0: pile.v1.Kind
-	(Order)(0),                // 1: pile.v1.Order
-	(Counting)(0),             // 2: pile.v1.Counting
-	(*View)(nil),              // 3: pile.v1.View
-	(*Color)(nil),             // 4: pile.v1.Color
-	(*Lot)(nil),               // 5: pile.v1.Lot
-	(*ColorShare)(nil),        // 6: pile.v1.ColorShare
-	(*CategoryShare)(nil),     // 7: pile.v1.CategoryShare
-	(*ListLotsRequest)(nil),   // 8: pile.v1.ListLotsRequest
-	(*ListLotsResponse)(nil),  // 9: pile.v1.ListLotsResponse
-	(*SetMatch)(nil),          // 10: pile.v1.SetMatch
-	(*Section)(nil),           // 11: pile.v1.Section
-	(*GetLotRequest)(nil),     // 12: pile.v1.GetLotRequest
-	(*GetLotResponse)(nil),    // 13: pile.v1.GetLotResponse
-	(*ListSetsRequest)(nil),   // 14: pile.v1.ListSetsRequest
-	(*ThemeCount)(nil),        // 15: pile.v1.ThemeCount
-	(*ListSetsResponse)(nil),  // 16: pile.v1.ListSetsResponse
-	(*GetSetRequest)(nil),     // 17: pile.v1.GetSetRequest
-	(*SetLine)(nil),           // 18: pile.v1.SetLine
-	(*Minifigure)(nil),        // 19: pile.v1.Minifigure
-	(*GetSetResponse)(nil),    // 20: pile.v1.GetSetResponse
-	(*ListPartsRequest)(nil),  // 21: pile.v1.ListPartsRequest
-	(*PartCount)(nil),         // 22: pile.v1.PartCount
-	(*UnmatchedPart)(nil),     // 23: pile.v1.UnmatchedPart
-	(*ListPartsResponse)(nil), // 24: pile.v1.ListPartsResponse
+	(Kind)(0),                       // 0: pile.v1.Kind
+	(Order)(0),                      // 1: pile.v1.Order
+	(Counting)(0),                   // 2: pile.v1.Counting
+	(*View)(nil),                    // 3: pile.v1.View
+	(*Color)(nil),                   // 4: pile.v1.Color
+	(*Lot)(nil),                     // 5: pile.v1.Lot
+	(*ColorShare)(nil),              // 6: pile.v1.ColorShare
+	(*CategoryShare)(nil),           // 7: pile.v1.CategoryShare
+	(*ListLotsRequest)(nil),         // 8: pile.v1.ListLotsRequest
+	(*ListLotsResponse)(nil),        // 9: pile.v1.ListLotsResponse
+	(*SetMatch)(nil),                // 10: pile.v1.SetMatch
+	(*Section)(nil),                 // 11: pile.v1.Section
+	(*GetLotRequest)(nil),           // 12: pile.v1.GetLotRequest
+	(*GetLotResponse)(nil),          // 13: pile.v1.GetLotResponse
+	(*ListSetsRequest)(nil),         // 14: pile.v1.ListSetsRequest
+	(*ThemeCount)(nil),              // 15: pile.v1.ThemeCount
+	(*ListSetsResponse)(nil),        // 16: pile.v1.ListSetsResponse
+	(*GetSetRequest)(nil),           // 17: pile.v1.GetSetRequest
+	(*SetLine)(nil),                 // 18: pile.v1.SetLine
+	(*Minifigure)(nil),              // 19: pile.v1.Minifigure
+	(*GetSetResponse)(nil),          // 20: pile.v1.GetSetResponse
+	(*ListPartsRequest)(nil),        // 21: pile.v1.ListPartsRequest
+	(*PartCount)(nil),               // 22: pile.v1.PartCount
+	(*UnmatchedPart)(nil),           // 23: pile.v1.UnmatchedPart
+	(*ListPartsResponse)(nil),       // 24: pile.v1.ListPartsResponse
+	(*GetCollectTimesRequest)(nil),  // 25: pile.v1.GetCollectTimesRequest
+	(*CollectBasis)(nil),            // 26: pile.v1.CollectBasis
+	(*SlowPiece)(nil),               // 27: pile.v1.SlowPiece
+	(*CollectTime)(nil),             // 28: pile.v1.CollectTime
+	(*SetCollectTimes)(nil),         // 29: pile.v1.SetCollectTimes
+	(*GetCollectTimesResponse)(nil), // 30: pile.v1.GetCollectTimesResponse
+	nil,                             // 31: pile.v1.SetCollectTimes.LeftOutEntry
 }
 var file_pile_v1_pile_proto_depIdxs = []int32{
 	6,  // 0: pile.v1.Lot.colors:type_name -> pile.v1.ColorShare
@@ -2169,21 +2866,31 @@ var file_pile_v1_pile_proto_depIdxs = []int32{
 	4,  // 26: pile.v1.PartCount.color:type_name -> pile.v1.Color
 	22, // 27: pile.v1.ListPartsResponse.parts:type_name -> pile.v1.PartCount
 	23, // 28: pile.v1.ListPartsResponse.unmatched:type_name -> pile.v1.UnmatchedPart
-	8,  // 29: pile.v1.PileService.ListLots:input_type -> pile.v1.ListLotsRequest
-	12, // 30: pile.v1.PileService.GetLot:input_type -> pile.v1.GetLotRequest
-	14, // 31: pile.v1.PileService.ListSets:input_type -> pile.v1.ListSetsRequest
-	17, // 32: pile.v1.PileService.GetSet:input_type -> pile.v1.GetSetRequest
-	21, // 33: pile.v1.PileService.ListParts:input_type -> pile.v1.ListPartsRequest
-	9,  // 34: pile.v1.PileService.ListLots:output_type -> pile.v1.ListLotsResponse
-	13, // 35: pile.v1.PileService.GetLot:output_type -> pile.v1.GetLotResponse
-	16, // 36: pile.v1.PileService.ListSets:output_type -> pile.v1.ListSetsResponse
-	20, // 37: pile.v1.PileService.GetSet:output_type -> pile.v1.GetSetResponse
-	24, // 38: pile.v1.PileService.ListParts:output_type -> pile.v1.ListPartsResponse
-	34, // [34:39] is the sub-list for method output_type
-	29, // [29:34] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	4,  // 29: pile.v1.SlowPiece.color:type_name -> pile.v1.Color
+	27, // 30: pile.v1.CollectTime.slowest:type_name -> pile.v1.SlowPiece
+	31, // 31: pile.v1.SetCollectTimes.left_out:type_name -> pile.v1.SetCollectTimes.LeftOutEntry
+	28, // 32: pile.v1.SetCollectTimes.exact:type_name -> pile.v1.CollectTime
+	28, // 33: pile.v1.SetCollectTimes.near:type_name -> pile.v1.CollectTime
+	28, // 34: pile.v1.SetCollectTimes.any:type_name -> pile.v1.CollectTime
+	26, // 35: pile.v1.GetCollectTimesResponse.basis:type_name -> pile.v1.CollectBasis
+	29, // 36: pile.v1.GetCollectTimesResponse.sets:type_name -> pile.v1.SetCollectTimes
+	8,  // 37: pile.v1.PileService.ListLots:input_type -> pile.v1.ListLotsRequest
+	12, // 38: pile.v1.PileService.GetLot:input_type -> pile.v1.GetLotRequest
+	14, // 39: pile.v1.PileService.ListSets:input_type -> pile.v1.ListSetsRequest
+	17, // 40: pile.v1.PileService.GetSet:input_type -> pile.v1.GetSetRequest
+	21, // 41: pile.v1.PileService.ListParts:input_type -> pile.v1.ListPartsRequest
+	25, // 42: pile.v1.PileService.GetCollectTimes:input_type -> pile.v1.GetCollectTimesRequest
+	9,  // 43: pile.v1.PileService.ListLots:output_type -> pile.v1.ListLotsResponse
+	13, // 44: pile.v1.PileService.GetLot:output_type -> pile.v1.GetLotResponse
+	16, // 45: pile.v1.PileService.ListSets:output_type -> pile.v1.ListSetsResponse
+	20, // 46: pile.v1.PileService.GetSet:output_type -> pile.v1.GetSetResponse
+	24, // 47: pile.v1.PileService.ListParts:output_type -> pile.v1.ListPartsResponse
+	30, // 48: pile.v1.PileService.GetCollectTimes:output_type -> pile.v1.GetCollectTimesResponse
+	43, // [43:49] is the sub-list for method output_type
+	37, // [37:43] is the sub-list for method input_type
+	37, // [37:37] is the sub-list for extension type_name
+	37, // [37:37] is the sub-list for extension extendee
+	0,  // [0:37] is the sub-list for field type_name
 }
 
 func init() { file_pile_v1_pile_proto_init() }
@@ -2197,7 +2904,7 @@ func file_pile_v1_pile_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pile_v1_pile_proto_rawDesc), len(file_pile_v1_pile_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   22,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
