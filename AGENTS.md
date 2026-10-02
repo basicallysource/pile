@@ -61,9 +61,13 @@ the public record).
   downloads), `parts.db` (a sorter Hive's parts database, for
   BrickLink-to-Rebrickable part and color ids), `custom-models.json` (free
   custom models: `docs/custom-models.md`), `lots.json` (the collection's lots:
-  each a named stretch of one sorter's records) and
-  `machines/<name>/local_state.sqlite` (each sorter's records). Fresh data
-  means a restart.
+  each a named stretch of sorted pieces), `machines/<name>/local_state.sqlite`
+  (a sorter's own records, copied) and `hive.sqlite` (records pulled from a
+  Hive by `cmd/pull-hive`: `docs/hive.md`). Fresh data means a restart.
+- **Other commands.** `cmd/pull-hive` (records from a Hive),
+  `cmd/collect-time` (how long one sorter takes to come across a set's
+  pieces: `docs/collect-time.md`), `cmd/export-pieces` (a lot as CSV),
+  `cmd/import-custom-models`.
 - **Lots and views.** The collection is lots (`internal/lots`); every request
   about a lot carries a View: the lot, any-color matching, and a sort-out
   queue whose sets take their pieces first (`internal/server/view.go`).
@@ -72,10 +76,13 @@ the public record).
   Generated code is committed.
 - **Matching** is `internal/match` (its package comment says how sets are
   scored, in exact or any color, and how the likely order is picked). Pieces
-  come from `internal/machine`, the catalog (sets and custom models) from
-  `internal/catalog`, the handlers from `internal/server`.
+  come from `internal/records` (a sorter's own records) and `internal/hive`
+  (pulled from a Hive), lots from `internal/lots`, the catalog (sets and
+  custom models) from `internal/catalog`, the handlers from
+  `internal/server`. `internal/collect` is the collect-time model.
 - **App.** SvelteKit 5 + Tailwind, static, in `app/`, embedded into the
   binary (`embed.go`). It follows the Sorter design system
   (`docs/design-system/README.md`).
-- **Build:** `scripts/build.sh` (packages, generate, app build, vet, binary
-  to `bin/pile`). Run: `bin/pile -data DIR -addr :PORT`.
+- **Build:** `scripts/build.sh` (packages, generate, app build, vet, every
+  command to `bin/`). Run: `bin/pile -data DIR -addr :PORT`. Test:
+  `go test ./...`.

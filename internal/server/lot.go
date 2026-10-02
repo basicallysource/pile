@@ -5,7 +5,6 @@ import (
 
 	"github.com/basicallysource/pile/internal/catalog"
 	"github.com/basicallysource/pile/internal/lots"
-	"github.com/basicallysource/pile/internal/machine"
 	"github.com/basicallysource/pile/internal/match"
 )
 
@@ -49,9 +48,8 @@ func newLot(l *lots.Lot, cat *catalog.Catalog, ix *match.Index) *lot {
 	counts := map[catalog.PartColor]int32{}
 	for _, pc := range l.Records.Pieces {
 		t.pieces++
-		part := cat.Parts[cat.BrickLinkParts[pc.BrickLinkPart]]
-		color, colorOK := cat.BrickLinkColors[pc.BrickLinkColor]
-		if part == nil || !pc.ColorKnown || !colorOK {
+		k, ok := cat.FromBrickLink(pc.BrickLinkPart, pc.BrickLinkColor, pc.ColorKnown)
+		if !ok {
 			k := [3]string{pc.BrickLinkPart, pc.PartName, pc.ColorName}
 			u := byUn[k]
 			if u == nil {
@@ -61,10 +59,9 @@ func newLot(l *lots.Lot, cat *catalog.Catalog, ix *match.Index) *lot {
 			u.count++
 			continue
 		}
-		k := catalog.PartColor{Part: part.Num, Color: color}
 		p := byPC[k]
 		if p == nil {
-			p = &partCount{part: part, bricklinkPart: pc.BrickLinkPart, color: cat.Colors[color]}
+			p = &partCount{part: cat.Parts[k.Part], bricklinkPart: pc.BrickLinkPart, color: cat.Colors[k.Color]}
 			byPC[k] = p
 		}
 		p.count++
@@ -123,19 +120,4 @@ func (t *lot) unmatchedPieces() int32 {
 		n += u.count
 	}
 	return n
-}
-
-// whole is every lot's records as one lot: the collection.
-func whole(ls []*lots.Lot) *lots.Lot {
-	w := &lots.Lot{ID: "all", Name: "Whole collection", Description: "Every lot together.", Records: &machine.Records{}}
-	for _, l := range ls {
-		r := l.Records
-		w.Records.Pieces = append(w.Records.Pieces, r.Pieces...)
-		if w.Records.FirstSeen == 0 || (r.FirstSeen != 0 && r.FirstSeen < w.Records.FirstSeen) {
-			w.Records.FirstSeen = r.FirstSeen
-		}
-		w.Records.LastSeen = max(w.Records.LastSeen, r.LastSeen)
-		w.Records.CopiedAt = max(w.Records.CopiedAt, r.CopiedAt)
-	}
-	return w
 }

@@ -20,12 +20,9 @@ type Service struct {
 	lots  map[string]*lot
 }
 
-// New readies every lot, and the whole collection when there is more than one.
+// New readies every lot.
 func New(cat *catalog.Catalog, ls []*lots.Lot) *Service {
 	s := &Service{cat: cat, index: match.NewIndex(cat), lots: map[string]*lot{}}
-	if len(ls) > 1 {
-		ls = append([]*lots.Lot{whole(ls)}, ls...)
-	}
 	for _, l := range ls {
 		t := newLot(l, cat, s.index)
 		s.order = append(s.order, t)

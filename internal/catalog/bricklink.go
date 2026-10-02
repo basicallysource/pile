@@ -7,6 +7,18 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+// FromBrickLink is the Rebrickable part and color of a piece a sorter
+// classified in BrickLink's ids, if the catalog has both (a piece of unknown
+// color has none).
+func (c *Catalog) FromBrickLink(part string, color int32, colorKnown bool) (PartColor, bool) {
+	p := c.Parts[c.BrickLinkParts[part]]
+	col, ok := c.BrickLinkColors[color]
+	if p == nil || !colorKnown || !ok {
+		return PartColor{}, false
+	}
+	return PartColor{Part: p.Num, Color: col}, true
+}
+
 // loadBrickLink reads which Rebrickable part and color each BrickLink id is,
 // from a sorter Hive's parts database (its part_bricklink_ids table, and the
 // external ids Rebrickable lists on each color). The sorter classifies in

@@ -1,0 +1,38 @@
+# The sets the collect-time research measures: a set number, then why it is
+# here. Big and small, cheap and dear, new and old, model and bulk.
+75192-1 Millennium Falcon (2017, UCS): the biggest Star Wars set for years
+6212-1 X-wing Fighter (2006): the standard X-wing of about 2007
+10179-1 Millennium Falcon (2007, UCS): the first UCS Falcon
+75301-1 Luke Skywalker's X-Wing Fighter (2021): today's standard X-wing
+75355-1 X-Wing Starfighter (2023, UCS)
+75313-1 AT-AT (2021, UCS)
+75257-1 Millennium Falcon (2019): the play-scale Falcon
+10294-1 Titanic (2021): one of the biggest sets
+10305-1 Lion Knights' Castle (2022)
+10255-1 Assembly Square (2017): a modular building
+10182-1 Cafe Corner (2007): the first modular building
+10497-1 Galaxy Explorer (2022): the classic space remake
+10281-1 Bonsai Tree (2021): botanicals
+10283-1 NASA Space Shuttle Discovery (2021)
+10316-1 Lord of the Rings: Rivendell (2023)
+43222-1 Disney Castle (2023)
+21309-1 NASA Apollo Saturn V (2017, Ideas)
+21318-1 Tree House (2019, Ideas)
+21327-1 Typewriter (2021, Ideas)
+71043-1 Hogwarts Castle (2018)
+76139-1 1989 Batmobile (2019)
+42115-1 Lamborghini Sian FKP 37 (2020, Technic)
+42100-1 Liebherr R 9800 Excavator (2019, Technic)
+8880-1 Super Car (1994, Technic)
+31058-1 Mighty Dinosaurs (2017, Creator 3-in-1): a cheap kids' set
+31109-1 Pirate Ship (2020, Creator 3-in-1)
+31120-1 Medieval Castle (2021, Creator 3-in-1)
+60198-1 Cargo Train (2018, City)
+60380-1 Downtown (2023, City)
+21034-1 London (2016, Architecture): small and cheap
+31208-1 Hokusai, The Great Wave (2023, Art): a mosaic
+10696-1 Medium Creative Brick Box (2015, Classic): a box of bricks
+375-2 Castle (1978): the yellow castle
+928-1 Space Cruiser and Moonbase (1979): the original Galaxy Explorer
+6285-1 Black Seas Barracuda (1989, Pirates)
+6399-1 Airport Shuttle (1990): the monorail

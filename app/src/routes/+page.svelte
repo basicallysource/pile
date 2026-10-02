@@ -15,6 +15,9 @@
 	let data = $state<ListLotsResponse | null>(null);
 	let error = $state<string | null>(null);
 
+	// Unlisted lots open only from a lot's menu.
+	const listed = $derived(data?.lots.filter((l) => !l.unlisted) ?? []);
+
 	$effect(() => {
 		pile.listLots({}).then((r) => (data = r), (e) => (error = String(e)));
 	});
@@ -36,10 +39,10 @@
 	<Alert tone="danger" title="The collection did not load">{error}</Alert>
 {:else if !data}
 	<div aria-busy="true" class="grid gap-(--gap-panels) md:grid-cols-2"><Skeleton class="h-40" /><Skeleton class="h-40" /></div>
-{:else if data.lots.length === 0}
+{:else if listed.length === 0}
 	<EmptyState title="No lots yet." />
 {:else}
 	<div class="grid gap-(--gap-panels) md:grid-cols-2">
-		{#each data.lots as lot (lot.id)}<LotCard {lot} />{/each}
+		{#each listed as lot (lot.id)}<LotCard {lot} />{/each}
 	</div>
 {/if}

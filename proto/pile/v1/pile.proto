@@ -51,6 +51,7 @@ message Lot {
   string name = 2;
   // One sentence: where the pieces came from.
   string description = 3;
+  // The sorters its pieces came from, when there are three or fewer.
   string machine_name = 4;
   // Pieces the machine classified in the lot.
   int32 pieces = 5;
@@ -64,6 +65,8 @@ message Lot {
   int64 snapshot_unix = 10;
   // The lot's colors by share of its pieces, most first.
   repeated ColorShare colors = 11;
+  // Left off the collection page: it opens only from the lot menu.
+  bool unlisted = 12;
 }
 
 message ColorShare {

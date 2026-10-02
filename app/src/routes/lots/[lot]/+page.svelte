@@ -19,6 +19,7 @@
 	import SetSection from '$lib/pile/SetSection.svelte';
 	import SetGrid from '$lib/pile/SetGrid.svelte';
 	import SortOutQueue from '$lib/pile/SortOutQueue.svelte';
+	import LotMenu from '$lib/pile/LotMenu.svelte';
 	import { count, dayOf } from '$lib/format';
 	import { lotId, view } from '$lib/view.svelte';
 
@@ -48,7 +49,7 @@
 <div class="flex items-center gap-1 text-sm text-ink-muted">
 	<a href="/" class="hover:text-ink">Collection</a>
 	<ChevronRight size={14} />
-	<span class="text-ink">{l?.name ?? lot}</span>
+	<LotMenu {lot} name={l?.name ?? lot} />
 </div>
 
 {#if error}

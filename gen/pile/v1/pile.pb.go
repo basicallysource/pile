@@ -352,6 +352,7 @@ type Lot struct {
 	Name  string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// One sentence: where the pieces came from.
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	// The sorters its pieces came from, when there are three or fewer.
 	MachineName string `protobuf:"bytes,4,opt,name=machine_name,json=machineName,proto3" json:"machine_name,omitempty"`
 	// Pieces the machine classified in the lot.
 	Pieces int32 `protobuf:"varint,5,opt,name=pieces,proto3" json:"pieces,omitempty"`
@@ -364,7 +365,9 @@ type Lot struct {
 	// When the machine's records were copied.
 	SnapshotUnix int64 `protobuf:"varint,10,opt,name=snapshot_unix,json=snapshotUnix,proto3" json:"snapshot_unix,omitempty"`
 	// The lot's colors by share of its pieces, most first.
-	Colors        []*ColorShare `protobuf:"bytes,11,rep,name=colors,proto3" json:"colors,omitempty"`
+	Colors []*ColorShare `protobuf:"bytes,11,rep,name=colors,proto3" json:"colors,omitempty"`
+	// Left off the collection page: it opens only from the lot menu.
+	Unlisted      bool `protobuf:"varint,12,opt,name=unlisted,proto3" json:"unlisted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -474,6 +477,13 @@ func (x *Lot) GetColors() []*ColorShare {
 		return x.Colors
 	}
 	return nil
+}
+
+func (x *Lot) GetUnlisted() bool {
+	if x != nil {
+		return x.Unlisted
+	}
+	return false
 }
 
 type ColorShare struct {
@@ -1926,7 +1936,7 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
 	"\x03rgb\x18\x03 \x01(\tR\x03rgb\x12 \n" +
 	"\vtransparent\x18\x04 \x01(\bR\vtransparent\x12!\n" +
-	"\fbricklink_id\x18\x05 \x01(\x05R\vbricklinkId\"\xf2\x02\n" +
+	"\fbricklink_id\x18\x05 \x01(\x05R\vbricklinkId\"\x8e\x03\n" +
 	"\x03Lot\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -1940,7 +1950,8 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x0elast_seen_unix\x18\t \x01(\x03R\flastSeenUnix\x12#\n" +
 	"\rsnapshot_unix\x18\n" +
 	" \x01(\x03R\fsnapshotUnix\x12+\n" +
-	"\x06colors\x18\v \x03(\v2\x13.pile.v1.ColorShareR\x06colors\"J\n" +
+	"\x06colors\x18\v \x03(\v2\x13.pile.v1.ColorShareR\x06colors\x12\x1a\n" +
+	"\bunlisted\x18\f \x01(\bR\bunlisted\"J\n" +
 	"\n" +
 	"ColorShare\x12$\n" +
 	"\x05color\x18\x01 \x01(\v2\x0e.pile.v1.ColorR\x05color\x12\x16\n" +

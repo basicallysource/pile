@@ -45,6 +45,7 @@ type Entry struct {
 type Index struct {
 	cat     *catalog.Catalog
 	parts   map[string]int32 // canonical part number to id
+	nums    []string         // id to canonical part number
 	Entries []*Entry
 	byNum   map[string]*Entry
 	// Weight of a part in a color (exact matching) and of a part (any color).
@@ -155,9 +156,13 @@ func (ix *Index) Part(p string) int32 {
 	if !ok {
 		id = int32(len(ix.parts))
 		ix.parts[p] = id
+		ix.nums = append(ix.nums, p)
 	}
 	return id
 }
+
+// PartNum is the canonical part number of a part id.
+func (ix *Index) PartNum(id int32) string { return ix.nums[id] }
 
 // Entry is the set or custom model with this number, if it has counted lines.
 func (ix *Index) Entry(num string) *Entry { return ix.byNum[num] }

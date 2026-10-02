@@ -1,6 +1,7 @@
-// Package lots reads the collection's lots: each a named stretch of one
-// sorter's records (one box, one sort), set out in the data folder's
-// lots.json.
+// Package lots reads the collection's lots, set out in the data folder's
+// lots.json: each a named stretch of sorted pieces (one box, one sort, or
+// everything some sorters ever sorted), from one sorter's own records or from
+// the records pulled from a Hive.
 package lots
 
 import (
@@ -10,25 +11,33 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/basicallysource/pile/internal/machine"
+	"github.com/basicallysource/pile/internal/hive"
+	"github.com/basicallysource/pile/internal/records"
 )
 
-// Lot is one entry of lots.json.
+// Lot is one entry of lots.json. Its pieces come from exactly one of Machine
+// and Hive.
 type Lot struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	// The sorter whose records hold it: machines/<machine>/local_state.sqlite.
-	Machine string `json:"machine"`
+	// A sorter whose own records are copied into machines/<machine>/local_state.sqlite.
+	Machine string `json:"machine,omitempty"`
+	// Or machines pulled from a Hive into hive.sqlite (cmd/pull-hive): "mine"
+	// (the signed-in user's own), "all" (every machine pulled), or one
+	// machine's name.
+	Hive string `json:"hive,omitempty"`
 	// The days it was sorted, YYYY-MM-DD in local time; Until is the first
-	// day after it, empty for no end.
-	From  string `json:"from"`
-	Until string `json:"until"`
+	// day after it. Either may be empty for no bound.
+	From  string `json:"from,omitempty"`
+	Until string `json:"until,omitempty"`
+	// Left off the collection page: it opens only from the lot menu.
+	Unlisted bool `json:"unlisted,omitempty"`
 
-	Records *machine.Records `json:"-"`
+	Records *records.Records `json:"-"`
 }
 
-// Read loads lots.json in dir and each lot's pieces from its sorter's records.
+// Read loads lots.json in dir and each lot's pieces.
 func Read(dir string) ([]*Lot, error) {
 	b, err := os.ReadFile(filepath.Join(dir, "lots.json"))
 	if err != nil {
@@ -47,7 +56,14 @@ func Read(dir string) ([]*Lot, error) {
 		if err != nil {
 			return nil, fmt.Errorf("lot %s: until: %w", l.ID, err)
 		}
-		l.Records, err = machine.Read(filepath.Join(dir, "machines", l.Machine, "local_state.sqlite"), from, until)
+		switch {
+		case (l.Machine == "") == (l.Hive == ""):
+			return nil, fmt.Errorf("lot %s: give one of machine and hive", l.ID)
+		case l.Machine != "":
+			l.Records, err = records.ReadSorter(filepath.Join(dir, "machines", l.Machine, "local_state.sqlite"), l.Machine, from, until)
+		default:
+			l.Records, err = hive.Read(filepath.Join(dir, "hive.sqlite"), l.Hive, from, until)
+		}
 		if err != nil {
 			return nil, fmt.Errorf("lot %s: %w", l.ID, err)
 		}
