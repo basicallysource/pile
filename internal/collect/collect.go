@@ -26,7 +26,10 @@
 // are fitted to the records by maximum likelihood over every key in the
 // catalog (a negative binomial). A key's share is its posterior mean
 // (c_k + alpha_k) / (N + alpha_k/mu_k): its own count when it was seen often,
-// LEGO's use of it, scaled to the stream, when it was never seen.
+// LEGO's use of it, scaled to the stream, when it was never seen. The model
+// is fitted on exact part-colors; near and any color add up the shares of
+// the part-colors each of their keys stands for, so a coarser mode is never
+// slower than a finer one.
 //
 // Uncertainty, three ways. The chance spread of one run (the 10th and 90th
 // percentile of the time to every piece). Which bulk the sorters happened to
@@ -287,22 +290,21 @@ func (c *Catalog) NewStream(rs ...*records.Records) *Stream {
 	return s
 }
 
-// counts is the stream's counts as mode sees them. In exact and near modes a
-// piece of unknown color matches no key.
-func (s *Stream) counts(m Mode) map[Key]float64 {
+// counts is the stream's counts of exact part-colors (a piece of unknown
+// color is none of them).
+func (s *Stream) counts() map[Key]float64 {
 	out := map[Key]float64{}
 	for k, n := range s.Counts {
-		if k.Color == anyColor && m != Any {
-			continue
+		if k.Color != anyColor {
+			out[k] += float64(n)
 		}
-		out[m.key(k.Part, k.Color)] += float64(n)
 	}
 	return out
 }
 
-// prior is every counted, not left out key's share of the pieces of every
-// set LEGO sold, each set once, and how many sets have it.
-func (c *Catalog) prior(m Mode) (map[Key]float64, map[Key]float64) {
+// prior is every counted, not left out part-color's share of the pieces of
+// every set LEGO sold, each set once, and how many sets have it.
+func (c *Catalog) prior() (map[Key]float64, map[Key]float64) {
 	q := map[Key]float64{}
 	sets := map[Key]float64{}
 	var total float64
@@ -315,7 +317,7 @@ func (c *Catalog) prior(m Mode) (map[Key]float64, map[Key]float64) {
 			if c.Why(l.Part) != "" {
 				continue
 			}
-			k := m.key(l.Part, l.Color)
+			k := Key{l.Part, l.Color}
 			q[k] += float64(l.Quantity)
 			total += float64(l.Quantity)
 			if !in[k] {
@@ -330,11 +332,18 @@ func (c *Catalog) prior(m Mode) (map[Key]float64, map[Key]float64) {
 	return q, sets
 }
 
-// Model is a stream's shares, smoothed toward the catalog, in one mode.
+// Model is a stream's shares, smoothed toward the catalog, in one mode. The
+// shares are fitted for exact part-colors; a coarser mode adds up the shares
+// of the part-colors each of its keys stands for (In), so a part in any color
+// is always at least as common as the part in one color.
 type Model struct {
 	Mode   Mode
 	N      float64
 	stream *Stream
+	// A coarser mode's exact model, and each of its keys' exact keys (the
+	// classifier's unknown color among them in any-color mode).
+	base   *Model
+	parts  map[Key][]Key
 	counts map[Key]float64
 	prior  map[Key]float64
 	sets   map[Key]float64
@@ -349,10 +358,10 @@ type Model struct {
 	SeenPieces     float64
 }
 
-// Fit fits the model of a stream in a mode.
-func (c *Catalog) Fit(s *Stream, m Mode) *Model {
-	md := &Model{Mode: m, N: float64(s.Pieces), stream: s, counts: s.counts(m), long: map[Key]float64{}}
-	md.prior, md.sets = c.prior(m)
+// Fit fits the model of a stream, in exact part-colors.
+func (c *Catalog) Fit(s *Stream) *Model {
+	md := &Model{Mode: Exact, N: float64(s.Pieces), stream: s, counts: s.counts(), long: map[Key]float64{}}
+	md.prior, md.sets = c.prior()
 	md.Keys = len(md.prior)
 	for k := range md.prior {
 		md.long[k] = math.Log(max(c.size[k.Part].Length, 24) / 24)
@@ -390,6 +399,70 @@ func (c *Catalog) Fit(s *Stream, m Mode) *Model {
 	return md
 }
 
+// In is the model seen in another mode: each of that mode's keys stands for
+// the exact part-colors that make it up, and its share is theirs added up.
+func (md *Model) In(m Mode) *Model {
+	if m == Exact {
+		return md
+	}
+	v := &Model{Mode: m, N: md.N, stream: md.stream, base: md, parts: map[Key][]Key{},
+		A: md.A, B: md.B, C: md.C, G0: md.G0, G1: md.G1}
+	add := func(k Key) {
+		mk := m.key(k.Part, k.Color)
+		v.parts[mk] = append(v.parts[mk], k)
+	}
+	for k := range md.prior {
+		add(k)
+	}
+	for k := range md.counts {
+		if _, ok := md.prior[k]; !ok {
+			add(k)
+		}
+	}
+	if m == Any {
+		for k := range md.stream.Counts {
+			if k.Color == anyColor {
+				add(k)
+			}
+		}
+	}
+	for k := range v.parts {
+		if _, ok := md.prior[k]; ok || m == Any {
+			v.Keys++
+		}
+		if v.Seen(k) > 0 {
+			v.SeenKeys++
+			v.SeenPieces += v.Seen(k)
+		}
+	}
+	return v
+}
+
+// exact is the model a mode's shares are added up from.
+func (md *Model) exact() *Model {
+	if md.base != nil {
+		return md.base
+	}
+	return md
+}
+
+// constituents is the exact keys a key stands for.
+func (md *Model) constituents(k Key) []Key {
+	if md.base == nil {
+		return []Key{k}
+	}
+	return md.parts[k]
+}
+
+// count is how many pieces of an exact key (or of a part of unknown color)
+// the stream has.
+func (md *Model) count(k Key) float64 {
+	if k.Color == anyColor {
+		return float64(md.stream.Counts[k])
+	}
+	return md.counts[k]
+}
+
 // Alpha is a key's Gamma shape: how closely its share follows LEGO's use of it.
 func (md *Model) Alpha(k Key) float64 {
 	return math.Exp(md.G0 + md.G1*math.Log(max(md.sets[k], 1)))
@@ -404,10 +477,19 @@ func (md *Model) mu(k Key) float64 {
 	return math.Exp(md.A + md.B*math.Log(q) + md.C*md.long[k])
 }
 
-// Share is a key's estimated share of the stream: its posterior mean.
-func (md *Model) Share(k Key) float64 { return md.shareFrom(k, md.counts[k], md.N) }
+// Share is a key's estimated share of the stream: its posterior mean, or in
+// a coarser mode the sum of its part-colors'.
+func (md *Model) Share(k Key) float64 {
+	ex := md.exact()
+	var p float64
+	for _, e := range md.constituents(k) {
+		p += ex.shareFrom(e, ex.count(e), md.N)
+	}
+	return p
+}
 
-// shareFrom is a key's posterior mean share given c of n pieces.
+// shareFrom is an exact key's posterior mean share given c of n pieces (a
+// part of unknown color has no prior: its count alone).
 func (md *Model) shareFrom(k Key, c, n float64) float64 {
 	mu := md.mu(k)
 	if mu == 0 {
@@ -419,7 +501,14 @@ func (md *Model) shareFrom(k Key, c, n float64) float64 {
 }
 
 // Seen is how many pieces of a key the stream has.
-func (md *Model) Seen(k Key) float64 { return md.counts[k] }
+func (md *Model) Seen(k Key) float64 {
+	ex := md.exact()
+	var n float64
+	for _, e := range md.constituents(k) {
+		n += ex.count(e)
+	}
+	return n
+}
 
 // nelderMead minimizes f from x0 with initial steps (a plain downhill
 // simplex: the fit has three parameters and a smooth likelihood).

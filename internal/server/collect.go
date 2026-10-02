@@ -76,8 +76,9 @@ func (k *collecting) run() {
 		start := time.Now()
 		basis := k.basis(t)
 		var models [3]*collect.Model
+		exact := k.cat.Fit(t.stream)
 		for i, m := range []collect.Mode{collect.Exact, collect.Near, collect.Any} {
-			models[i] = k.cat.Fit(t.stream, m)
+			models[i] = exact.In(m)
 		}
 		k.mu.Lock()
 		t.basis, t.models, t.fitted = basis, models, time.Now().Unix()

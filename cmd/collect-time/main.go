@@ -81,8 +81,9 @@ func main() {
 		if r.Rate == 0 {
 			log.Fatalf("lot %s: no sorting time to take a rate from; pass -rate", l.ID)
 		}
+		exact := c.Fit(s)
 		for _, mode := range []collect.Mode{collect.Exact, collect.Near, collect.Any} {
-			md := c.Fit(s, mode)
+			md := exact.In(mode)
 			r.Models = append(r.Models, model{mode.String(), md.A, md.B, md.C, md.G0, md.G1, md.Keys, md.SeenKeys, md.SeenPieces})
 			// The sets are independent: work them out side by side.
 			rows := make([]row, len(sets))

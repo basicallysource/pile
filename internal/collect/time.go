@@ -218,38 +218,44 @@ func (c *Catalog) Time(md *Model, num string, reps int, seed uint64) (*Result, e
 // resample draws the stream's days with replacement, reps times, and gives
 // the keys' shares in each draw (the model's fit held).
 func (md *Model) resample(keys []Key, reps int, seed uint64) [][]float64 {
+	ex := md.exact()
+	// Every exact key behind the set's keys, and whose it is.
+	var owner []int
+	var cons []Key
 	at := map[Key]int{}
 	for i, k := range keys {
-		at[k] = i
+		for _, e := range md.constituents(k) {
+			at[e] = len(cons)
+			cons = append(cons, e)
+			owner = append(owner, i)
+		}
 	}
 	days := md.stream.Days
-	counts := make([][]float64, len(days))
+	counts := make([]map[int]float64, len(days))
 	for d, day := range days {
-		counts[d] = make([]float64, len(keys))
+		counts[d] = map[int]float64{}
 		for k, n := range day.Counts {
-			if k.Color == anyColor && md.Mode != Any {
-				continue
-			}
-			if i, ok := at[md.Mode.key(k.Part, k.Color)]; ok {
-				counts[d][i] += float64(n)
+			if j, ok := at[k]; ok {
+				counts[d][j] += float64(n)
 			}
 		}
 	}
 	rng := rand.New(rand.NewPCG(seed, uint64(len(keys))))
 	var out [][]float64
+	c := make([]float64, len(cons))
 	for rep := 0; rep < reps; rep++ {
-		c := make([]float64, len(keys))
+		clear(c)
 		var n float64
 		for range days {
 			d := rng.IntN(len(days))
 			n += float64(days[d].Pieces)
-			for i, x := range counts[d] {
-				c[i] += x
+			for j, x := range counts[d] {
+				c[j] += x
 			}
 		}
 		p := make([]float64, len(keys))
-		for i, k := range keys {
-			p[i] = md.shareFrom(k, c[i], n)
+		for j, e := range cons {
+			p[owner[j]] += ex.shareFrom(e, c[j], n)
 		}
 		out = append(out, p)
 	}

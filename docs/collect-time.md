@@ -31,7 +31,8 @@ pieces. The method is in the package comment of `internal/collect`; in short:
   its share of every set LEGO sold (empirical Bayes, a Gamma-Poisson model
   whose three parameters are fitted to the stream by maximum likelihood). A
   part-color the sorters never saw gets a share from LEGO's use of it, scaled
-  to the stream.
+  to the stream. Shares are fitted for exact part-colors; near and any
+  color add up the shares of the part-colors they stand for.
 - **Time.** Counting pieces as a Poisson process, the chance the set is
   complete after t pieces is the product over its part-colors of
   P(Poisson(p t) >= need): a coupon collector with quotas, solved for its
