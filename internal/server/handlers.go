@@ -15,12 +15,15 @@ import (
 const (
 	// Almost: at least this share found.
 	almostShare = 0.8
+	// Half: at least this share found, of a set of at least halfNeed.
+	halfShare = 0.5
+	halfNeed  = 50
 	// Custom models shown: at least this share found.
 	customShare = 0.6
 	// Complete sets with fewer counted pieces are tiny (key chains, gear).
 	tinyNeed = 5
 	// A section sends at most this many; its total says how many it has.
-	sectionMax = 150
+	sectionMax = 600
 )
 
 func section(ms []*match.Match) *pilev1.Section {
@@ -57,30 +60,14 @@ func (s *Service) GetLot(_ context.Context, req *connect.Request[pilev1.GetLotRe
 	for _, m := range w.queue {
 		out.SortOut = append(out.SortOut, setMatch(m))
 	}
-	var complete, tiny, almost, likely, custom, figures []*match.Match
+	in := map[pilev1.Place][]*match.Match{}
 	for _, m := range w.scores {
-		if w.place[m.Set.Num] > 0 || !w.shown(m) {
-			continue
-		}
-		switch {
-		case m.Set.Custom:
-			if m.Share() >= customShare {
-				custom = append(custom, m)
-			}
-		case m.MinifigureSet:
-			if m.Complete() || m.Share() >= almostShare || m.Pick > 0 {
-				figures = append(figures, m)
-			}
-		case m.Complete() && m.Need < tinyNeed:
-			tiny = append(tiny, m)
-		case m.Complete():
-			complete = append(complete, m)
-		case m.Share() >= almostShare:
-			almost = append(almost, m)
-		case m.Pick > 0:
-			likely = append(likely, m)
+		if p := w.placeOf(m); p != pilev1.Place_PLACE_NONE {
+			in[p] = append(in[p], m)
 		}
 	}
+	complete, tiny, almost, half := in[pilev1.Place_PLACE_COMPLETE], in[pilev1.Place_PLACE_TINY], in[pilev1.Place_PLACE_ALMOST], in[pilev1.Place_PLACE_HALF]
+	likely, custom, figures := in[pilev1.Place_PLACE_LIKELY], in[pilev1.Place_PLACE_CUSTOM], in[pilev1.Place_PLACE_MINIFIGURE]
 	byShare := func(ms []*match.Match) {
 		sort.SliceStable(ms, func(i, j int) bool {
 			if ms[i].Share() != ms[j].Share() {
@@ -95,11 +82,13 @@ func (s *Service) GetLot(_ context.Context, req *connect.Request[pilev1.GetLotRe
 	byInterest(complete)
 	byInterest(tiny)
 	byInterest(almost)
+	sort.SliceStable(half, func(i, j int) bool { return half[i].Have > half[j].Have })
 	byShare(custom)
 	byShare(figures)
 	sort.SliceStable(likely, func(i, j int) bool { return likely[i].Pick < likely[j].Pick })
 	out.Complete, out.Tiny, out.Almost = section(complete), section(tiny), section(almost)
 	out.Likely, out.Custom, out.Minifigure = section(likely), section(custom), section(figures)
+	out.Half = section(half)
 	return connect.NewResponse(out), nil
 }
 
@@ -175,6 +164,14 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 		m, f := s.index.Score(e, w.left, w.anyColor)
 		m.Pick = w.lot.picks[set.Num]
 		out.Set, found = setMatch(m), f
+		out.Place = w.placeOf(m)
+		o, _ := s.index.Score(e, w.left, !w.anyColor)
+		o.Pick = m.Pick
+		out.OtherColors = setMatch(o)
+		out.OtherPlace = (&view{anyColor: !w.anyColor, showBulk: w.showBulk, place: w.place}).placeOf(o)
+	}
+	if w.place[set.Num] > 0 {
+		out.Place = pilev1.Place_PLACE_SORT_OUT
 	}
 	// Lines of one part (or its variants) and color share what was found for
 	// it, first come first served.

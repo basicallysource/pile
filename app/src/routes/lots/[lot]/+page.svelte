@@ -1,7 +1,7 @@
 <!--
 	A lot: what its pieces are, then what they make, through the view (exact
 	or any color, and the sort-out queue): the queue, the sets that are all
-	there, the ones nearly there, the ones the pieces most likely came from,
+	there, the ones nearly there, the ones half there, the ones the pieces most likely came from,
 	the custom models it can build, and the minifigure and tiny sets last.
 	While a new view loads, the last one stays on screen; one already seen
 	this visit draws at once, so coming back lands where it was scrolled.
@@ -104,6 +104,12 @@
 			title="Almost complete"
 			description="80% or more of the pieces are here. The ones with rarer pieces first."
 			section={data.almost}
+			{lot}
+		/>
+		<SetSection
+			title="Half or more here"
+			description="Sets of 50 or more pieces with at least half of them here, the most pieces found first."
+			section={data.half}
 			{lot}
 		/>
 		<SetSection

@@ -54,3 +54,32 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 
 // shown is whether the view lists m: sets of loose bricks only when asked.
 func (w *view) shown(m *match.Match) bool { return w.showBulk || !m.Bulk }
+
+// placeOf is which of the lot's overview sections shows m in this view.
+func (w *view) placeOf(m *match.Match) pilev1.Place {
+	switch {
+	case w.place[m.Set.Num] > 0:
+		return pilev1.Place_PLACE_SORT_OUT
+	case !w.shown(m):
+		return pilev1.Place_PLACE_BULK_HIDDEN
+	case m.Set.Custom:
+		if m.Share() >= customShare {
+			return pilev1.Place_PLACE_CUSTOM
+		}
+	case m.MinifigureSet:
+		if m.Complete() || m.Share() >= almostShare || m.Pick > 0 {
+			return pilev1.Place_PLACE_MINIFIGURE
+		}
+	case m.Complete() && m.Need < tinyNeed:
+		return pilev1.Place_PLACE_TINY
+	case m.Complete():
+		return pilev1.Place_PLACE_COMPLETE
+	case m.Share() >= almostShare:
+		return pilev1.Place_PLACE_ALMOST
+	case m.Pick > 0:
+		return pilev1.Place_PLACE_LIKELY
+	case m.Share() >= halfShare && m.Need >= halfNeed:
+		return pilev1.Place_PLACE_HALF
+	}
+	return pilev1.Place_PLACE_NONE
+}

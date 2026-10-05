@@ -182,6 +182,26 @@ message GetLotResponse {
   Section minifigure = 9;
   // Complete sets of under five counted pieces (key chains, gear).
   Section tiny = 10;
+  // Sets of at least 50 counted pieces with half or more there, under
+  // almost and not likely. Most pieces found first.
+  Section half = 11;
+}
+
+// Which of a lot's overview sections a set is in.
+enum Place {
+  // In none of them.
+  PLACE_NONE = 0;
+  PLACE_COMPLETE = 1;
+  PLACE_ALMOST = 2;
+  PLACE_HALF = 3;
+  PLACE_LIKELY = 4;
+  PLACE_CUSTOM = 5;
+  PLACE_MINIFIGURE = 6;
+  PLACE_TINY = 7;
+  // In the sort-out queue, which shows above them.
+  PLACE_SORT_OUT = 8;
+  // A set of loose bricks, and the view does not show them.
+  PLACE_BULK_HIDDEN = 9;
 }
 
 enum Order {
@@ -265,6 +285,13 @@ message GetSetResponse {
   repeated Minifigure minifigures = 3;
   // Its place in the view's sort-out queue, from 1; 0 when not in it.
   int32 sort_out_place = 4;
+  // Where the lot's overview shows it in this view.
+  Place place = 5;
+  // The same set in the other color matching (any color when the view is
+  // exact, exact when it is any), and where the overview shows it then: so
+  // a page can say why a set is or is not listed.
+  SetMatch other_colors = 6;
+  Place other_place = 7;
 }
 
 message ListPartsRequest {

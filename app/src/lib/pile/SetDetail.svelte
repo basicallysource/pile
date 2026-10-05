@@ -6,7 +6,7 @@
 	queue leaves.
 -->
 <script lang="ts">
-	import { Counting, Kind, type GetSetResponse, type SetLine } from '$lib/gen/pile/v1/pile_pb';
+	import { Counting, Kind, Place, type GetSetResponse, type SetLine } from '$lib/gen/pile/v1/pile_pb';
 	import Stat from '$lib/components/Stat.svelte';
 	import PartTile from '$lib/components/PartTile.svelte';
 	import PartImage from '$lib/components/PartImage.svelte';
@@ -29,6 +29,32 @@
 			.filter((l) => (show === 'all' ? true : show === 'missing' ? l.found < l.need : l.found > 0))
 			.sort((a, b) => a.found / a.need - b.found / b.need)
 	);
+	const sectionName: Record<Place, string> = {
+		[Place.NONE]: '',
+		[Place.COMPLETE]: 'Complete',
+		[Place.ALMOST]: 'Almost complete',
+		[Place.HALF]: 'Half or more here',
+		[Place.LIKELY]: 'Probably in the box',
+		[Place.CUSTOM]: 'Custom models',
+		[Place.MINIFIGURE]: 'Minifigure sets',
+		[Place.TINY]: 'Tiny sets',
+		[Place.SORT_OUT]: 'Sorting out',
+		[Place.BULK_HIDDEN]: ''
+	};
+	const share = (have: number, need: number) => percent(have / Math.max(1, need));
+	// Where the overview shows it, and when it does not, why: in a few words.
+	const where = $derived.by(() => {
+		const mode = view.anyColor ? 'any color' : 'exact colors';
+		const otherMode = view.anyColor ? 'exact colors' : 'any color';
+		if (detail.place === Place.BULK_HIDDEN)
+			return 'A set of loose bricks: the overview lists it only with Bulk sets on.';
+		if (detail.place !== Place.NONE) return `On the overview under ${sectionName[detail.place]}.`;
+		let s = `Not on the overview: in ${mode}, ${count(set.have)} of its ${count(set.need)} pieces are here (${share(set.have, set.need)}).`;
+		const o = detail.otherColors;
+		if (o && detail.otherPlace !== Place.NONE && detail.otherPlace !== Place.BULK_HIDDEN)
+			s += ` In ${otherMode}, ${count(o.have)} are (${share(o.have, o.need)})${o.wrongColor ? `, ${count(o.wrongColor)} of them in another color` : ''}, and it shows under ${sectionName[detail.otherPlace]} with ${otherMode === 'any color' ? 'Any color' : 'Exact colors'} on.`;
+		return s;
+	});
 	const grid = 'grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-x-3 gap-y-4';
 	const tile = (l: SetLine) => ({
 		name: l.name,
@@ -49,6 +75,7 @@
 			{#if set.pick}<Badge tone="primary">{set.pick} in the likely order</Badge>{/if}
 			{#if set.sameContents.length}<Badge>also sold as {set.sameContents.join(', ')}</Badge>{/if}
 		</div>
+		<p class="text-sm text-ink">{where}</p>
 	</div>
 </section>
 

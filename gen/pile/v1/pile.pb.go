@@ -72,6 +72,80 @@ func (Kind) EnumDescriptor() ([]byte, []int) {
 	return file_pile_v1_pile_proto_rawDescGZIP(), []int{0}
 }
 
+// Which of a lot's overview sections a set is in.
+type Place int32
+
+const (
+	// In none of them.
+	Place_PLACE_NONE       Place = 0
+	Place_PLACE_COMPLETE   Place = 1
+	Place_PLACE_ALMOST     Place = 2
+	Place_PLACE_HALF       Place = 3
+	Place_PLACE_LIKELY     Place = 4
+	Place_PLACE_CUSTOM     Place = 5
+	Place_PLACE_MINIFIGURE Place = 6
+	Place_PLACE_TINY       Place = 7
+	// In the sort-out queue, which shows above them.
+	Place_PLACE_SORT_OUT Place = 8
+	// A set of loose bricks, and the view does not show them.
+	Place_PLACE_BULK_HIDDEN Place = 9
+)
+
+// Enum value maps for Place.
+var (
+	Place_name = map[int32]string{
+		0: "PLACE_NONE",
+		1: "PLACE_COMPLETE",
+		2: "PLACE_ALMOST",
+		3: "PLACE_HALF",
+		4: "PLACE_LIKELY",
+		5: "PLACE_CUSTOM",
+		6: "PLACE_MINIFIGURE",
+		7: "PLACE_TINY",
+		8: "PLACE_SORT_OUT",
+		9: "PLACE_BULK_HIDDEN",
+	}
+	Place_value = map[string]int32{
+		"PLACE_NONE":        0,
+		"PLACE_COMPLETE":    1,
+		"PLACE_ALMOST":      2,
+		"PLACE_HALF":        3,
+		"PLACE_LIKELY":      4,
+		"PLACE_CUSTOM":      5,
+		"PLACE_MINIFIGURE":  6,
+		"PLACE_TINY":        7,
+		"PLACE_SORT_OUT":    8,
+		"PLACE_BULK_HIDDEN": 9,
+	}
+)
+
+func (x Place) Enum() *Place {
+	p := new(Place)
+	*p = x
+	return p
+}
+
+func (x Place) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Place) Descriptor() protoreflect.EnumDescriptor {
+	return file_pile_v1_pile_proto_enumTypes[1].Descriptor()
+}
+
+func (Place) Type() protoreflect.EnumType {
+	return &file_pile_v1_pile_proto_enumTypes[1]
+}
+
+func (x Place) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Place.Descriptor instead.
+func (Place) EnumDescriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{1}
+}
+
 type Order int32
 
 const (
@@ -121,11 +195,11 @@ func (x Order) String() string {
 }
 
 func (Order) Descriptor() protoreflect.EnumDescriptor {
-	return file_pile_v1_pile_proto_enumTypes[1].Descriptor()
+	return file_pile_v1_pile_proto_enumTypes[2].Descriptor()
 }
 
 func (Order) Type() protoreflect.EnumType {
-	return &file_pile_v1_pile_proto_enumTypes[1]
+	return &file_pile_v1_pile_proto_enumTypes[2]
 }
 
 func (x Order) Number() protoreflect.EnumNumber {
@@ -134,7 +208,7 @@ func (x Order) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Order.Descriptor instead.
 func (Order) EnumDescriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{1}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{2}
 }
 
 // Whether a part counts toward completeness.
@@ -176,11 +250,11 @@ func (x Counting) String() string {
 }
 
 func (Counting) Descriptor() protoreflect.EnumDescriptor {
-	return file_pile_v1_pile_proto_enumTypes[2].Descriptor()
+	return file_pile_v1_pile_proto_enumTypes[3].Descriptor()
 }
 
 func (Counting) Type() protoreflect.EnumType {
-	return &file_pile_v1_pile_proto_enumTypes[2]
+	return &file_pile_v1_pile_proto_enumTypes[3]
 }
 
 func (x Counting) Number() protoreflect.EnumNumber {
@@ -189,7 +263,7 @@ func (x Counting) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Counting.Descriptor instead.
 func (Counting) EnumDescriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{2}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{3}
 }
 
 // How a lot is looked at.
@@ -1065,7 +1139,10 @@ type GetLotResponse struct {
 	// Sets that are basically a minifigure, complete, almost or likely.
 	Minifigure *Section `protobuf:"bytes,9,opt,name=minifigure,proto3" json:"minifigure,omitempty"`
 	// Complete sets of under five counted pieces (key chains, gear).
-	Tiny          *Section `protobuf:"bytes,10,opt,name=tiny,proto3" json:"tiny,omitempty"`
+	Tiny *Section `protobuf:"bytes,10,opt,name=tiny,proto3" json:"tiny,omitempty"`
+	// Sets of at least 50 counted pieces with half or more there, under
+	// almost and not likely. Most pieces found first.
+	Half          *Section `protobuf:"bytes,11,opt,name=half,proto3" json:"half,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1166,6 +1243,13 @@ func (x *GetLotResponse) GetMinifigure() *Section {
 func (x *GetLotResponse) GetTiny() *Section {
 	if x != nil {
 		return x.Tiny
+	}
+	return nil
+}
+
+func (x *GetLotResponse) GetHalf() *Section {
+	if x != nil {
+		return x.Half
 	}
 	return nil
 }
@@ -1591,7 +1675,14 @@ type GetSetResponse struct {
 	Lines       []*SetLine             `protobuf:"bytes,2,rep,name=lines,proto3" json:"lines,omitempty"`
 	Minifigures []*Minifigure          `protobuf:"bytes,3,rep,name=minifigures,proto3" json:"minifigures,omitempty"`
 	// Its place in the view's sort-out queue, from 1; 0 when not in it.
-	SortOutPlace  int32 `protobuf:"varint,4,opt,name=sort_out_place,json=sortOutPlace,proto3" json:"sort_out_place,omitempty"`
+	SortOutPlace int32 `protobuf:"varint,4,opt,name=sort_out_place,json=sortOutPlace,proto3" json:"sort_out_place,omitempty"`
+	// Where the lot's overview shows it in this view.
+	Place Place `protobuf:"varint,5,opt,name=place,proto3,enum=pile.v1.Place" json:"place,omitempty"`
+	// The same set in the other color matching (any color when the view is
+	// exact, exact when it is any), and where the overview shows it then: so
+	// a page can say why a set is or is not listed.
+	OtherColors   *SetMatch `protobuf:"bytes,6,opt,name=other_colors,json=otherColors,proto3" json:"other_colors,omitempty"`
+	OtherPlace    Place     `protobuf:"varint,7,opt,name=other_place,json=otherPlace,proto3,enum=pile.v1.Place" json:"other_place,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1652,6 +1743,27 @@ func (x *GetSetResponse) GetSortOutPlace() int32 {
 		return x.SortOutPlace
 	}
 	return 0
+}
+
+func (x *GetSetResponse) GetPlace() Place {
+	if x != nil {
+		return x.Place
+	}
+	return Place_PLACE_NONE
+}
+
+func (x *GetSetResponse) GetOtherColors() *SetMatch {
+	if x != nil {
+		return x.OtherColors
+	}
+	return nil
+}
+
+func (x *GetSetResponse) GetOtherPlace() Place {
+	if x != nil {
+		return x.OtherPlace
+	}
+	return Place_PLACE_NONE
 }
 
 type ListPartsRequest struct {
@@ -2624,7 +2736,7 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x04sets\x18\x01 \x03(\v2\x11.pile.v1.SetMatchR\x04sets\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\"2\n" +
 	"\rGetLotRequest\x12!\n" +
-	"\x04view\x18\x01 \x01(\v2\r.pile.v1.ViewR\x04view\"\xbb\x03\n" +
+	"\x04view\x18\x01 \x01(\v2\r.pile.v1.ViewR\x04view\"\xe1\x03\n" +
 	"\x0eGetLotResponse\x12\x1e\n" +
 	"\x03lot\x18\x01 \x01(\v2\f.pile.v1.LotR\x03lot\x126\n" +
 	"\n" +
@@ -2641,7 +2753,8 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"minifigure\x18\t \x01(\v2\x10.pile.v1.SectionR\n" +
 	"minifigure\x12$\n" +
 	"\x04tiny\x18\n" +
-	" \x01(\v2\x10.pile.v1.SectionR\x04tiny\"\xe2\x01\n" +
+	" \x01(\v2\x10.pile.v1.SectionR\x04tiny\x12$\n" +
+	"\x04half\x18\v \x01(\v2\x10.pile.v1.SectionR\x04half\"\xe2\x01\n" +
 	"\x0fListSetsRequest\x12!\n" +
 	"\x04view\x18\x01 \x01(\v2\r.pile.v1.ViewR\x04view\x12$\n" +
 	"\x05order\x18\x02 \x01(\x0e2\x0e.pile.v1.OrderR\x05order\x12!\n" +
@@ -2676,12 +2789,16 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\afig_num\x18\x01 \x01(\tR\x06figNum\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
 	"\bquantity\x18\x03 \x01(\x05R\bquantity\x12\x1b\n" +
-	"\timage_url\x18\x04 \x01(\tR\bimageUrl\"\xba\x01\n" +
+	"\timage_url\x18\x04 \x01(\tR\bimageUrl\"\xc7\x02\n" +
 	"\x0eGetSetResponse\x12#\n" +
 	"\x03set\x18\x01 \x01(\v2\x11.pile.v1.SetMatchR\x03set\x12&\n" +
 	"\x05lines\x18\x02 \x03(\v2\x10.pile.v1.SetLineR\x05lines\x125\n" +
 	"\vminifigures\x18\x03 \x03(\v2\x13.pile.v1.MinifigureR\vminifigures\x12$\n" +
-	"\x0esort_out_place\x18\x04 \x01(\x05R\fsortOutPlace\")\n" +
+	"\x0esort_out_place\x18\x04 \x01(\x05R\fsortOutPlace\x12$\n" +
+	"\x05place\x18\x05 \x01(\x0e2\x0e.pile.v1.PlaceR\x05place\x124\n" +
+	"\fother_colors\x18\x06 \x01(\v2\x11.pile.v1.SetMatchR\votherColors\x12/\n" +
+	"\vother_place\x18\a \x01(\x0e2\x0e.pile.v1.PlaceR\n" +
+	"otherPlace\")\n" +
 	"\x10ListPartsRequest\x12\x15\n" +
 	"\x06lot_id\x18\x01 \x01(\tR\x05lotId\"\xfb\x01\n" +
 	"\tPartCount\x12\x19\n" +
@@ -2767,7 +2884,21 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x04Kind\x12\x14\n" +
 	"\x10KIND_UNSPECIFIED\x10\x00\x12\f\n" +
 	"\bKIND_SET\x10\x01\x12\x0f\n" +
-	"\vKIND_CUSTOM\x10\x02*\x80\x01\n" +
+	"\vKIND_CUSTOM\x10\x02*\xc2\x01\n" +
+	"\x05Place\x12\x0e\n" +
+	"\n" +
+	"PLACE_NONE\x10\x00\x12\x12\n" +
+	"\x0ePLACE_COMPLETE\x10\x01\x12\x10\n" +
+	"\fPLACE_ALMOST\x10\x02\x12\x0e\n" +
+	"\n" +
+	"PLACE_HALF\x10\x03\x12\x10\n" +
+	"\fPLACE_LIKELY\x10\x04\x12\x10\n" +
+	"\fPLACE_CUSTOM\x10\x05\x12\x14\n" +
+	"\x10PLACE_MINIFIGURE\x10\x06\x12\x0e\n" +
+	"\n" +
+	"PLACE_TINY\x10\a\x12\x12\n" +
+	"\x0ePLACE_SORT_OUT\x10\b\x12\x15\n" +
+	"\x11PLACE_BULK_HIDDEN\x10\t*\x80\x01\n" +
 	"\x05Order\x12\x15\n" +
 	"\x11ORDER_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eORDER_COMPLETE\x10\x01\x12\x0f\n" +
@@ -2800,97 +2931,102 @@ func file_pile_v1_pile_proto_rawDescGZIP() []byte {
 	return file_pile_v1_pile_proto_rawDescData
 }
 
-var file_pile_v1_pile_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_pile_v1_pile_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
 var file_pile_v1_pile_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_pile_v1_pile_proto_goTypes = []any{
 	(Kind)(0),                       // 0: pile.v1.Kind
-	(Order)(0),                      // 1: pile.v1.Order
-	(Counting)(0),                   // 2: pile.v1.Counting
-	(*View)(nil),                    // 3: pile.v1.View
-	(*Color)(nil),                   // 4: pile.v1.Color
-	(*Lot)(nil),                     // 5: pile.v1.Lot
-	(*ColorShare)(nil),              // 6: pile.v1.ColorShare
-	(*CategoryShare)(nil),           // 7: pile.v1.CategoryShare
-	(*ListLotsRequest)(nil),         // 8: pile.v1.ListLotsRequest
-	(*ListLotsResponse)(nil),        // 9: pile.v1.ListLotsResponse
-	(*SetMatch)(nil),                // 10: pile.v1.SetMatch
-	(*Section)(nil),                 // 11: pile.v1.Section
-	(*GetLotRequest)(nil),           // 12: pile.v1.GetLotRequest
-	(*GetLotResponse)(nil),          // 13: pile.v1.GetLotResponse
-	(*ListSetsRequest)(nil),         // 14: pile.v1.ListSetsRequest
-	(*ThemeCount)(nil),              // 15: pile.v1.ThemeCount
-	(*ListSetsResponse)(nil),        // 16: pile.v1.ListSetsResponse
-	(*GetSetRequest)(nil),           // 17: pile.v1.GetSetRequest
-	(*SetLine)(nil),                 // 18: pile.v1.SetLine
-	(*Minifigure)(nil),              // 19: pile.v1.Minifigure
-	(*GetSetResponse)(nil),          // 20: pile.v1.GetSetResponse
-	(*ListPartsRequest)(nil),        // 21: pile.v1.ListPartsRequest
-	(*PartCount)(nil),               // 22: pile.v1.PartCount
-	(*UnmatchedPart)(nil),           // 23: pile.v1.UnmatchedPart
-	(*ListPartsResponse)(nil),       // 24: pile.v1.ListPartsResponse
-	(*GetCollectTimesRequest)(nil),  // 25: pile.v1.GetCollectTimesRequest
-	(*CollectBasis)(nil),            // 26: pile.v1.CollectBasis
-	(*SlowPiece)(nil),               // 27: pile.v1.SlowPiece
-	(*CollectTime)(nil),             // 28: pile.v1.CollectTime
-	(*SetCollectTimes)(nil),         // 29: pile.v1.SetCollectTimes
-	(*GetCollectTimesResponse)(nil), // 30: pile.v1.GetCollectTimesResponse
-	nil,                             // 31: pile.v1.SetCollectTimes.LeftOutEntry
+	(Place)(0),                      // 1: pile.v1.Place
+	(Order)(0),                      // 2: pile.v1.Order
+	(Counting)(0),                   // 3: pile.v1.Counting
+	(*View)(nil),                    // 4: pile.v1.View
+	(*Color)(nil),                   // 5: pile.v1.Color
+	(*Lot)(nil),                     // 6: pile.v1.Lot
+	(*ColorShare)(nil),              // 7: pile.v1.ColorShare
+	(*CategoryShare)(nil),           // 8: pile.v1.CategoryShare
+	(*ListLotsRequest)(nil),         // 9: pile.v1.ListLotsRequest
+	(*ListLotsResponse)(nil),        // 10: pile.v1.ListLotsResponse
+	(*SetMatch)(nil),                // 11: pile.v1.SetMatch
+	(*Section)(nil),                 // 12: pile.v1.Section
+	(*GetLotRequest)(nil),           // 13: pile.v1.GetLotRequest
+	(*GetLotResponse)(nil),          // 14: pile.v1.GetLotResponse
+	(*ListSetsRequest)(nil),         // 15: pile.v1.ListSetsRequest
+	(*ThemeCount)(nil),              // 16: pile.v1.ThemeCount
+	(*ListSetsResponse)(nil),        // 17: pile.v1.ListSetsResponse
+	(*GetSetRequest)(nil),           // 18: pile.v1.GetSetRequest
+	(*SetLine)(nil),                 // 19: pile.v1.SetLine
+	(*Minifigure)(nil),              // 20: pile.v1.Minifigure
+	(*GetSetResponse)(nil),          // 21: pile.v1.GetSetResponse
+	(*ListPartsRequest)(nil),        // 22: pile.v1.ListPartsRequest
+	(*PartCount)(nil),               // 23: pile.v1.PartCount
+	(*UnmatchedPart)(nil),           // 24: pile.v1.UnmatchedPart
+	(*ListPartsResponse)(nil),       // 25: pile.v1.ListPartsResponse
+	(*GetCollectTimesRequest)(nil),  // 26: pile.v1.GetCollectTimesRequest
+	(*CollectBasis)(nil),            // 27: pile.v1.CollectBasis
+	(*SlowPiece)(nil),               // 28: pile.v1.SlowPiece
+	(*CollectTime)(nil),             // 29: pile.v1.CollectTime
+	(*SetCollectTimes)(nil),         // 30: pile.v1.SetCollectTimes
+	(*GetCollectTimesResponse)(nil), // 31: pile.v1.GetCollectTimesResponse
+	nil,                             // 32: pile.v1.SetCollectTimes.LeftOutEntry
 }
 var file_pile_v1_pile_proto_depIdxs = []int32{
-	6,  // 0: pile.v1.Lot.colors:type_name -> pile.v1.ColorShare
-	4,  // 1: pile.v1.ColorShare.color:type_name -> pile.v1.Color
-	5,  // 2: pile.v1.ListLotsResponse.lots:type_name -> pile.v1.Lot
+	7,  // 0: pile.v1.Lot.colors:type_name -> pile.v1.ColorShare
+	5,  // 1: pile.v1.ColorShare.color:type_name -> pile.v1.Color
+	6,  // 2: pile.v1.ListLotsResponse.lots:type_name -> pile.v1.Lot
 	0,  // 3: pile.v1.SetMatch.kind:type_name -> pile.v1.Kind
-	10, // 4: pile.v1.Section.sets:type_name -> pile.v1.SetMatch
-	3,  // 5: pile.v1.GetLotRequest.view:type_name -> pile.v1.View
-	5,  // 6: pile.v1.GetLotResponse.lot:type_name -> pile.v1.Lot
-	7,  // 7: pile.v1.GetLotResponse.categories:type_name -> pile.v1.CategoryShare
-	10, // 8: pile.v1.GetLotResponse.sort_out:type_name -> pile.v1.SetMatch
-	11, // 9: pile.v1.GetLotResponse.complete:type_name -> pile.v1.Section
-	11, // 10: pile.v1.GetLotResponse.almost:type_name -> pile.v1.Section
-	11, // 11: pile.v1.GetLotResponse.likely:type_name -> pile.v1.Section
-	11, // 12: pile.v1.GetLotResponse.custom:type_name -> pile.v1.Section
-	11, // 13: pile.v1.GetLotResponse.minifigure:type_name -> pile.v1.Section
-	11, // 14: pile.v1.GetLotResponse.tiny:type_name -> pile.v1.Section
-	3,  // 15: pile.v1.ListSetsRequest.view:type_name -> pile.v1.View
-	1,  // 16: pile.v1.ListSetsRequest.order:type_name -> pile.v1.Order
-	0,  // 17: pile.v1.ListSetsRequest.kind:type_name -> pile.v1.Kind
-	10, // 18: pile.v1.ListSetsResponse.sets:type_name -> pile.v1.SetMatch
-	15, // 19: pile.v1.ListSetsResponse.themes:type_name -> pile.v1.ThemeCount
-	3,  // 20: pile.v1.GetSetRequest.view:type_name -> pile.v1.View
-	4,  // 21: pile.v1.SetLine.color:type_name -> pile.v1.Color
-	2,  // 22: pile.v1.SetLine.counting:type_name -> pile.v1.Counting
-	10, // 23: pile.v1.GetSetResponse.set:type_name -> pile.v1.SetMatch
-	18, // 24: pile.v1.GetSetResponse.lines:type_name -> pile.v1.SetLine
-	19, // 25: pile.v1.GetSetResponse.minifigures:type_name -> pile.v1.Minifigure
-	4,  // 26: pile.v1.PartCount.color:type_name -> pile.v1.Color
-	22, // 27: pile.v1.ListPartsResponse.parts:type_name -> pile.v1.PartCount
-	23, // 28: pile.v1.ListPartsResponse.unmatched:type_name -> pile.v1.UnmatchedPart
-	4,  // 29: pile.v1.SlowPiece.color:type_name -> pile.v1.Color
-	27, // 30: pile.v1.CollectTime.slowest:type_name -> pile.v1.SlowPiece
-	31, // 31: pile.v1.SetCollectTimes.left_out:type_name -> pile.v1.SetCollectTimes.LeftOutEntry
-	28, // 32: pile.v1.SetCollectTimes.exact:type_name -> pile.v1.CollectTime
-	28, // 33: pile.v1.SetCollectTimes.near:type_name -> pile.v1.CollectTime
-	28, // 34: pile.v1.SetCollectTimes.any:type_name -> pile.v1.CollectTime
-	26, // 35: pile.v1.GetCollectTimesResponse.basis:type_name -> pile.v1.CollectBasis
-	29, // 36: pile.v1.GetCollectTimesResponse.sets:type_name -> pile.v1.SetCollectTimes
-	8,  // 37: pile.v1.PileService.ListLots:input_type -> pile.v1.ListLotsRequest
-	12, // 38: pile.v1.PileService.GetLot:input_type -> pile.v1.GetLotRequest
-	14, // 39: pile.v1.PileService.ListSets:input_type -> pile.v1.ListSetsRequest
-	17, // 40: pile.v1.PileService.GetSet:input_type -> pile.v1.GetSetRequest
-	21, // 41: pile.v1.PileService.ListParts:input_type -> pile.v1.ListPartsRequest
-	25, // 42: pile.v1.PileService.GetCollectTimes:input_type -> pile.v1.GetCollectTimesRequest
-	9,  // 43: pile.v1.PileService.ListLots:output_type -> pile.v1.ListLotsResponse
-	13, // 44: pile.v1.PileService.GetLot:output_type -> pile.v1.GetLotResponse
-	16, // 45: pile.v1.PileService.ListSets:output_type -> pile.v1.ListSetsResponse
-	20, // 46: pile.v1.PileService.GetSet:output_type -> pile.v1.GetSetResponse
-	24, // 47: pile.v1.PileService.ListParts:output_type -> pile.v1.ListPartsResponse
-	30, // 48: pile.v1.PileService.GetCollectTimes:output_type -> pile.v1.GetCollectTimesResponse
-	43, // [43:49] is the sub-list for method output_type
-	37, // [37:43] is the sub-list for method input_type
-	37, // [37:37] is the sub-list for extension type_name
-	37, // [37:37] is the sub-list for extension extendee
-	0,  // [0:37] is the sub-list for field type_name
+	11, // 4: pile.v1.Section.sets:type_name -> pile.v1.SetMatch
+	4,  // 5: pile.v1.GetLotRequest.view:type_name -> pile.v1.View
+	6,  // 6: pile.v1.GetLotResponse.lot:type_name -> pile.v1.Lot
+	8,  // 7: pile.v1.GetLotResponse.categories:type_name -> pile.v1.CategoryShare
+	11, // 8: pile.v1.GetLotResponse.sort_out:type_name -> pile.v1.SetMatch
+	12, // 9: pile.v1.GetLotResponse.complete:type_name -> pile.v1.Section
+	12, // 10: pile.v1.GetLotResponse.almost:type_name -> pile.v1.Section
+	12, // 11: pile.v1.GetLotResponse.likely:type_name -> pile.v1.Section
+	12, // 12: pile.v1.GetLotResponse.custom:type_name -> pile.v1.Section
+	12, // 13: pile.v1.GetLotResponse.minifigure:type_name -> pile.v1.Section
+	12, // 14: pile.v1.GetLotResponse.tiny:type_name -> pile.v1.Section
+	12, // 15: pile.v1.GetLotResponse.half:type_name -> pile.v1.Section
+	4,  // 16: pile.v1.ListSetsRequest.view:type_name -> pile.v1.View
+	2,  // 17: pile.v1.ListSetsRequest.order:type_name -> pile.v1.Order
+	0,  // 18: pile.v1.ListSetsRequest.kind:type_name -> pile.v1.Kind
+	11, // 19: pile.v1.ListSetsResponse.sets:type_name -> pile.v1.SetMatch
+	16, // 20: pile.v1.ListSetsResponse.themes:type_name -> pile.v1.ThemeCount
+	4,  // 21: pile.v1.GetSetRequest.view:type_name -> pile.v1.View
+	5,  // 22: pile.v1.SetLine.color:type_name -> pile.v1.Color
+	3,  // 23: pile.v1.SetLine.counting:type_name -> pile.v1.Counting
+	11, // 24: pile.v1.GetSetResponse.set:type_name -> pile.v1.SetMatch
+	19, // 25: pile.v1.GetSetResponse.lines:type_name -> pile.v1.SetLine
+	20, // 26: pile.v1.GetSetResponse.minifigures:type_name -> pile.v1.Minifigure
+	1,  // 27: pile.v1.GetSetResponse.place:type_name -> pile.v1.Place
+	11, // 28: pile.v1.GetSetResponse.other_colors:type_name -> pile.v1.SetMatch
+	1,  // 29: pile.v1.GetSetResponse.other_place:type_name -> pile.v1.Place
+	5,  // 30: pile.v1.PartCount.color:type_name -> pile.v1.Color
+	23, // 31: pile.v1.ListPartsResponse.parts:type_name -> pile.v1.PartCount
+	24, // 32: pile.v1.ListPartsResponse.unmatched:type_name -> pile.v1.UnmatchedPart
+	5,  // 33: pile.v1.SlowPiece.color:type_name -> pile.v1.Color
+	28, // 34: pile.v1.CollectTime.slowest:type_name -> pile.v1.SlowPiece
+	32, // 35: pile.v1.SetCollectTimes.left_out:type_name -> pile.v1.SetCollectTimes.LeftOutEntry
+	29, // 36: pile.v1.SetCollectTimes.exact:type_name -> pile.v1.CollectTime
+	29, // 37: pile.v1.SetCollectTimes.near:type_name -> pile.v1.CollectTime
+	29, // 38: pile.v1.SetCollectTimes.any:type_name -> pile.v1.CollectTime
+	27, // 39: pile.v1.GetCollectTimesResponse.basis:type_name -> pile.v1.CollectBasis
+	30, // 40: pile.v1.GetCollectTimesResponse.sets:type_name -> pile.v1.SetCollectTimes
+	9,  // 41: pile.v1.PileService.ListLots:input_type -> pile.v1.ListLotsRequest
+	13, // 42: pile.v1.PileService.GetLot:input_type -> pile.v1.GetLotRequest
+	15, // 43: pile.v1.PileService.ListSets:input_type -> pile.v1.ListSetsRequest
+	18, // 44: pile.v1.PileService.GetSet:input_type -> pile.v1.GetSetRequest
+	22, // 45: pile.v1.PileService.ListParts:input_type -> pile.v1.ListPartsRequest
+	26, // 46: pile.v1.PileService.GetCollectTimes:input_type -> pile.v1.GetCollectTimesRequest
+	10, // 47: pile.v1.PileService.ListLots:output_type -> pile.v1.ListLotsResponse
+	14, // 48: pile.v1.PileService.GetLot:output_type -> pile.v1.GetLotResponse
+	17, // 49: pile.v1.PileService.ListSets:output_type -> pile.v1.ListSetsResponse
+	21, // 50: pile.v1.PileService.GetSet:output_type -> pile.v1.GetSetResponse
+	25, // 51: pile.v1.PileService.ListParts:output_type -> pile.v1.ListPartsResponse
+	31, // 52: pile.v1.PileService.GetCollectTimes:output_type -> pile.v1.GetCollectTimesResponse
+	47, // [47:53] is the sub-list for method output_type
+	41, // [41:47] is the sub-list for method input_type
+	41, // [41:41] is the sub-list for extension type_name
+	41, // [41:41] is the sub-list for extension extendee
+	0,  // [0:41] is the sub-list for field type_name
 }
 
 func init() { file_pile_v1_pile_proto_init() }
@@ -2903,7 +3039,7 @@ func file_pile_v1_pile_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pile_v1_pile_proto_rawDesc), len(file_pile_v1_pile_proto_rawDesc)),
-			NumEnums:      3,
+			NumEnums:      4,
 			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
