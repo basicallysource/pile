@@ -182,14 +182,14 @@ type rare struct {
 }
 
 type row struct {
-	Lot     string           `json:"lot"`
-	Set     string           `json:"set"`
-	Name    string           `json:"name"`
-	Year    int32            `json:"year"`
-	Mode    string           `json:"mode"`
-	Pieces  float64          `json:"pieces_counted"`
+	Lot    string  `json:"lot"`
+	Set    string  `json:"set"`
+	Name   string  `json:"name"`
+	Year   int32   `json:"year"`
+	Mode   string  `json:"mode"`
+	Pieces float64 `json:"pieces_counted"`
 	// Of them, held before sorting (-holding); Pieces less Held are timed.
-	Held float64 `json:"held"`
+	Held    float64          `json:"held"`
 	Left    map[string]int32 `json:"left_out"`
 	Figures int32            `json:"minifigures"`
 	Keys    int              `json:"keys"`
