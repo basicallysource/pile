@@ -1,7 +1,10 @@
 // The set open in a lot's sheet, kept in the URL (`?set=10252-1`) so a
 // reload or a link opens it again and Back closes it. Opening the first set
 // adds a history entry; opening another while one is open replaces it, so
-// one Back always returns to the page under it, scrolled where it was.
+// one Back always returns to the page under it, scrolled where it was. The
+// page narrows beside the sheet, so the item clicked is brought back into
+// view when the first one opens.
+import { tick } from 'svelte';
 import { goto } from '$app/navigation';
 import { page } from '$app/state';
 
@@ -32,12 +35,17 @@ export function opensSet(num: string) {
 		event.preventDefault();
 		if (openSet() === num) return;
 		const opened = openSet() !== null;
+		const item = event.currentTarget;
 		goto(withSet(num), {
 			noScroll: true,
 			keepFocus: true,
 			replaceState: opened,
 			state: { sheet: opened ? !!page.state.sheet : true }
-		});
+		})
+			.then(tick)
+			.then(() => {
+				if (!opened && item instanceof Element) item.scrollIntoView({ block: 'center' });
+			});
 	};
 }
 

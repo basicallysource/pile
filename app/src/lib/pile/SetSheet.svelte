@@ -1,8 +1,8 @@
 <!--
-	The set open over a lot's page (`?set=` in the URL), in a Sheet: its name
+	The set open beside a lot's page (`?set=` in the URL), in a Sheet: its name
 	and number in the head with its Rebrickable link and the button that puts
 	it in or takes it out of the sort-out queue, and SetDetail under them.
-	The page under it keeps its place; another set opened swaps it.
+	The page beside it narrows and keeps its place; another set opened swaps it.
 -->
 <script lang="ts">
 	import ExternalLink from '@lucide/svelte/icons/external-link';
@@ -43,9 +43,9 @@
 	const set = $derived(detail?.set?.setNum === num ? detail.set : undefined);
 </script>
 
+{#if num}
 <Sheet
-	open={!!num}
-	width="46rem"
+	width="40rem"
 	title={set?.name ?? num ?? ''}
 	description={set ? (set.kind === Kind.CUSTOM ? `${set.setNum} · custom model` : set.setNum) : undefined}
 	onclose={closeSet}
@@ -74,3 +74,4 @@
 		</div>
 	{/if}
 </Sheet>
+{/if}

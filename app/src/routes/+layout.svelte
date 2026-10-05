@@ -3,7 +3,8 @@
 	lot's pages, the color mode and whether sets of loose bricks show, which
 	apply on all of them; outside one
 	it holds the collection and the design page. In a lot, the set open in
-	the URL (`?set=`) shows in a sheet over whichever page is under it. A
+	the URL (`?set=`) shows in a sheet beside whichever page it is on, which
+	narrows to make room. A
 	picture seen up close shows in the Lightbox over everything.
 -->
 <script lang="ts">
@@ -61,9 +62,11 @@
 			{/if}
 		{/snippet}
 	</TopBar>
-	<main class="mx-auto flex w-full max-w-7xl flex-col gap-(--gap-panels) p-4 md:p-6">
-		{@render children()}
-	</main>
+	<div class="flex flex-1 items-start">
+		<main class="mx-auto flex w-full max-w-7xl min-w-0 flex-1 flex-col gap-(--gap-panels) p-4 md:p-6">
+			{@render children()}
+		</main>
+		{#if lot}<SetSheet />{/if}
+	</div>
 </div>
-{#if lot}<SetSheet />{/if}
 <Lightbox src={zoomed()?.src} alt={zoomed()?.alt} onclose={unzoom} />
