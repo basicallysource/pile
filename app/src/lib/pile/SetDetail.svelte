@@ -14,6 +14,7 @@
 	import Badge from '$lib/components/Badge.svelte';
 	import { count, percent } from '$lib/format';
 	import { view } from '$lib/view.svelte';
+	import { zoomsTo } from './zoom.svelte';
 
 	let { detail }: { detail: GetSetResponse } = $props();
 
@@ -56,6 +57,7 @@
 		return s;
 	});
 	const grid = 'grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-x-3 gap-y-4';
+	const caption = (l: SetLine) => `${l.name}${l.color ? `, ${l.color.name}` : ''}, ${l.partNum}`;
 	const tile = (l: SetLine) => ({
 		name: l.name,
 		partNum: l.partNum,
@@ -65,7 +67,7 @@
 </script>
 
 <section class="flex gap-4 border-b border-line p-5">
-	<PartImage src={set.imageUrl} class="size-28 shrink-0" />
+	<PartImage src={set.imageUrl} onzoom={zoomsTo(`${set.name}, ${set.setNum}`)} class="size-28 shrink-0" />
 	<div class="flex min-w-0 flex-col gap-2">
 		<p class="text-sm text-ink-muted">
 			{custom ? `Custom model by ${set.designer}` : `${set.year} · ${set.theme}`}
@@ -114,7 +116,7 @@
 	</div>
 	<div class={grid}>
 		{#each lines as l (l.partNum + ':' + l.color?.id)}
-			<PartTile layout="tile" {...tile(l)} quantity={l.need} found={l.found}>
+			<PartTile layout="tile" {...tile(l)} onzoom={zoomsTo(caption(l))} quantity={l.need} found={l.found}>
 				{#if l.wrongColor}<span class="text-xs text-warning-ink">{l.wrongColor} in another color</span>{/if}
 			</PartTile>
 		{:else}
@@ -133,10 +135,17 @@
 		</div>
 		<div class={grid}>
 			{#each detail.minifigures as f (f.figNum)}
-				<PartTile layout="tile" name={f.name} partNum={f.figNum} imgUrl={f.imageUrl} quantity={f.quantity} />
+				<PartTile
+					layout="tile"
+					name={f.name}
+					partNum={f.figNum}
+					imgUrl={f.imageUrl}
+					onzoom={zoomsTo(f.name)}
+					quantity={f.quantity}
+				/>
 			{/each}
 			{#each uncounted as l (l.partNum + ':' + l.color?.id)}
-				<PartTile layout="tile" {...tile(l)} quantity={l.need} />
+				<PartTile layout="tile" {...tile(l)} onzoom={zoomsTo(caption(l))} quantity={l.need} />
 			{/each}
 		</div>
 	</section>

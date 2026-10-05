@@ -24,6 +24,8 @@
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
 	import Alert from '$lib/components/Alert.svelte';
+	import PartImage from '$lib/components/PartImage.svelte';
+	import { zoomsTo } from '$lib/pile/zoom.svelte';
 	import { count, dayOf, dayTimeOf } from '$lib/format';
 	import { span, hoursOf } from '$lib/pile/hours';
 	import { lotId } from '$lib/view.svelte';
@@ -138,7 +140,7 @@
 						<ul class="flex flex-col gap-1">
 							{#each t.slowest.slice(0, 4) as p (p.partNum + (p.color?.id ?? ''))}
 								<li class="flex items-center gap-2">
-									{#if p.imageUrl}<img src={p.imageUrl} alt="" class="size-8 shrink-0 object-contain" loading="lazy" />{/if}
+									<PartImage src={p.imageUrl} onzoom={zoomsTo(`${p.name}${p.color ? `, ${p.color.name}` : ''}`)} class="size-8 shrink-0" />
 									<span class="min-w-0 flex-1 truncate" title="{p.name}{p.color ? `, ${p.color.name}` : ''}">
 										{p.need} × {p.name}{p.color ? `, ${p.color.name}` : ''}
 									</span>
@@ -206,7 +208,7 @@
 							<td>
 								<div class="flex items-center gap-3">
 									<ChevronRight size={14} class="shrink-0 text-ink-faint transition-transform {open === s.setNum ? 'rotate-90' : ''}" />
-									{#if s.imageUrl}<img src={s.imageUrl} alt="" class="size-10 shrink-0 object-contain" loading="lazy" />{/if}
+									<PartImage src={s.imageUrl} onzoom={zoomsTo(`${s.name}, ${s.setNum}`)} class="size-10 shrink-0" />
 									<div class="min-w-0">
 										<div class="truncate">{s.name || s.setNum}</div>
 										<div class="text-xs text-ink-faint">{s.setNum}{s.year ? ` · ${s.year}` : ''}{s.theme ? ` · ${s.theme}` : ''}</div>

@@ -17,6 +17,7 @@
 	import Alert from '$lib/components/Alert.svelte';
 	import { bricklinkXML } from '$lib/pile/bricklink';
 	import { lotId } from '$lib/view.svelte';
+	import { zoomsTo } from '$lib/pile/zoom.svelte';
 
 	type Order = 'count' | 'color' | 'category';
 	let data = $state<ListPartsResponse | null>(partsAnswers.peek({ lotId: lotId() }) ?? null);
@@ -109,6 +110,7 @@
 					bricklinkId={l.bricklinkId}
 					partNum={l.partNum}
 					imgUrl={l.imageUrl}
+					onzoom={zoomsTo(`${l.name}${l.color ? `, ${l.color.name}` : ''}, ${l.partNum}`)}
 					color={l.color ? { name: l.color.name, rgb: l.color.rgb } : null}
 					quantity={l.count}
 				/>

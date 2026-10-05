@@ -3,7 +3,8 @@
 	lot's pages, the color mode and whether sets of loose bricks show, which
 	apply on all of them; outside one
 	it holds the collection and the design page. In a lot, the set open in
-	the URL (`?set=`) shows in a sheet over whichever page is under it.
+	the URL (`?set=`) shows in a sheet over whichever page is under it. A
+	picture seen up close shows in the Lightbox over everything.
 -->
 <script lang="ts">
 	import '../app.css';
@@ -17,6 +18,8 @@
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import Switch from '$lib/components/Switch.svelte';
 	import SetSheet from '$lib/pile/SetSheet.svelte';
+	import Lightbox from '$lib/components/Lightbox.svelte';
+	import { unzoom, zoomed } from '$lib/pile/zoom.svelte';
 	import { view } from '$lib/view.svelte';
 
 	let { children } = $props();
@@ -63,3 +66,4 @@
 	</main>
 </div>
 {#if lot}<SetSheet />{/if}
+<Lightbox src={zoomed()?.src} alt={zoomed()?.alt} onclose={unzoom} />

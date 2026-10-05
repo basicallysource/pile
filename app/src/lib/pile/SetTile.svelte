@@ -5,18 +5,21 @@
 	the pieces in another color are counted after it. The tile opens the set
 	in the sheet over the page, and is marked while it is open;
 	the button in its corner puts it in (or takes it out of) the lot's
-	sort-out queue, and shows its place there. `numbered` shows its place in
+	sort-out queue, and shows its place there; the magnifier in the other
+	corner shows its picture up close. `numbered` shows its place in
 	the likely order.
 -->
 <script lang="ts">
 	import Check from '@lucide/svelte/icons/check';
 	import Plus from '@lucide/svelte/icons/plus';
+	import ZoomIn from '@lucide/svelte/icons/zoom-in';
 	import { Kind, type SetMatch } from '$lib/gen/pile/v1/pile_pb';
 	import PartImage from '$lib/components/PartImage.svelte';
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
 	import { percent } from '$lib/format';
 	import { view } from '$lib/view.svelte';
 	import { openSet, opensSet, setHref } from './open-set.svelte';
+	import { zoomsTo } from './zoom.svelte';
 
 	let {
 		set,
@@ -75,6 +78,17 @@
 			{#if set.wrongColor}<span class="truncate text-warning-ink">· {set.wrongColor} recolor</span>{/if}
 		</div>
 	</a>
+	{#if set.imageUrl}
+		<button
+			type="button"
+			onclick={() => zoomsTo(`${set.name}, ${set.setNum}`)(set.imageUrl)}
+			title="See the picture up close"
+			aria-label="See the picture of {set.name} up close"
+			class="absolute top-2.5 left-2.5 flex size-7 cursor-zoom-in items-center justify-center rounded-button bg-surface text-ink opacity-0 ring-1 ring-line transition-opacity group-hover:opacity-100 hover:bg-raised focus-visible:opacity-100"
+		>
+			<ZoomIn size={14} />
+		</button>
+	{/if}
 	<button
 		type="button"
 		onclick={() => view.toggle(lot, set.setNum)}
