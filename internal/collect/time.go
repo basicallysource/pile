@@ -53,6 +53,30 @@ func (c *Catalog) Needs(num string, m Mode) *Need {
 	return nd
 }
 
+// Lacking is what a set still needs once the pieces held are taken out:
+// each key's count less the held pieces it counts as in mode m, the keys
+// made whole dropped. A piece of unknown color counts only in any color.
+func (nd *Need) Lacking(held map[Key]int, m Mode) *Need {
+	have := map[Key]float64{}
+	for k, n := range held {
+		if k.Color == anyColor && m != Any {
+			continue
+		}
+		have[m.key(k.Part, k.Color)] += float64(n)
+	}
+	out := &Need{Left: nd.Left, Figures: nd.Figures}
+	for i, k := range nd.Keys {
+		n := max(0, nd.N[i]-have[k])
+		if n == 0 {
+			continue
+		}
+		out.Keys = append(out.Keys, k)
+		out.N = append(out.N, n)
+		out.Pieces += n
+	}
+	return out
+}
+
 // completeLog is log of the chance every key has its count after t pieces.
 func completeLog(nd *Need, p []float64, t float64) float64 {
 	var s float64
@@ -151,7 +175,10 @@ type Rare struct {
 type Result struct {
 	Set  *match.Entry
 	Mode Mode
+	// What is timed: the set's counted pieces, less the ones held.
 	Need *Need
+	// The set's counted pieces already held, before any are sorted.
+	Held float64
 	// Distinct keys, and the ones the stream has never had a piece of, and
 	// their pieces.
 	Keys, Unseen int
@@ -171,13 +198,24 @@ type Result struct {
 }
 
 // Time works out one set against a model, resampling the stream's days reps
-// times for the uncertainty.
-func (c *Catalog) Time(md *Model, num string, reps int, seed uint64) (*Result, error) {
+// times for the uncertainty. With held pieces (a lot's counts) the set
+// starts from them, and the times are to find what it lacks; nil starts
+// from nothing.
+func (c *Catalog) Time(md *Model, num string, held map[Key]int, reps int, seed uint64) (*Result, error) {
 	nd := c.Needs(num, md.Mode)
 	if nd == nil {
 		return nil, fmt.Errorf("no set %s with counted pieces", num)
 	}
-	r := &Result{Set: c.Ix.Entry(num), Mode: md.Mode, Need: nd, Keys: len(nd.Keys)}
+	r := &Result{Set: c.Ix.Entry(num), Mode: md.Mode}
+	if held != nil {
+		lacking := nd.Lacking(held, md.Mode)
+		r.Held = nd.Pieces - lacking.Pieces
+		nd = lacking
+	}
+	r.Need, r.Keys = nd, len(nd.Keys)
+	if len(nd.Keys) == 0 {
+		return r, nil
+	}
 	p := make([]float64, len(nd.Keys))
 	rarer := make([]float64, len(nd.Keys))
 	seen := &Need{}

@@ -2,7 +2,8 @@
 	One set or custom model in a grid: its picture, its name and number (a
 	custom model's designer) in small type, and a thin bar for how much of it
 	the pieces hold, with the count. Green when complete; in an any-color view
-	the pieces in another color are counted after it. The tile opens the set;
+	the pieces in another color are counted after it. The tile opens the set
+	in the sheet over the page, and is marked while it is open;
 	the button in its corner puts it in (or takes it out of) the lot's
 	sort-out queue, and shows its place there. `numbered` shows its place in
 	the likely order.
@@ -15,6 +16,7 @@
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
 	import { percent } from '$lib/format';
 	import { view } from '$lib/view.svelte';
+	import { openSet, opensSet, setHref } from './open-set.svelte';
 
 	let {
 		set,
@@ -26,6 +28,7 @@
 	const share = $derived(set.have / Math.max(1, set.need));
 	const custom = $derived(set.kind === Kind.CUSTOM);
 	const place = $derived(view.queue(lot).indexOf(set.setNum) + 1);
+	const open = $derived(openSet() === set.setNum);
 	const notes = $derived(
 		[
 			set.wrongColor && `${set.wrongColor} in another color`,
@@ -39,9 +42,11 @@
 	);
 </script>
 
-<div class="group relative min-w-0 rounded-control hover:bg-hover">
+<div class="group relative min-w-0 rounded-control {open ? 'bg-pressed' : 'hover:bg-hover'}">
 	<a
-		href="/lots/{lot}/sets/{set.setNum}"
+		href={setHref(set.setNum)}
+		onclick={opensSet(set.setNum)}
+		aria-current={open ? 'true' : undefined}
 		title="{set.name}, {set.setNum}{custom
 			? `, by ${set.designer}`
 			: `, ${set.year}, ${set.themeGroup}${set.theme !== set.themeGroup ? ` / ${set.theme}` : ''}`}, {set.distinctParts} different parts{notes

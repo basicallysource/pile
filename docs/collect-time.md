@@ -18,11 +18,13 @@ then times the standard sets (`internal/collect/sets.txt`), then any set a
 page asks for, one at a time, with 50 resamplings; the page shows what is
 done and asks again while anything is on its way.
 
-`bin/collect-time -data DIR -lots LOT,LOT [-sets NUM,NUM] [-rate N] [-json FILE]`
+`bin/collect-time -data DIR -lots LOT,LOT [-sets NUM,NUM] [-holding LOT] [-rate N] [-json FILE]`
 (the standard sets when `-sets` is empty) prints, for each lot (a stream) and each set, the hours of sorting to 50%,
 90% and 99% of the set's pieces, and to all of them; `-json` writes every
 number, the fitted model, the sorting time per machine and each set's slowest
-pieces. The method is in the package comment of `internal/collect`; in short:
+pieces. `-holding LOT` starts each set from the pieces that lot already holds
+(in each mode, as that mode counts them) and times only what it lacks: how
+long until a box set aside for the set is full. The method is in the package comment of `internal/collect`; in short:
 
 - **Stream.** The lot's classified pieces, in Rebrickable's parts (a part
   stands for its mold variants) and colors. Pieces of unknown color count in

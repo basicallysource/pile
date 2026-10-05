@@ -136,7 +136,7 @@ func (k *collecting) time(t *lotTimes, num string) {
 		s := set.Set
 		out.Name, out.Year, out.Theme, out.ImageUrl = s.Name, s.Year, s.Theme, s.ImageURL
 		for i, md := range t.models {
-			r, err := k.cat.Time(md, num, resamples, 1)
+			r, err := k.cat.Time(md, num, nil, resamples, 1)
 			if err != nil {
 				out.Unknown = true
 				break

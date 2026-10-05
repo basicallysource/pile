@@ -3,12 +3,13 @@
 	or any color, and the sort-out queue): the queue, the sets that are all
 	there, the ones nearly there, the ones the pieces most likely came from,
 	the custom models it can build, and the minifigure and tiny sets last.
-	While a new view loads, the last one stays on screen.
+	While a new view loads, the last one stays on screen; one already seen
+	this visit draws at once, so coming back lands where it was scrolled.
 -->
 <script lang="ts">
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import type { GetLotResponse } from '$lib/gen/pile/v1/pile_pb';
-	import { pile } from '$lib/api';
+	import { lotAnswers } from '$lib/api';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Panel from '$lib/components/Panel.svelte';
 	import Stat from '$lib/components/Stat.svelte';
@@ -23,16 +24,22 @@
 	import { count, dayOf } from '$lib/format';
 	import { lotId, view } from '$lib/view.svelte';
 
-	let data = $state<GetLotResponse | null>(null);
+	let data = $state<GetLotResponse | null>(lotAnswers.peek({ view: view.forLot(lotId()) }) ?? null);
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	const lot = $derived(lotId());
 
 	$effect(() => {
-		const v = view.forLot(lot);
+		const req = { view: view.forLot(lot) };
+		const had = lotAnswers.peek(req);
+		if (had) {
+			data = had;
+			loading = false;
+			return;
+		}
 		loading = true;
 		let stale = false;
-		pile.getLot({ view: v }).then(
+		lotAnswers.get(req).then(
 			(r) => {
 				if (stale) return;
 				data = r;

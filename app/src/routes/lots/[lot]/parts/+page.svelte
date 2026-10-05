@@ -6,7 +6,7 @@
 <script lang="ts">
 	import Download from '@lucide/svelte/icons/download';
 	import type { ListPartsResponse, PartCount } from '$lib/gen/pile/v1/pile_pb';
-	import { pile } from '$lib/api';
+	import { partsAnswers } from '$lib/api';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Panel from '$lib/components/Panel.svelte';
 	import PartTile from '$lib/components/PartTile.svelte';
@@ -19,14 +19,14 @@
 	import { lotId } from '$lib/view.svelte';
 
 	type Order = 'count' | 'color' | 'category';
-	let data = $state<ListPartsResponse | null>(null);
+	let data = $state<ListPartsResponse | null>(partsAnswers.peek({ lotId: lotId() }) ?? null);
 	const lot = $derived(lotId());
 	let error = $state<string | null>(null);
 	let query = $state('');
 	let order = $state<Order>('count');
 
 	$effect(() => {
-		pile.listParts({ lotId: lot }).then((r) => (data = r), (e) => (error = String(e)));
+		partsAnswers.get({ lotId: lot }).then((r) => (data = r), (e) => (error = String(e)));
 	});
 
 	const total = $derived(data?.parts.reduce((n, l) => n + l.count, 0) ?? 0);

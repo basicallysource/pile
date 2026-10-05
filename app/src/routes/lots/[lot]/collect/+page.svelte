@@ -4,12 +4,18 @@
 	near colors (the old and new grays and browns as one) and any color. The
 	server works it out from the lot's data at start, a set at a time, so the
 	page asks again every few seconds while anything is on its way. A set
-	added here is timed too and remembered in this browser.
+	added here is timed too and remembered in this browser. The last answer
+	for each lot is kept for the visit, so coming back draws it at once.
 -->
+<script lang="ts" module>
+	import type { GetCollectTimesResponse } from '$lib/gen/pile/v1/pile_pb';
+	const last = new Map<string, GetCollectTimesResponse>();
+</script>
+
 <script lang="ts">
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Plus from '@lucide/svelte/icons/plus';
-	import type { CollectTime, GetCollectTimesResponse, SetCollectTimes } from '$lib/gen/pile/v1/pile_pb';
+	import type { CollectTime, SetCollectTimes } from '$lib/gen/pile/v1/pile_pb';
 	import { pile } from '$lib/api';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Panel from '$lib/components/Panel.svelte';
@@ -21,6 +27,7 @@
 	import { count, dayOf, dayTimeOf } from '$lib/format';
 	import { span, hoursOf } from '$lib/pile/hours';
 	import { lotId } from '$lib/view.svelte';
+	import { untrack } from 'svelte';
 
 	const KEY = 'pile-collect-extra';
 	function loadExtra(): string[] {
@@ -34,7 +41,8 @@
 
 	const lot = $derived(lotId());
 	let extra = $state<string[]>(loadExtra());
-	let data = $state<GetCollectTimesResponse | null>(null);
+	const asked = (lot: string, extra: string[]) => JSON.stringify([lot, extra]);
+	let data = $state<GetCollectTimesResponse | null>(untrack(() => last.get(asked(lotId(), extra))) ?? null);
 	let error = $state<string | null>(null);
 	let adding = $state('');
 	let open = $state<string | null>(null);
@@ -50,6 +58,7 @@
 				(r) => {
 					if (stop) return;
 					data = r;
+					last.set(asked(ask.lotId, ask.extra), r);
 					error = null;
 					if (r.fittedUnix === 0n || r.sets.some((s) => s.pending)) timer = setTimeout(load, 4000);
 				},

@@ -15,6 +15,7 @@
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
 	import { count, percent } from '$lib/format';
 	import { view } from '$lib/view.svelte';
+	import { opensSet, setHref } from './open-set.svelte';
 
 	let {
 		queue,
@@ -64,7 +65,7 @@
 						/>
 					</div>
 				</div>
-				<a href="/lots/{lot}/sets/{set.setNum}" class="flex flex-col gap-1.5">
+				<a href={setHref(set.setNum)} onclick={opensSet(set.setNum)} class="flex flex-col gap-1.5">
 					<PartImage src={set.imageUrl} class="aspect-square w-full" />
 					<div class="truncate text-xs font-medium text-ink" title={set.name}>{set.name}</div>
 				</a>

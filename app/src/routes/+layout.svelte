@@ -2,7 +2,8 @@
 	The shell: the top bar and the page under it. In a lot the bar holds the
 	lot's pages, the color mode and whether sets of loose bricks show, which
 	apply on all of them; outside one
-	it holds the collection and the design page.
+	it holds the collection and the design page. In a lot, the set open in
+	the URL (`?set=`) shows in a sheet over whichever page is under it.
 -->
 <script lang="ts">
 	import '../app.css';
@@ -15,6 +16,7 @@
 	import Wordmark from '$lib/components/Wordmark.svelte';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import Switch from '$lib/components/Switch.svelte';
+	import SetSheet from '$lib/pile/SetSheet.svelte';
 	import { view } from '$lib/view.svelte';
 
 	let { children } = $props();
@@ -60,3 +62,4 @@
 		{@render children()}
 	</main>
 </div>
+{#if lot}<SetSheet />{/if}

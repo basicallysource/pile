@@ -1,10 +1,13 @@
 // collect-time works out how long one sorter, fed bulk at random in the mix
 // its records show, takes to come across every piece of each set given: in
 // exact colors, in near colors, and in any color (package collect has the
-// model). Each lot named is a stream of its own. It prints a table per lot
-// and can write everything as JSON.
+// model). Each lot named is a stream of its own. With -holding, each set
+// starts from the pieces another lot already holds, and the times are to
+// find what it lacks. It prints a table per lot and can write everything as
+// JSON.
 //
 //	collect-time -data DIR -lots mine,everything -sets 75192-1,6212-1
+//	collect-time -data DIR -lots mine -holding goodwill-box -sets 6389-1
 package main
 
 import (
@@ -35,6 +38,7 @@ func main() {
 	reps := flag.Int("resamples", 200, "resamplings of each stream's machine-days, for the uncertainty")
 	simulate := flag.Int("simulate", 0, "also run the sorter piece by piece this many times per set, to check the closed form")
 	out := flag.String("json", "", "write every result here as JSON")
+	holding := flag.String("holding", "", "a lot whose pieces each set starts from, by id; empty to start from nothing")
 	flag.Parse()
 
 	start := time.Now()
@@ -53,6 +57,10 @@ func main() {
 	c := collect.NewCatalog(cat, match.NewIndex(cat), sizes)
 	log.Printf("catalog and lots in %s", time.Since(start).Round(time.Millisecond))
 
+	var held map[collect.Key]int
+	if *holding != "" {
+		held = c.NewStream(find(all, *holding).Records).Counts
+	}
 	sets := split(*setList)
 	if len(sets) == 0 {
 		sets = collect.Standard()
@@ -92,7 +100,7 @@ func main() {
 			for range runtime.NumCPU() {
 				wg.Go(func() {
 					for i := range work {
-						res, err := c.Time(md, sets[i], *reps, 1)
+						res, err := c.Time(md, sets[i], held, *reps, 1)
 						if err != nil {
 							log.Fatal(err)
 						}
@@ -180,6 +188,8 @@ type row struct {
 	Year    int32            `json:"year"`
 	Mode    string           `json:"mode"`
 	Pieces  float64          `json:"pieces_counted"`
+	// Of them, held before sorting (-holding); Pieces less Held are timed.
+	Held float64 `json:"held"`
 	Left    map[string]int32 `json:"left_out"`
 	Figures int32            `json:"minifigures"`
 	Keys    int              `json:"keys"`
@@ -202,7 +212,7 @@ func result(c *collect.Catalog, r *collect.Result, lot string, rate float64) row
 	h := func(pieces float64) float64 { return finite(pieces / rate) }
 	out := row{
 		Lot: lot, Set: r.Set.Set.Num, Name: r.Set.Set.Name, Year: r.Set.Set.Year, Mode: r.Mode.String(),
-		Pieces: r.Need.Pieces, Left: r.Need.Left, Figures: r.Need.Figures,
+		Pieces: r.Need.Pieces + r.Held, Held: r.Held, Left: r.Need.Left, Figures: r.Need.Figures,
 		Keys: r.Keys, Unseen: r.Unseen, UnseenP: r.UnseenPieces,
 		Half: h(r.At.Half), Most: h(r.At.Most), Nearly: h(r.At.Nearly),
 		All: h(r.At.All), Fast: h(r.At.Fast), Slow: h(r.At.Slow),
@@ -233,11 +243,11 @@ func print(r lotReport) {
 	}
 	fmt.Println("\nHours of sorting. To half, 90% and 99% of the pieces (expected), and to every piece (median); for 90% and every piece, the 5th to 95th percentile over resamplings of the machine-days; for every piece, one run in ten faster or slower, the time were the never-seen keys ten times rarer, and the time to every key the sorters have seen.")
 	fmt.Println()
-	fmt.Println("| set | mode | pieces | unseen keys | 50% | 90% | 90% range | 99% | all | all range | all, runs | never-seen 10x rarer | all seen |")
-	fmt.Println("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+	fmt.Println("| set | mode | pieces | held | unseen keys | 50% | 90% | 90% range | 99% | all | all range | all, runs | never-seen 10x rarer | all seen |")
+	fmt.Println("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
 	for _, x := range r.Results {
-		fmt.Printf("| %s %s (%d) | %s | %.0f | %d of %d | %s | %s | %s to %s | %s | %s | %s to %s | %s to %s | %s | %s |\n",
-			x.Set, x.Name, x.Year, x.Mode, x.Pieces, x.Unseen, x.Keys,
+		fmt.Printf("| %s %s (%d) | %s | %.0f | %.0f | %d of %d | %s | %s | %s to %s | %s | %s | %s to %s | %s to %s | %s | %s |\n",
+			x.Set, x.Name, x.Year, x.Mode, x.Pieces, x.Held, x.Unseen, x.Keys,
 			hours(x.Half), hours(x.Most), hours(x.MostLow), hours(x.MostHigh), hours(x.Nearly),
 			hours(x.All), hours(x.AllLow), hours(x.AllHigh), hours(x.Fast), hours(x.Slow), hours(x.RarerAll), hours(x.SeenAll))
 	}

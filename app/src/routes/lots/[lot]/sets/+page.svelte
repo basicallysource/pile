@@ -1,11 +1,39 @@
 <!--
 	Every set and custom model with a piece in the lot, through the view, to
 	browse: by kind, theme, licensed or not, and size, in the chosen order,
-	and filtered by words. Tiles are drawn a page at a time.
+	and filtered by words. Tiles are drawn a page at a time. Each lot's list
+	is kept as it was left (its filters, how far it was drawn, its answers),
+	so coming back to it lands where it was scrolled.
 -->
+<script lang="ts" module>
+	type OrderName = 'interesting' | 'biggest' | 'complex' | 'complete' | 'found';
+	type KindName = 'all' | 'sets' | 'custom';
+	type Left = {
+		order: OrderName;
+		kind: KindName;
+		theme: string;
+		licensedOnly: boolean;
+		minPieces: string;
+		query: string;
+		drawn: number;
+	};
+	const PAGE = 200;
+	// Each lot's list as it was left, for the visit.
+	const left = new Map<string, Left>();
+	const fresh: Left = {
+		order: 'interesting',
+		kind: 'all',
+		theme: '',
+		licensedOnly: false,
+		minPieces: '0',
+		query: '',
+		drawn: PAGE
+	};
+</script>
+
 <script lang="ts">
 	import { Kind, Order, type SetMatch, type ThemeCount } from '$lib/gen/pile/v1/pile_pb';
-	import { pile } from '$lib/api';
+	import { setsAnswers } from '$lib/api';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Panel from '$lib/components/Panel.svelte';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
@@ -19,35 +47,41 @@
 	import SetGrid from '$lib/pile/SetGrid.svelte';
 	import { count } from '$lib/format';
 	import { lotId, view } from '$lib/view.svelte';
+	import { untrack } from 'svelte';
 
-	const PAGE = 200;
-	type OrderName = 'interesting' | 'biggest' | 'complex' | 'complete' | 'found';
-	type KindName = 'all' | 'sets' | 'custom';
-	let order = $state<OrderName>('interesting');
-	let kind = $state<KindName>('all');
-	let theme = $state('');
-	let licensedOnly = $state(false);
-	let minPieces = $state('0');
-	let themes = $state<ThemeCount[]>([]);
-	let query = $state('');
-	let drawn = $state(PAGE);
-	let sets = $state<SetMatch[] | null>(null);
-	let error = $state<string | null>(null);
 	const lot = $derived(lotId());
+	const was = left.get(lotId()) ?? fresh;
+	let order = $state<OrderName>(was.order);
+	let kind = $state<KindName>(was.kind);
+	let theme = $state(was.theme);
+	let licensedOnly = $state(was.licensedOnly);
+	let minPieces = $state(was.minPieces);
+	let query = $state(was.query);
+	let drawn = $state(was.drawn);
+	let error = $state<string | null>(null);
 
-	$effect(() => {
-		const v = view.forLot(lot);
-		const o = {
+	const request = $derived({
+		view: view.forLot(lot),
+		order: {
 			interesting: Order.INTERESTING,
 			biggest: Order.BIGGEST,
 			complex: Order.COMPLEX,
 			complete: Order.COMPLETE,
 			found: Order.FOUND
-		}[order];
-		const k = { all: Kind.UNSPECIFIED, sets: Kind.SET, custom: Kind.CUSTOM }[kind];
-		const req = { view: v, order: o, kind: k, themeGroup: theme, licensedOnly, minPieces: +minPieces };
+		}[order],
+		kind: { all: Kind.UNSPECIFIED, sets: Kind.SET, custom: Kind.CUSTOM }[kind],
+		themeGroup: theme,
+		licensedOnly,
+		minPieces: +minPieces
+	});
+	const had = untrack(() => setsAnswers.peek(request));
+	let sets = $state<SetMatch[] | null>(had?.sets ?? null);
+	let themes = $state<ThemeCount[]>(had?.themes ?? []);
+
+	$effect(() => {
+		const req = request;
 		let stale = false;
-		pile.listSets(req).then(
+		setsAnswers.get(req).then(
 			(r) => {
 				if (stale) return;
 				sets = r.sets;
@@ -66,9 +100,19 @@
 		);
 	});
 
+	// A new filter starts the list from its first page; coming back keeps it.
+	const filters = $derived(JSON.stringify([order, kind, query, theme, licensedOnly, minPieces]));
+	let drawnFor = untrack(() => filters);
 	$effect(() => {
-		void [order, kind, query, theme, licensedOnly, minPieces];
-		drawn = PAGE;
+		const now = filters;
+		if (now !== drawnFor) {
+			drawnFor = now;
+			drawn = PAGE;
+		}
+	});
+
+	$effect(() => {
+		left.set(lot, { order, kind, theme, licensedOnly, minPieces, query, drawn });
 	});
 </script>
 
