@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"flag"
 	"log"
+	"net/url"
 	"os"
 	"sort"
 	"strconv"
@@ -60,7 +61,7 @@ func main() {
 			}
 			// Rebrickable's result card adds an "Alt" badge to alternate builds.
 			name := strings.TrimSuffix(g.Name, " Alt")
-			all[g.ID] = model{Num: g.ID, Name: name, Designer: g.Designer, URL: g.Href, Image: g.Img, Lines: lines}
+			all[g.ID] = model{Num: g.ID, Name: name, Designer: designer(g), URL: g.Href, Image: g.Img, Lines: lines}
 		}
 	}
 	models := make([]model, 0, len(all))
@@ -76,6 +77,19 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("%d custom models to %s", len(models), *out)
+}
+
+// designer is the model's designer as its address names them
+// (rebrickable.com/mocs/MOC-0085/DESIGNER/name/): the gathered field can
+// run on into the page's markup.
+func designer(g gathered) string {
+	if seg := strings.Split(strings.TrimPrefix(g.Href, "https://rebrickable.com/"), "/"); len(seg) > 2 && seg[0] == "mocs" {
+		if name, err := url.PathUnescape(seg[2]); err == nil {
+			return name
+		}
+		return seg[2]
+	}
+	return strings.TrimSpace(strings.SplitN(g.Designer, `"`, 2)[0])
 }
 
 // parts reads Rebrickable's parts CSV export (Part,Color,Quantity,Is Spare),
