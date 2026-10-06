@@ -33,8 +33,20 @@ type Lot struct {
 	Until string `json:"until,omitempty"`
 	// Left off the collection page: it opens only from the lot menu.
 	Unlisted bool `json:"unlisted,omitempty"`
+	// Stretches of one sorter's pieces left out: pieces sorted again (a
+	// re-sort of a box already counted) that would count twice.
+	Exclude []Excluded `json:"exclude,omitempty"`
 
 	Records *records.Records `json:"-"`
+}
+
+// Excluded is one sorter's pieces from From up to Until (RFC 3339 times;
+// Until empty for no end), and why they are left out.
+type Excluded struct {
+	Machine string `json:"machine"`
+	From    string `json:"from"`
+	Until   string `json:"until,omitempty"`
+	Why     string `json:"why"`
 }
 
 // Read loads lots.json in dir and each lot's pieces.
@@ -66,6 +78,21 @@ func Read(dir string) ([]*Lot, error) {
 		}
 		if err != nil {
 			return nil, fmt.Errorf("lot %s: %w", l.ID, err)
+		}
+		for _, x := range l.Exclude {
+			from, err := time.Parse(time.RFC3339, x.From)
+			if err != nil {
+				return nil, fmt.Errorf("lot %s: exclude from: %w", l.ID, err)
+			}
+			var until int64
+			if x.Until != "" {
+				t, err := time.Parse(time.RFC3339, x.Until)
+				if err != nil {
+					return nil, fmt.Errorf("lot %s: exclude until: %w", l.ID, err)
+				}
+				until = t.Unix()
+			}
+			l.Records.Drop(x.Machine, from.Unix(), until)
 		}
 	}
 	return lots, nil

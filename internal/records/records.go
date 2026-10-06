@@ -29,6 +29,24 @@ type Records struct {
 	LastSeen  int64
 }
 
+// Drop takes out the pieces one sorter (by name) saw from from up to until
+// (unix seconds; until 0 for no end), keeping the first and last seen times.
+func (r *Records) Drop(machine string, from, until int64) {
+	kept := r.Pieces[:0]
+	r.FirstSeen, r.LastSeen = 0, 0
+	for _, p := range r.Pieces {
+		if r.Machines[p.Machine] == machine && p.SeenAt >= from && (until == 0 || p.SeenAt < until) {
+			continue
+		}
+		if r.FirstSeen == 0 || p.SeenAt < r.FirstSeen {
+			r.FirstSeen = p.SeenAt
+		}
+		r.LastSeen = max(r.LastSeen, p.SeenAt)
+		kept = append(kept, p)
+	}
+	r.Pieces = kept
+}
+
 // Add appends a piece, keeping the first and last seen times.
 func (r *Records) Add(p Piece) {
 	if r.FirstSeen == 0 || p.SeenAt < r.FirstSeen {

@@ -51,6 +51,12 @@ A lot in `lots.json` takes its pieces from one of:
 collection page (it opens from the lot menu on a lot's name). A lot names the
 machines its pieces came from only when there are three or fewer.
 
+`"exclude"` leaves out stretches of one sorter's pieces, for pieces sorted a
+second time (a box already counted, fed through again) that would otherwise
+count twice: each is `{"machine": NAME, "from": RFC3339, "until": RFC3339 or
+left out for no end, "why": ...}`, the machine by the name the lot's records
+give it.
+
 ```json
 [
   {"id": "mine", "name": "My sorters", "description": "Everything they ever sorted.", "hive": "mine"},
