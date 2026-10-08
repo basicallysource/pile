@@ -36,9 +36,9 @@ the public record).
 ## Docs
 
 - **`README.md` is for people, and short**: the name, what it is and what
-  it is for in a sentence or two, and nothing else. Directions,
-  architecture and how to work on it go here and in `docs/`, never in the
-  README.
+  it is for, the few commands to run it, where its data and design came
+  from, and a pointer here. Directions, architecture and how to work on it
+  go here and in `docs/`, never in the README.
 
 - **`docs/` is committed and may be public.** Write it so a stranger could
   read it.

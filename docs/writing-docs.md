@@ -41,6 +41,7 @@ same merge rules on both sides...
 ## What is here
 
 - `writing-docs.md`: this.
+- `running.md`: building pile and what its data folder needs.
 - `custom-models.md`: free custom models from Rebrickable, gathered by hand.
 - `hive.md`: pulling records from a Hive, and lots made of them.
 - `collect-time.md`: how long one sorter takes to come across a set's pieces.
