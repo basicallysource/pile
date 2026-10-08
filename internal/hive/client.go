@@ -2,10 +2,9 @@
 // shared backend) into a SQLite file of pile's own, hive.sqlite, and reads
 // them back as records. It only ever reads from Hive.
 //
-// It signs in as a Hive user and pulls every machine that user may read: their
-// own, or with an admin's sign-in every machine on the Hive. A machine's
-// pieces come from GET /api/machines/{id}/pieces, newest first, a page at a
-// time.
+// It signs in as a Hive user and pulls every machine that user may read. A
+// machine's pieces come from GET /api/machines/{id}/pieces, newest first, a
+// page at a time.
 package hive
 
 import (

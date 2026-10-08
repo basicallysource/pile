@@ -26,6 +26,10 @@ pile does not run on nothing: the data folder needs Rebrickable's catalog, a sor
 
 LEGO is a trademark of the LEGO Group, which does not sponsor or endorse this project. Rebrickable and BrickLink are separate sites with their own terms.
 
+## License
+
+MIT, see [LICENSE](LICENSE).
+
 ## For agents
 
 Read [AGENTS.md](AGENTS.md), then [docs/running.md](docs/running.md).
