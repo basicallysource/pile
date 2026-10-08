@@ -22,8 +22,10 @@ Needs on `PATH`:
   `go install google.golang.org/protobuf/cmd/protoc-gen-go@latest` and
   `go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest`
   (they land in `$(go env GOPATH)/bin`).
-- Node 22 with corepack (`corepack enable`), which provides pnpm. The app's
-  `protoc-gen-es` comes from its own `node_modules`.
+- Node 22 or newer with corepack, which provides pnpm (`build.sh` runs
+  `corepack pnpm`; corepack ships with Node 22, newer Node needs
+  `npm install -g corepack`). The app's `protoc-gen-es` comes from its own
+  `node_modules`.
 
 Then, from the repo root:
 
