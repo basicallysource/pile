@@ -11,8 +11,7 @@ name.
 ## Pulling
 
 `bin/pull-hive -data DIR` signs in to a Hive as a user and copies every
-machine that user may read into `DIR/hive.sqlite`: a user's own machines,
-or with an admin's sign-in every machine on the Hive. It only reads.
+machine that user may read into `DIR/hive.sqlite`. It only reads.
 
 - The sign-in is a Hive user's email and password: `HIVE_EMAIL` and
   `HIVE_PASSWORD`, or with `-login-stdin` two lines on stdin (email, then
@@ -44,8 +43,8 @@ A lot in `lots.json` takes its pieces from one of:
 
 - `"machine": "NAME"`: a sorter's own records copied into
   `machines/NAME/local_state.sqlite`;
-- `"hive": "mine"`, `"all"` or a machine's name or id: the pulled records of
-  the signed-in user's machines, of every machine pulled, or of one.
+- `"hive": "mine"` or a machine's name or id: the pulled records of the
+  signed-in user's machines, or of one.
 
 `from` and `until` bound either by day. `"unlisted": true` keeps a lot off the
 collection page (it opens from the lot menu on a lot's name). A lot names the
@@ -59,7 +58,6 @@ give it.
 
 ```json
 [
-  {"id": "mine", "name": "My sorters", "description": "Everything they ever sorted.", "hive": "mine"},
-  {"id": "everything", "name": "All records", "description": "Every piece in the records.", "hive": "all", "unlisted": true}
+  {"id": "mine", "name": "My sorters", "description": "Everything they ever sorted.", "hive": "mine"}
 ]
 ```
