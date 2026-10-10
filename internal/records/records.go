@@ -3,6 +3,8 @@
 // records pulled from a Hive (package hive).
 package records
 
+import "slices"
+
 // Piece is one physical piece a sorter saw and classified, in BrickLink's ids.
 type Piece struct {
 	BrickLinkPart  string
@@ -29,22 +31,34 @@ type Records struct {
 	LastSeen  int64
 }
 
-// Drop takes out the pieces one sorter (by name) saw from from up to until
-// (unix seconds; until 0 for no end), keeping the first and last seen times.
-func (r *Records) Drop(machine string, from, until int64) {
-	kept := r.Pieces[:0]
-	r.FirstSeen, r.LastSeen = 0, 0
-	for _, p := range r.Pieces {
-		if r.Machines[p.Machine] == machine && p.SeenAt >= from && (until == 0 || p.SeenAt < until) {
-			continue
+// Span is a stretch of time in unix seconds, from From up to Until (0 for no
+// end).
+type Span struct{ From, Until int64 }
+
+func (s Span) holds(t int64) bool { return t >= s.From && (s.Until == 0 || t < s.Until) }
+
+// Drop takes out the pieces one sorter (by name) saw within s.
+func (r *Records) Drop(machine string, s Span) {
+	r.filter(func(p Piece) bool { return r.Machines[p.Machine] != machine || !s.holds(p.SeenAt) })
+}
+
+// Keep keeps only the pieces seen within one of spans.
+func (r *Records) Keep(spans []Span) {
+	r.filter(func(p Piece) bool {
+		return slices.ContainsFunc(spans, func(s Span) bool { return s.holds(p.SeenAt) })
+	})
+}
+
+// filter keeps the pieces keep says to, and the first and last seen times of
+// those.
+func (r *Records) filter(keep func(Piece) bool) {
+	pieces := r.Pieces
+	r.Pieces, r.FirstSeen, r.LastSeen = pieces[:0], 0, 0
+	for _, p := range pieces {
+		if keep(p) {
+			r.Add(p)
 		}
-		if r.FirstSeen == 0 || p.SeenAt < r.FirstSeen {
-			r.FirstSeen = p.SeenAt
-		}
-		r.LastSeen = max(r.LastSeen, p.SeenAt)
-		kept = append(kept, p)
 	}
-	r.Pieces = kept
 }
 
 // Add appends a piece, keeping the first and last seen times.

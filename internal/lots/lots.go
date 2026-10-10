@@ -33,6 +33,10 @@ type Lot struct {
 	Until string `json:"until,omitempty"`
 	// Left off the collection page: it opens only from the lot menu.
 	Unlisted bool `json:"unlisted,omitempty"`
+	// With Machine: one of that sorter's own lots, by name, kept in the same
+	// copy (its lots and sorting_runs tables): the pieces of the runs that
+	// add to it.
+	SorterLot string `json:"sorterLot,omitempty"`
 	// Stretches of one sorter's pieces left out: pieces sorted again (a
 	// re-sort of a box already counted) that would count twice.
 	Exclude []Excluded `json:"exclude,omitempty"`
@@ -71,8 +75,10 @@ func Read(dir string) ([]*Lot, error) {
 		switch {
 		case (l.Machine == "") == (l.Hive == ""):
 			return nil, fmt.Errorf("lot %s: give one of machine and hive", l.ID)
+		case l.SorterLot != "" && l.Machine == "":
+			return nil, fmt.Errorf("lot %s: sorterLot needs a machine", l.ID)
 		case l.Machine != "":
-			l.Records, err = records.ReadSorter(filepath.Join(dir, "machines", l.Machine, "local_state.sqlite"), l.Machine, from, until)
+			l.Records, err = readSorter(filepath.Join(dir, "machines", l.Machine, "local_state.sqlite"), l, from, until)
 		default:
 			l.Records, err = hive.Read(filepath.Join(dir, "hive.sqlite"), l.Hive, from, until)
 		}
@@ -92,10 +98,25 @@ func Read(dir string) ([]*Lot, error) {
 				}
 				until = t.Unix()
 			}
-			l.Records.Drop(x.Machine, from.Unix(), until)
+			l.Records.Drop(x.Machine, records.Span{From: from.Unix(), Until: until})
 		}
 	}
 	return lots, nil
+}
+
+// readSorter reads a lot's pieces from a sorter's own records: those within
+// from and until, and of the runs adding to its SorterLot when it names one.
+func readSorter(path string, l *Lot, from, until time.Time) (*records.Records, error) {
+	r, err := records.ReadSorter(path, l.Machine, from, until)
+	if err != nil || l.SorterLot == "" {
+		return r, err
+	}
+	spans, err := records.SorterLot(path, l.SorterLot)
+	if err != nil {
+		return nil, err
+	}
+	r.Keep(spans)
+	return r, nil
 }
 
 func day(s string) (time.Time, error) {

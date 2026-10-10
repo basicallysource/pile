@@ -48,7 +48,7 @@ changes it shows in `git status`.
 | `rebrickable/` | yes | Rebrickable's catalog, as gzipped CSVs from [rebrickable.com/downloads](https://rebrickable.com/downloads/): `colors`, `part_categories`, `parts`, `part_relationships`, `themes`, `sets`, `inventories`, `inventory_parts`, `minifigs`, `inventory_minifigs`, each as `NAME.csv.gz`. They need no account or key. |
 | `parts.db` | yes | A sorter Hive's parts catalog (SQLite). pile reads three tables from it: `part_bricklink_ids` (which BrickLink id is which Rebrickable part), `colors` (its `extra` JSON lists each color's BrickLink ids) and `part_geometry` (part sizes). **This is not rebuilt by pile and is slow to rebuild at all:** the Hive builds it itself, by syncing from Rebrickable's API with a key, which takes hours. Take it from a running Hive (`data/profile_builder/parts.db` in the [Hive](https://github.com/basicallysource/sorter-v2/tree/main/software/hive); copy it with SQLite's backup API, not `cp`, while the Hive runs) or from whoever runs one. |
 | `lots.json` | yes | The collection's lots: each a named stretch of sorted pieces. See below. |
-| `machines/NAME/local_state.sqlite` | one of these two | A sorter's own records, copied off the machine (its `local_state.sqlite`; pile reads only the `piece_records` table). |
+| `machines/NAME/local_state.sqlite` | one of these two | A sorter's own records, copied off the machine (its `local_state.sqlite`; pile reads its `piece_records` table, and `lots` and `sorting_runs` for a lot named on the sorter). |
 | `hive.sqlite` | one of these two | Records pulled from a Hive with `bin/pull-hive`: [hive.md](hive.md). |
 | `custom-models.json` | no | Free custom models, [custom-models.md](custom-models.md). Skipped when absent. |
 
@@ -60,6 +60,18 @@ and exactly one source: `"machine": "NAME"` (a folder under `machines/`) or
 ```json
 [
   {"id": "mine", "name": "My sorter", "description": "Everything it sorted.", "machine": "mysorter"}
+]
+```
+
+A sorter keeps lots of its own: a run (from when it starts until the next
+one starts) adds its pieces to a lot, or is another pass over pieces the lot
+already counted. `"sorterLot": "NAME"` beside `"machine"` takes the pieces of
+the runs that add to that lot, read from the copy's `lots` and
+`sorting_runs` tables:
+
+```json
+[
+  {"id": "big-box", "name": "Big box", "description": "The big box.", "machine": "mysorter", "sorterLot": "Big box"}
 ]
 ```
 

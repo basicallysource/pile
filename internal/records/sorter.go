@@ -51,6 +51,49 @@ func ReadSorter(path, name string, from, until time.Time) (*Records, error) {
 	return r, rows.Err()
 }
 
+// SorterLot returns when a sorter's runs added pieces to one of its own lots
+// (by name), from the lots and sorting_runs tables of a copy of its
+// local_state.sqlite. A run lasts from its start until the next run starts,
+// and a run that is another pass over pieces the lot already counted adds
+// none.
+func SorterLot(path, lot string) ([]Span, error) {
+	db, err := sql.Open("sqlite", "file:"+path+"?mode=ro")
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+	rows, err := db.Query(`
+		select coalesce(l.name, ''), r.adds_to_lot, r.started_at
+		from sorting_runs r left join lots l on l.id = r.lot_id
+		order by r.started_at`)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", path, err)
+	}
+	defer rows.Close()
+	var spans []Span
+	for rows.Next() {
+		var name string
+		var adds bool
+		var started float64
+		if err := rows.Scan(&name, &adds, &started); err != nil {
+			return nil, err
+		}
+		if n := len(spans); n > 0 && spans[n-1].Until == 0 {
+			spans[n-1].Until = int64(started)
+		}
+		if name == lot && adds {
+			spans = append(spans, Span{From: int64(started)})
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if len(spans) == 0 {
+		return nil, fmt.Errorf("%s: no run adds to the lot %q", path, lot)
+	}
+	return spans, nil
+}
+
 // Color reads a sorter's color id: a BrickLink color, or empty or "any" when
 // the classifier did not say.
 func Color(s string) (int32, bool) {
