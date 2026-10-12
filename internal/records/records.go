@@ -17,6 +17,10 @@ type Piece struct {
 	SeenAt     int64
 	// Which of Records.Machines sorted it.
 	Machine int32
+	// The category its sorter's profile sent it to (the profile's id for
+	// it, such as "bricks_red"): which of the sorter's bins it went into.
+	// Empty when the records do not say (records pulled from a Hive).
+	Category string
 }
 
 // Records is the classified pieces of one or more sorters over a stretch of

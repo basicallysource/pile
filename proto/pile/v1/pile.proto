@@ -4,8 +4,9 @@ package pile.v1;
 
 option go_package = "github.com/basicallysource/pile/gen/pile/v1;pilev1";
 
-// A collection of sorted pieces, kept as lots (one box, one sort), and the
-// LEGO sets and custom models each lot's pieces make up.
+// A collection of sorted pieces, kept as lots (one box, one sort), the
+// LEGO sets and custom models each lot's pieces make up, and the bins they
+// are kept in.
 service PileService {
   // The collection: every lot, with its totals.
   rpc ListLots(ListLotsRequest) returns (ListLotsResponse);
@@ -22,6 +23,13 @@ service PileService {
   // How long one sorter, fed bulk mixed like the lot, takes to come across
   // every piece of each set: the standard sets and any others asked for.
   rpc GetCollectTimes(GetCollectTimesRequest) returns (GetCollectTimesResponse);
+  // The storage: every bin, at its address, and how many pieces it holds.
+  rpc GetStorage(GetStorageRequest) returns (GetStorageResponse);
+  // Replaces the storage whole, and keeps it.
+  rpc SetStorage(SetStorageRequest) returns (SetStorageResponse);
+  // What the bins hold that a search and its filters ask for: each part in
+  // each color, how many, and which bins they are in.
+  rpc FindPieces(FindPiecesRequest) returns (FindPiecesResponse);
 }
 
 // How a lot is looked at.
@@ -415,4 +423,100 @@ message GetCollectTimesResponse {
   // When the lot's model was fitted (the server works it out at start, from
   // the data it loaded); 0 while it is being fitted.
   int64 fitted_unix = 3;
+}
+
+// A place pieces are kept, and what it holds: one lot's pieces of some of the
+// sorter's categories (a sorter's bin emptied into it), or the lot's pieces
+// no other bin of it holds.
+message StorageBin {
+  // Where it is, as it is labelled ("3D-04").
+  string address = 1;
+  // What it holds, in words.
+  string name = 2;
+  string lot_id = 3;
+  // The sorter's categories whose pieces it holds (its profile's ids for
+  // them); none for the rest of the lot.
+  repeated string categories = 4;
+  // Pieces in it. Read only.
+  int32 pieces = 5;
+}
+
+message GetStorageRequest {}
+
+message GetStorageResponse {
+  repeated StorageBin bins = 1;
+}
+
+message SetStorageRequest {
+  // Every bin. Each has an address no other has and an existing lot, and
+  // no lot's category (or the rest of a lot) is in two bins.
+  repeated StorageBin bins = 1;
+}
+
+message SetStorageResponse {
+  repeated StorageBin bins = 1;
+}
+
+message FindPiecesRequest {
+  // Words that each start a word of the part's name or number, its color, its
+  // type, or the bin's address or name, in any order. Empty finds everything.
+  string query = 1;
+  // Only this color, by name; empty for any.
+  string color = 2;
+  // Only this type of part (the catalog's part category); empty for any.
+  string type = 3;
+  // Only bins of this name; empty for any.
+  string bin = 4;
+  // Only this lot's bins; empty for any.
+  string lot_id = 5;
+  // At most this many parts in a color; 0 for 200.
+  int32 limit = 6;
+}
+
+// Some of a part in a color, in one bin.
+message BinCount {
+  string address = 1;
+  string name = 2;
+  string lot_id = 3;
+  int32 count = 4;
+}
+
+// A part in a color the bins hold.
+message StoredPart {
+  string part_num = 1;
+  string bricklink_id = 2;
+  string name = 3;
+  Color color = 4;
+  string type = 5;
+  string image_url = 6;
+  // In every bin it is in.
+  int32 count = 7;
+  // Most first.
+  repeated BinCount bins = 8;
+}
+
+// One choice of a filter, and the pieces it would find with the other
+// filters and the search as they are.
+message FilterOption {
+  string value = 1;
+  // What to show for it, when not the value itself (a lot's name).
+  string label = 2;
+  int32 pieces = 3;
+  // For a color.
+  Color color = 4;
+}
+
+message FindPiecesResponse {
+  // Exact word matches first, then most pieces first.
+  repeated StoredPart parts = 1;
+  // All the parts in a color found, and their pieces, past the limit too.
+  int32 total_parts = 2;
+  int32 total_pieces = 3;
+  // Pieces in all the bins.
+  int32 stored_pieces = 4;
+  // Each filter's choices, most pieces first.
+  repeated FilterOption colors = 5;
+  repeated FilterOption types = 6;
+  repeated FilterOption bins = 7;
+  repeated FilterOption lots = 8;
 }

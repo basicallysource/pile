@@ -45,5 +45,6 @@ same merge rules on both sides...
 - `custom-models.md`: free custom models from Rebrickable, gathered by hand.
 - `hive.md`: pulling records from a Hive, and lots made of them.
 - `collect-time.md`: how long one sorter takes to come across a set's pieces.
+- `storage.md`: bins at addresses, what each holds, and finding pieces in them.
 
 - `design-system/`: how the UI looks and behaves (projects with a UI).

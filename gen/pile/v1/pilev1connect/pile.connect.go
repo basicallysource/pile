@@ -46,6 +46,12 @@ const (
 	// PileServiceGetCollectTimesProcedure is the fully-qualified name of the PileService's
 	// GetCollectTimes RPC.
 	PileServiceGetCollectTimesProcedure = "/pile.v1.PileService/GetCollectTimes"
+	// PileServiceGetStorageProcedure is the fully-qualified name of the PileService's GetStorage RPC.
+	PileServiceGetStorageProcedure = "/pile.v1.PileService/GetStorage"
+	// PileServiceSetStorageProcedure is the fully-qualified name of the PileService's SetStorage RPC.
+	PileServiceSetStorageProcedure = "/pile.v1.PileService/SetStorage"
+	// PileServiceFindPiecesProcedure is the fully-qualified name of the PileService's FindPieces RPC.
+	PileServiceFindPiecesProcedure = "/pile.v1.PileService/FindPieces"
 )
 
 // PileServiceClient is a client for the pile.v1.PileService service.
@@ -65,6 +71,13 @@ type PileServiceClient interface {
 	// How long one sorter, fed bulk mixed like the lot, takes to come across
 	// every piece of each set: the standard sets and any others asked for.
 	GetCollectTimes(context.Context, *connect.Request[v1.GetCollectTimesRequest]) (*connect.Response[v1.GetCollectTimesResponse], error)
+	// The storage: every bin, at its address, and how many pieces it holds.
+	GetStorage(context.Context, *connect.Request[v1.GetStorageRequest]) (*connect.Response[v1.GetStorageResponse], error)
+	// Replaces the storage whole, and keeps it.
+	SetStorage(context.Context, *connect.Request[v1.SetStorageRequest]) (*connect.Response[v1.SetStorageResponse], error)
+	// What the bins hold that a search and its filters ask for: each part in
+	// each color, how many, and which bins they are in.
+	FindPieces(context.Context, *connect.Request[v1.FindPiecesRequest]) (*connect.Response[v1.FindPiecesResponse], error)
 }
 
 // NewPileServiceClient constructs a client for the pile.v1.PileService service. By default, it uses
@@ -114,6 +127,24 @@ func NewPileServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(pileServiceMethods.ByName("GetCollectTimes")),
 			connect.WithClientOptions(opts...),
 		),
+		getStorage: connect.NewClient[v1.GetStorageRequest, v1.GetStorageResponse](
+			httpClient,
+			baseURL+PileServiceGetStorageProcedure,
+			connect.WithSchema(pileServiceMethods.ByName("GetStorage")),
+			connect.WithClientOptions(opts...),
+		),
+		setStorage: connect.NewClient[v1.SetStorageRequest, v1.SetStorageResponse](
+			httpClient,
+			baseURL+PileServiceSetStorageProcedure,
+			connect.WithSchema(pileServiceMethods.ByName("SetStorage")),
+			connect.WithClientOptions(opts...),
+		),
+		findPieces: connect.NewClient[v1.FindPiecesRequest, v1.FindPiecesResponse](
+			httpClient,
+			baseURL+PileServiceFindPiecesProcedure,
+			connect.WithSchema(pileServiceMethods.ByName("FindPieces")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -125,6 +156,9 @@ type pileServiceClient struct {
 	getSet          *connect.Client[v1.GetSetRequest, v1.GetSetResponse]
 	listParts       *connect.Client[v1.ListPartsRequest, v1.ListPartsResponse]
 	getCollectTimes *connect.Client[v1.GetCollectTimesRequest, v1.GetCollectTimesResponse]
+	getStorage      *connect.Client[v1.GetStorageRequest, v1.GetStorageResponse]
+	setStorage      *connect.Client[v1.SetStorageRequest, v1.SetStorageResponse]
+	findPieces      *connect.Client[v1.FindPiecesRequest, v1.FindPiecesResponse]
 }
 
 // ListLots calls pile.v1.PileService.ListLots.
@@ -157,6 +191,21 @@ func (c *pileServiceClient) GetCollectTimes(ctx context.Context, req *connect.Re
 	return c.getCollectTimes.CallUnary(ctx, req)
 }
 
+// GetStorage calls pile.v1.PileService.GetStorage.
+func (c *pileServiceClient) GetStorage(ctx context.Context, req *connect.Request[v1.GetStorageRequest]) (*connect.Response[v1.GetStorageResponse], error) {
+	return c.getStorage.CallUnary(ctx, req)
+}
+
+// SetStorage calls pile.v1.PileService.SetStorage.
+func (c *pileServiceClient) SetStorage(ctx context.Context, req *connect.Request[v1.SetStorageRequest]) (*connect.Response[v1.SetStorageResponse], error) {
+	return c.setStorage.CallUnary(ctx, req)
+}
+
+// FindPieces calls pile.v1.PileService.FindPieces.
+func (c *pileServiceClient) FindPieces(ctx context.Context, req *connect.Request[v1.FindPiecesRequest]) (*connect.Response[v1.FindPiecesResponse], error) {
+	return c.findPieces.CallUnary(ctx, req)
+}
+
 // PileServiceHandler is an implementation of the pile.v1.PileService service.
 type PileServiceHandler interface {
 	// The collection: every lot, with its totals.
@@ -174,6 +223,13 @@ type PileServiceHandler interface {
 	// How long one sorter, fed bulk mixed like the lot, takes to come across
 	// every piece of each set: the standard sets and any others asked for.
 	GetCollectTimes(context.Context, *connect.Request[v1.GetCollectTimesRequest]) (*connect.Response[v1.GetCollectTimesResponse], error)
+	// The storage: every bin, at its address, and how many pieces it holds.
+	GetStorage(context.Context, *connect.Request[v1.GetStorageRequest]) (*connect.Response[v1.GetStorageResponse], error)
+	// Replaces the storage whole, and keeps it.
+	SetStorage(context.Context, *connect.Request[v1.SetStorageRequest]) (*connect.Response[v1.SetStorageResponse], error)
+	// What the bins hold that a search and its filters ask for: each part in
+	// each color, how many, and which bins they are in.
+	FindPieces(context.Context, *connect.Request[v1.FindPiecesRequest]) (*connect.Response[v1.FindPiecesResponse], error)
 }
 
 // NewPileServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -219,6 +275,24 @@ func NewPileServiceHandler(svc PileServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(pileServiceMethods.ByName("GetCollectTimes")),
 		connect.WithHandlerOptions(opts...),
 	)
+	pileServiceGetStorageHandler := connect.NewUnaryHandler(
+		PileServiceGetStorageProcedure,
+		svc.GetStorage,
+		connect.WithSchema(pileServiceMethods.ByName("GetStorage")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pileServiceSetStorageHandler := connect.NewUnaryHandler(
+		PileServiceSetStorageProcedure,
+		svc.SetStorage,
+		connect.WithSchema(pileServiceMethods.ByName("SetStorage")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pileServiceFindPiecesHandler := connect.NewUnaryHandler(
+		PileServiceFindPiecesProcedure,
+		svc.FindPieces,
+		connect.WithSchema(pileServiceMethods.ByName("FindPieces")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/pile.v1.PileService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PileServiceListLotsProcedure:
@@ -233,6 +307,12 @@ func NewPileServiceHandler(svc PileServiceHandler, opts ...connect.HandlerOption
 			pileServiceListPartsHandler.ServeHTTP(w, r)
 		case PileServiceGetCollectTimesProcedure:
 			pileServiceGetCollectTimesHandler.ServeHTTP(w, r)
+		case PileServiceGetStorageProcedure:
+			pileServiceGetStorageHandler.ServeHTTP(w, r)
+		case PileServiceSetStorageProcedure:
+			pileServiceSetStorageHandler.ServeHTTP(w, r)
+		case PileServiceFindPiecesProcedure:
+			pileServiceFindPiecesHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -264,4 +344,16 @@ func (UnimplementedPileServiceHandler) ListParts(context.Context, *connect.Reque
 
 func (UnimplementedPileServiceHandler) GetCollectTimes(context.Context, *connect.Request[v1.GetCollectTimesRequest]) (*connect.Response[v1.GetCollectTimesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.GetCollectTimes is not implemented"))
+}
+
+func (UnimplementedPileServiceHandler) GetStorage(context.Context, *connect.Request[v1.GetStorageRequest]) (*connect.Response[v1.GetStorageResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.GetStorage is not implemented"))
+}
+
+func (UnimplementedPileServiceHandler) SetStorage(context.Context, *connect.Request[v1.SetStorageRequest]) (*connect.Response[v1.SetStorageResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.SetStorage is not implemented"))
+}
+
+func (UnimplementedPileServiceHandler) FindPieces(context.Context, *connect.Request[v1.FindPiecesRequest]) (*connect.Response[v1.FindPiecesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.FindPieces is not implemented"))
 }

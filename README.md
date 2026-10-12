@@ -1,6 +1,6 @@
 # pile
 
-What a LEGO sorter sorted, as a bulk catalog: every part in every color, with counts. Then which LEGO sets those pieces make up, ranked by how complete each one is, and how long a sorter would take to come across all of a set's pieces.
+What a LEGO sorter sorted, as a bulk catalog: every part in every color, with counts. Then which LEGO sets those pieces make up, ranked by how complete each one is, how long a sorter would take to come across all of a set's pieces, and which bin on your shelves holds what, searchable as you type.
 
 It reads the records of a [Basically](https://basically.website) sorter (a machine that identifies bulk LEGO piece by piece) and matches them against Rebrickable's catalog of every set LEGO sold.
 

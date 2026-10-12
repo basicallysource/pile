@@ -2,7 +2,9 @@
 	The shell: the top bar and the page under it. In a lot the bar holds the
 	lot's pages, the color mode and whether sets of loose bricks show, which
 	apply on all of them; outside one
-	it holds the collection and the design page. In a lot, the set open in
+	it holds the collection and the design page. Find pieces, at the end of
+	the bar on every page (or the / key), searches what the bins hold. On a
+	narrow screen the lot's color mode and bulk switch give way to it. In a lot, the set open in
 	the URL (`?set=`) shows in a sheet beside whichever page it is on, which
 	narrows to make room. A
 	picture seen up close shows in the Lightbox over everything.
@@ -18,12 +20,25 @@
 	import Wordmark from '$lib/components/Wordmark.svelte';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import Switch from '$lib/components/Switch.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import Search from '@lucide/svelte/icons/search';
+	import FindPieces from '$lib/pile/FindPieces.svelte';
 	import SetSheet from '$lib/pile/SetSheet.svelte';
 	import Lightbox from '$lib/components/Lightbox.svelte';
 	import { unzoom, zoomed } from '$lib/pile/zoom.svelte';
 	import { view } from '$lib/view.svelte';
 
 	let { children } = $props();
+	let finding = $state(false);
+
+	// The / key opens Find pieces, unless it is typed into a field.
+	function onkeydown(event: KeyboardEvent) {
+		const t = event.target as HTMLElement;
+		if (event.key !== '/' || finding || t.closest('input, textarea, select, [contenteditable]'))
+			return;
+		event.preventDefault();
+		finding = true;
+	}
 	const lot = $derived(page.params.lot);
 	const items = $derived(
 		lot
@@ -45,28 +60,35 @@
 		{#snippet brand()}<Wordmark name="Pile" href="/" />{/snippet}
 		{#snippet end()}
 			{#if lot}
-				<label class="flex items-center gap-2 text-sm whitespace-nowrap text-ink-muted">
-					<Switch checked={view.showBulk} onchange={(v) => view.setShowBulk(v)} />
-					Bulk sets
-				</label>
-				<SegmentedControl
-					label="Colors"
-					size="sm"
-					value={view.anyColor ? 'any' : 'exact'}
-					onchange={(v) => view.setAnyColor(v === 'any')}
-					options={[
-						{ value: 'exact', label: 'Exact colors' },
-						{ value: 'any', label: 'Any color' }
-					]}
-				/>
+				<div class="hidden items-center gap-2 md:flex">
+					<label class="flex items-center gap-2 text-sm whitespace-nowrap text-ink-muted">
+						<Switch checked={view.showBulk} onchange={(v) => view.setShowBulk(v)} />
+						Bulk sets
+					</label>
+					<SegmentedControl
+						label="Colors"
+						size="sm"
+						value={view.anyColor ? 'any' : 'exact'}
+						onchange={(v) => view.setAnyColor(v === 'any')}
+						options={[
+							{ value: 'exact', label: 'Exact colors' },
+							{ value: 'any', label: 'Any color' }
+						]}
+					/>
+				</div>
 			{/if}
+			<Button size="sm" icon={Search} onclick={() => (finding = true)}>Find pieces</Button>
 		{/snippet}
 	</TopBar>
 	<div class="flex flex-1 items-start">
-		<main class="mx-auto flex w-full max-w-7xl min-w-0 flex-1 flex-col gap-(--gap-panels) p-4 md:p-6">
+		<main
+			class="mx-auto flex w-full max-w-7xl min-w-0 flex-1 flex-col gap-(--gap-panels) p-4 md:p-6"
+		>
 			{@render children()}
 		</main>
 		{#if lot}<SetSheet />{/if}
 	</div>
 </div>
 <Lightbox src={zoomed()?.src} alt={zoomed()?.alt} onclose={unzoom} />
+<FindPieces bind:open={finding} />
+<svelte:window {onkeydown} />

@@ -1,7 +1,7 @@
 # AGENTS.md
 
 <!-- human -->
-pile: what a sorter sorted, as a bulk catalog (every part in every color, with counts, downloadable as a BrickLink list), and which LEGO sets those pieces make up, ranked, with how complete each set is.
+pile: what a sorter sorted, as a bulk catalog (every part in every color, with counts, downloadable as a BrickLink list), which LEGO sets those pieces make up, ranked, with how complete each set is, and which bin holds what, searchable as you type.
 <!-- /human -->
 
 Read `docs/writing-docs.md` first (how the docs are written, and what each
@@ -62,8 +62,10 @@ the public record).
   BrickLink-to-Rebrickable part and color ids), `custom-models.json` (free
   custom models: `docs/custom-models.md`), `lots.json` (the collection's lots:
   each a named stretch of sorted pieces), `machines/<name>/local_state.sqlite`
-  (a sorter's own records, copied) and `hive.sqlite` (records pulled from a
-  Hive by `cmd/pull-hive`: `docs/hive.md`). Fresh data means a restart.
+  (a sorter's own records, copied), `hive.sqlite` (records pulled from a
+  Hive by `cmd/pull-hive`: `docs/hive.md`) and `storage.json` (the bins
+  pieces are kept in: `docs/storage.md`). Fresh data means a restart, except
+  the storage, which `SetStorage` replaces while it runs and writes back.
 - **Other commands.** `cmd/pull-hive` (records from a Hive),
   `cmd/collect-time` (how long one sorter takes to come across a set's
   pieces: `docs/collect-time.md`), `cmd/export-pieces` (a lot as CSV),
@@ -78,8 +80,9 @@ the public record).
   scored, in exact or any color, and how the likely order is picked). Pieces
   come from `internal/records` (a sorter's own records) and `internal/hive`
   (pulled from a Hive), lots from `internal/lots`, the catalog (sets and
-  custom models) from `internal/catalog`, the handlers from
-  `internal/server`. `internal/collect` is the collect-time model.
+  custom models) from `internal/catalog`, the bins from `internal/storage`,
+  the handlers from `internal/server` (what the bins hold, and finding it,
+  in `stock.go`). `internal/collect` is the collect-time model.
 - **App.** SvelteKit 5 + Tailwind, static, in `app/`, embedded into the
   binary (`embed.go`). It follows the Sorter design system
   (`docs/design-system/README.md`).

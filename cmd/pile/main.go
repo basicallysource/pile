@@ -1,6 +1,7 @@
 // pile serves a collection of sorted LEGO pieces, kept as lots: every part
-// and color in each, which sets and custom models the pieces make up, and how
-// long one sorter fed bulk like each lot takes to collect a set.
+// and color in each, which sets and custom models the pieces make up, how
+// long one sorter fed bulk like each lot takes to collect a set, and which
+// bins hold what.
 package main
 
 import (
@@ -15,10 +16,11 @@ import (
 	"github.com/basicallysource/pile/internal/collect"
 	"github.com/basicallysource/pile/internal/lots"
 	"github.com/basicallysource/pile/internal/server"
+	"github.com/basicallysource/pile/internal/storage"
 )
 
 func main() {
-	data := flag.String("data", "data", "folder holding rebrickable/ (the catalog CSVs), parts.db (a sorter Hive's parts database), custom-models.json, lots.json, and machines/<name>/local_state.sqlite (each sorter's records)")
+	data := flag.String("data", "data", "folder holding rebrickable/ (the catalog CSVs), parts.db (a sorter Hive's parts database), custom-models.json, lots.json, machines/<name>/local_state.sqlite (each sorter's records), and storage.json (the bins pieces are kept in; kept there when it changes)")
 	addr := flag.String("addr", ":8790", "where to listen")
 	flag.Parse()
 
@@ -31,11 +33,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	st, err := storage.Read(*data)
+	if err != nil {
+		log.Fatal(err)
+	}
 	sizes, err := collect.LoadSizes(filepath.Join(*data, "parts.db"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	s := server.New(cat, ls, sizes, filepath.Join(*data, "hive.sqlite"))
+	s, err := server.New(cat, ls, st, sizes, *data)
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Printf("%d lots ready in %s", len(ls), time.Since(start).Round(time.Millisecond))
 	log.Printf("listening on %s", *addr)
 	log.Fatal(http.ListenAndServe(*addr, server.Handler(s, pile.App())))
