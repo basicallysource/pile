@@ -8,7 +8,7 @@ holds. When a category is sorted again into finer ones, each finer category
 gets a bin of its own.
 
 Find pieces, at the top of every page, searches what the bins hold as you
-type: a part's name or number, a color, a type of part, or a bin. Filters
+type: a part's name or number, a color, a type of part, or a bin's address. Filters
 for color, type, bin and lot narrow it down. Each part in a color shows how
 many there are and a badge for every bin they are in, with how many each
 holds. It works on a phone.
@@ -73,7 +73,9 @@ swapped whole, so a search never sees half a storage.
 
 `FindPieces` splits the query into lowercase words of letters and digits;
 each must start a word of the part's name or number, its BrickLink id, its
-color, its type (Rebrickable's part category), or the bin's address or name.
+color, its type (Rebrickable's part category), or the bin's address. Bin
+names are left to the Bin filter: a bin named "Slopes: red, yellow, orange,
+brown" would otherwise answer "red" with its yellow slopes.
 A part in several bins keeps only the bins that match, so a query naming a
 bin shows only what that bin holds. Parts where every query word is a whole
 word come first ("red" puts Red before Reddish Brown), then most pieces. It

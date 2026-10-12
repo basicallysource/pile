@@ -2917,7 +2917,8 @@ func (x *SetStorageResponse) GetBins() []*StorageBin {
 type FindPiecesRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Words that each start a word of the part's name or number, its color, its
-	// type, or the bin's address or name, in any order. Empty finds everything.
+	// type, or the bin's address, in any order (a bin's name is the bin
+	// filter's). Empty finds everything.
 	Query string `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
 	// Only this color, by name; empty for any.
 	Color string `protobuf:"bytes,2,opt,name=color,proto3" json:"color,omitempty"`

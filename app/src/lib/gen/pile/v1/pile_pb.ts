@@ -1454,7 +1454,8 @@ export const SetStorageResponseSchema: GenMessage<SetStorageResponse> = /*@__PUR
 export type FindPiecesRequest = Message<"pile.v1.FindPiecesRequest"> & {
   /**
    * Words that each start a word of the part's name or number, its color, its
-   * type, or the bin's address or name, in any order. Empty finds everything.
+   * type, or the bin's address, in any order (a bin's name is the bin
+   * filter's). Empty finds everything.
    *
    * @generated from field: string query = 1;
    */

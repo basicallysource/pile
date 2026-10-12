@@ -15,7 +15,7 @@ import (
 // color, and how many of it each bin holds.
 type stock struct {
 	store    *storage.Storage
-	binWords [][]string // each bin's address and name, as words
+	binWords [][]string // each bin's address, as words
 	pieces   []int32    // each bin's pieces
 	parts    []*stored
 	total    int32
@@ -42,7 +42,7 @@ type binCount struct {
 func newStock(st *storage.Storage, lots map[string]*lot, cat *catalog.Catalog) *stock {
 	k := &stock{store: st, pieces: make([]int32, len(st.Bins))}
 	for _, b := range st.Bins {
-		k.binWords = append(k.binWords, words(b.Address+" "+b.Name))
+		k.binWords = append(k.binWords, words(b.Address))
 	}
 	holder := st.Holder()
 	byPC := map[catalog.PartColor]*stored{}
