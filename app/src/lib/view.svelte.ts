@@ -1,39 +1,72 @@
 // How lots are being looked at (docs/views.md). The lots are the route's:
 // `/lots/big-box,goodwill-box` is a stack of two, in priority order, so a
 // link carries them. The rest is kept in the browser, so it lasts across
-// pages and reloads: any-color matching, whether sets of loose bricks show,
-// and each stack's sort-out queue (most wanted first). Every page reads it
-// and the server works from it.
+// pages and reloads: any-color matching, the filter (which sets are listed,
+// docs/views.md#the-filter), whether sets are grouped by theme, and each
+// stack's sort-out queue (most wanted first). Every page reads it and the
+// server works from it.
 import { page } from '$app/state';
-import type { View } from './gen/pile/v1/pile_pb';
+import { Kind, type View } from './gen/pile/v1/pile_pb';
 import type { MessageInitShape } from '@bufbuild/protobuf';
-import type { ViewSchema } from './gen/pile/v1/pile_pb';
+import type { FilterSchema, ViewSchema } from './gen/pile/v1/pile_pb';
 
 const KEY = 'pile-view';
 
-type Saved = { anyColor: boolean; showBulk: boolean; sortOut: Record<string, string[]> };
+export type Filter = {
+	hideLooseBricks: boolean;
+	hideMostlyBasic: boolean;
+	hideFewParts: boolean;
+	hideNothingUnusual: boolean;
+	kind: Kind;
+	themeGroup: string;
+	licensedOnly: boolean;
+	minPieces: number;
+};
+
+// The filter's presets: which kinds of set they hide. Each leaves the
+// theme, kind, size and licensed filters as they are.
+export const presets = {
+	interesting: { hideLooseBricks: true, hideMostlyBasic: true, hideFewParts: true, hideNothingUnusual: true },
+	models: { hideLooseBricks: true, hideMostlyBasic: false, hideFewParts: false, hideNothingUnusual: false },
+	everything: { hideLooseBricks: false, hideMostlyBasic: false, hideFewParts: false, hideNothingUnusual: false }
+} as const;
+export type Preset = keyof typeof presets;
+type Rules = (typeof presets)[Preset];
+
+// The filter a page opens with, until one is chosen.
+const fresh: Filter = { ...presets.interesting, kind: Kind.UNSPECIFIED, themeGroup: '', licensedOnly: false, minPieces: 0 };
+
+type Saved = { anyColor: boolean; byTheme: boolean; filter: Filter; sortOut: Record<string, string[]> };
 
 function load(): Saved {
 	try {
 		const s = JSON.parse(localStorage.getItem(KEY) ?? '');
 		if (s && typeof s === 'object')
-			return { anyColor: !!s.anyColor, showBulk: !!s.showBulk, sortOut: s.sortOut ?? {} };
+			return {
+				anyColor: !!s.anyColor,
+				byTheme: !!s.byTheme,
+				filter: { ...fresh, ...(s.filter ?? {}) },
+				sortOut: s.sortOut ?? {}
+			};
 	} catch {
 		// Nothing saved, or storage is off.
 	}
-	return { anyColor: false, showBulk: false, sortOut: {} };
+	return { anyColor: false, byTheme: false, filter: fresh, sortOut: {} };
 }
 
 class ViewState {
 	anyColor = $state(false);
-	showBulk = $state(false);
+	// Sets grouped by theme, in each section and list.
+	byTheme = $state(false);
+	filter = $state<Filter>(fresh);
 	// Each stack's queue, by the stack as the route has it.
 	sortOut = $state<Record<string, string[]>>({});
 
 	constructor() {
 		const s = load();
 		this.anyColor = s.anyColor;
-		this.showBulk = s.showBulk;
+		this.byTheme = s.byTheme;
+		this.filter = s.filter;
 		this.sortOut = s.sortOut;
 	}
 
@@ -41,7 +74,12 @@ class ViewState {
 		try {
 			localStorage.setItem(
 				KEY,
-				JSON.stringify({ anyColor: this.anyColor, showBulk: this.showBulk, sortOut: this.sortOut })
+				JSON.stringify({
+					anyColor: this.anyColor,
+					byTheme: this.byTheme,
+					filter: this.filter,
+					sortOut: this.sortOut
+				})
 			);
 		} catch {
 			// Storage can be off; the view lasts the visit.
@@ -53,9 +91,22 @@ class ViewState {
 		this.save();
 	}
 
-	setShowBulk(showBulk: boolean) {
-		this.showBulk = showBulk;
+	setByTheme(byTheme: boolean) {
+		this.byTheme = byTheme;
 		this.save();
+	}
+
+	setFilter(change: Partial<Filter>) {
+		this.filter = { ...this.filter, ...change };
+		this.save();
+	}
+
+	// The preset the filter's rules are, if any.
+	preset(): Preset | undefined {
+		const f = this.filter;
+		return (Object.keys(presets) as Preset[]).find((p) =>
+			(Object.keys(presets[p]) as (keyof Rules)[]).every((k) => presets[p][k] === f[k])
+		);
 	}
 
 	queue(stack: string): string[] {
@@ -90,7 +141,7 @@ class ViewState {
 		return {
 			lots: lotsOf(stack),
 			anyColor: this.anyColor,
-			showBulk: this.showBulk,
+			filter: { ...this.filter } as MessageInitShape<typeof FilterSchema>,
 			sortOut: this.queue(stack)
 		};
 	}

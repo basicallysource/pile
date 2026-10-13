@@ -4,7 +4,7 @@
 	color, and the sort-out queue): the queue, the sets that are all there,
 	the ones nearly there, the ones half there, the ones the pieces most
 	likely came from, the custom models they can build, and the minifigure
-	and tiny sets last. While a new view (or other lots) loads, the last one
+	and tiny sets last; the filter above the sets says which are listed. While a new view (or other lots) loads, the last one
 	stays on screen and the reader's place holds when it lands; one already
 	seen this visit draws at once (docs/loading-data.md).
 -->
@@ -21,6 +21,7 @@
 	import SetSection from '$lib/pile/SetSection.svelte';
 	import SetGrid from '$lib/pile/SetGrid.svelte';
 	import SortOutQueue from '$lib/pile/SortOutQueue.svelte';
+	import FilterBar from '$lib/pile/FilterBar.svelte';
 	import { count, dayOf } from '$lib/format';
 	import { routeStack, view } from '$lib/view.svelte';
 
@@ -69,6 +70,10 @@
 		{#if data.sortOut.length}
 			<SortOutQueue queue={data.sortOut} {stack} {names} pieces={t.pieces} left={data.piecesLeft} />
 		{/if}
+
+		<Panel flush>
+			<div class="px-(--pad-panel) py-3"><FilterBar themes={data.themes} /></div>
+		</Panel>
 
 		<SetSection
 			title="Complete"

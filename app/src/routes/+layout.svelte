@@ -1,16 +1,15 @@
 <!--
 	The shell: the top bar and the page under it. In lots (`/lots/a,b/...`)
-	the bar holds their pages, the color mode and whether sets of loose
-	bricks show, which apply on all of them, and the page starts with the
-	lots it looks at (StackBar); outside them the bar holds the collection
-	and the design page. Find pieces, at the end of the bar on every page (or
-	the / key), searches what the bins hold. On a narrow screen the color
-	mode and bulk switch give way to it. In lots, the set open in the URL
-	(`?set=`) shows in a sheet beside whichever page it is on, which narrows
-	to make room. A picture seen up close shows in the Lightbox over
-	everything. While an answer takes more than a moment, the bar says what
-	is updating; coming back to a page (Back, a reload) returns to where it
-	was scrolled, even when its answers are slow to come
+	the bar holds their pages and the color mode, which applies on all of
+	them, and the page starts with the lots it looks at (StackBar); outside
+	them the bar holds the collection and the design page. Find pieces, at
+	the end of the bar on every page (or the / key), searches what the bins
+	hold. On a narrow screen the color mode gives way to it. In lots, the set
+	open in the URL (`?set=`) shows in a sheet beside whichever page it is
+	on, which narrows to make room. A picture seen up close shows in the
+	Lightbox over everything. While an answer takes more than a moment, the
+	bar says what is updating; coming back to a page (Back, a reload) returns
+	to where it was scrolled, even when its answers are slow to come
 	(docs/loading-data.md).
 -->
 <script lang="ts">
@@ -23,7 +22,6 @@
 	import TopBar from '$lib/components/TopBar.svelte';
 	import Wordmark from '$lib/components/Wordmark.svelte';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
-	import Switch from '$lib/components/Switch.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Search from '@lucide/svelte/icons/search';
 	import FindPieces from '$lib/pile/FindPieces.svelte';
@@ -75,10 +73,6 @@
 			<Updating />
 			{#if lots}
 				<div class="hidden items-center gap-2 md:flex">
-					<label class="flex items-center gap-2 text-sm whitespace-nowrap text-ink-muted">
-						<Switch checked={view.showBulk} onchange={(v) => view.setShowBulk(v)} />
-						Bulk sets
-					</label>
 					<SegmentedControl
 						label="Colors"
 						size="sm"

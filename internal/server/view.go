@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"sort"
 
 	"connectrpc.com/connect"
 
@@ -15,7 +16,7 @@ import (
 type view struct {
 	stack    *stack
 	anyColor bool
-	showBulk bool
+	filter   *pilev1.Filter
 	queue    []*match.Match // the sort-out queue, each against what came before it
 	found    map[string]match.Found
 	drawn    map[string]match.Drawn // where each queued set's pieces come from
@@ -32,7 +33,11 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 	if err != nil {
 		return nil, err
 	}
-	w := &view{stack: st, anyColor: v.AnyColor, showBulk: v.ShowBulk, place: map[string]int{}, found: map[string]match.Found{}, drawn: map[string]match.Drawn{}, left: st.piles}
+	filter := v.Filter
+	if filter == nil {
+		filter = &pilev1.Filter{}
+	}
+	w := &view{stack: st, anyColor: v.AnyColor, filter: filter, place: map[string]int{}, found: map[string]match.Found{}, drawn: map[string]match.Drawn{}, left: st.piles}
 	if len(v.SortOut) > 0 {
 		w.left = st.piles.Clone()
 	}
@@ -57,16 +62,68 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 	return w, nil
 }
 
-// shown is whether the view lists m: sets of loose bricks only when asked.
-func (w *view) shown(m *match.Match) bool { return w.showBulk || !m.Bulk }
+// hiddenBy is the filter's rules that hide m; none when the view lists it.
+// The theme counts for none, so a page can offer every theme the rest lets
+// through.
+func (w *view) hiddenBy(m *match.Match) []pilev1.Rule {
+	f := w.filter
+	var out []pilev1.Rule
+	for _, r := range []struct {
+		hides bool
+		rule  pilev1.Rule
+	}{
+		{f.HideLooseBricks && m.Bulk, pilev1.Rule_RULE_LOOSE_BRICKS},
+		{f.HideMostlyBasic && m.MostlyBasic, pilev1.Rule_RULE_MOSTLY_BASIC},
+		{f.HideFewParts && m.FewParts, pilev1.Rule_RULE_FEW_PARTS},
+		{f.HideNothingUnusual && m.NothingUnusual, pilev1.Rule_RULE_NOTHING_UNUSUAL},
+		{(f.Kind == pilev1.Kind_KIND_SET && m.Set.Custom) || (f.Kind == pilev1.Kind_KIND_CUSTOM && !m.Set.Custom), pilev1.Rule_RULE_KIND},
+		{f.LicensedOnly && !m.Set.Licensed, pilev1.Rule_RULE_LICENSED},
+		{m.Need < f.MinPieces, pilev1.Rule_RULE_SIZE},
+	} {
+		if r.hides {
+			out = append(out, r.rule)
+		}
+	}
+	if f.ThemeGroup != "" && m.Set.ThemeGroup != f.ThemeGroup {
+		out = append(out, pilev1.Rule_RULE_THEME)
+	}
+	return out
+}
+
+// listed is the scores the view lists, and the theme groups of those the
+// filter lets through but for its theme, most first.
+func (w *view) listed() ([]*match.Match, []*pilev1.ThemeCount) {
+	var out []*match.Match
+	themes := map[string]int32{}
+	for _, m := range w.scores {
+		h := w.hiddenBy(m)
+		if len(h) == 0 || (len(h) == 1 && h[0] == pilev1.Rule_RULE_THEME) {
+			themes[m.Set.ThemeGroup]++
+		}
+		if len(h) == 0 {
+			out = append(out, m)
+		}
+	}
+	var ts []*pilev1.ThemeCount
+	for name, n := range themes {
+		ts = append(ts, &pilev1.ThemeCount{Name: name, Sets: n})
+	}
+	sort.Slice(ts, func(i, j int) bool {
+		if ts[i].Sets != ts[j].Sets {
+			return ts[i].Sets > ts[j].Sets
+		}
+		return ts[i].Name < ts[j].Name
+	})
+	return out, ts
+}
 
 // placeOf is which of the overview's sections shows m in this view.
 func (w *view) placeOf(m *match.Match) pilev1.Place {
 	switch {
 	case w.place[m.Set.Num] > 0:
 		return pilev1.Place_PLACE_SORT_OUT
-	case !w.shown(m):
-		return pilev1.Place_PLACE_BULK_HIDDEN
+	case len(w.hiddenBy(m)) > 0:
+		return pilev1.Place_PLACE_HIDDEN
 	case m.Set.Custom:
 		if m.Share() >= customShare {
 			return pilev1.Place_PLACE_CUSTOM

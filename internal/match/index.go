@@ -38,6 +38,10 @@ type Entry struct {
 	// Loose bricks rather than a model: in a bulk theme, named as a bucket,
 	// tub or brick box, or big and made of few different parts.
 	Bulk bool
+	// Basic: almost all plain bricks, plates, tiles and slopes; few
+	// different parts; or nothing unusual (its rarest pieces as common as
+	// those of the most common tenth of sets). See plain.go.
+	MostlyBasic, FewParts, NothingUnusual bool
 }
 
 // Index is every set and custom model with a counted line, and the weights
@@ -135,6 +139,7 @@ func NewIndex(cat *catalog.Catalog) *Index {
 		e.Bulk = !e.Set.Custom && (e.Set.BulkTheme || bulkName.MatchString(e.Set.Name) ||
 			(!e.Set.Licensed && e.Need >= bulkSize && e.Need >= bulkRepeat*e.DistinctParts))
 	}
+	ix.judgePlain()
 	return ix
 }
 

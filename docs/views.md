@@ -10,10 +10,19 @@ the sort-out queue and a set's panel say how many of its pieces are in each
 lot. The address carries the lots and their order, so a link opens the same
 view. How long a sorter takes to collect a set is worked out for one lot at a
 time; with several, pick which.
+
+Which sets are listed is up to the filter, above the sets on the overview and
+on Every set, the same on both. It opens on Interesting, which hides sets of
+loose bricks and basic sets: those almost all plain bricks (like The Brick
+Apple), those of ten or fewer different parts, and those with nothing unusual
+in them. Models hides only the loose bricks, Everything hides nothing, and
+each rule is a switch of its own. A theme, a size, sets or custom models, and
+licensed only narrow it further, and "Group by theme" puts each theme's sets
+together. A set the filter hides says why in its panel.
 <!-- /human -->
 
 A view is how lots are looked at: which lots, in what order, exact or any
-color, whether sets of loose bricks show, and the sort-out queue. Every
+color, the filter, and the sort-out queue. Every
 request about lots carries one (`View` in `proto/pile/v1/pile.proto`).
 
 ## The lots: a stack
@@ -49,10 +58,37 @@ request about lots carries one (`View` in `proto/pile/v1/pile.proto`).
 - **Find pieces** searches the bins, each holding one lot's pieces; its lot
   filter is its own.
 
+## The filter
+
+`Filter` in the View: which sets and custom models the overview and Every
+set list. A set it hides is in no section and not on Every set, but its
+panel opens and says why (`GetSetResponse.hidden_by`, `PLACE_HIDDEN`); a set
+in the sort-out queue is never hidden.
+
+- **Basic sets**, judged once per set in `internal/match/plain.go`, each a
+  rule the filter can hide by: *mostly basic* (85% or more of its counted
+  pieces in Rebrickable's Bricks, Plates, Tiles and Bricks Sloped
+  categories), *few parts* (ten or fewer different parts) and *nothing
+  unusual* (the average weight of its five rarest pieces, exact colors,
+  below the tenth percentile of the sets LEGO sold). Calibrated on the 2026
+  catalog: The Brick Apple is 90% plain; Space Skulls 37% and Police Boat 42%
+  are not; the Monthly Mini Model Builds fall to few parts or nothing
+  unusual. With *loose bricks* (`Entry.Bulk`, as before) these are the
+  presets' rules: Interesting hides all four (the default), Models only loose
+  bricks, Everything none (`presets` in `view.svelte.ts`).
+- **Narrowing**: kind (sets, custom models), one theme group, licensed
+  only, and a least size in counted pieces. The overview and Every set send
+  the theme groups the rest of the filter lets through, with their counts,
+  for the theme menu.
+- **Grouping by theme** is the app's alone: `SetGrid` puts each theme's sets
+  under its name, themes by name, each in the order given.
+- `FilterBar.svelte` shows it all; `rules.ts` says the rules in words, for
+  the switches and for a set's panel.
+
 ## The rest of the view
 
 Kept in the browser (`view.svelte.ts`), so it lasts across pages and
-reloads: any-color matching, whether sets of loose bricks show, and each
+reloads: any-color matching, the filter, grouping by theme, and each
 stack's sort-out queue, keyed by the stack as the route has it (a stack of
 one by the lot's id). The queue's sets take their pieces in order, each
 against what the ones before it left; everything else is matched against

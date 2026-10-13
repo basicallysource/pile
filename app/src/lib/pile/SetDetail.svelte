@@ -16,6 +16,7 @@
 	import { count, percent } from '$lib/format';
 	import { view } from '$lib/view.svelte';
 	import { zoomsTo } from './zoom.svelte';
+	import { hiddenAs } from './rules';
 
 	let {
 		detail,
@@ -48,19 +49,19 @@
 		[Place.MINIFIGURE]: 'Minifigure sets',
 		[Place.TINY]: 'Tiny sets',
 		[Place.SORT_OUT]: 'Sorting out',
-		[Place.BULK_HIDDEN]: ''
+		[Place.HIDDEN]: ''
 	};
 	const share = (have: number, need: number) => percent(have / Math.max(1, need));
 	// Where the overview shows it, and when it does not, why: in a few words.
 	const where = $derived.by(() => {
 		const mode = view.anyColor ? 'any color' : 'exact colors';
 		const otherMode = view.anyColor ? 'exact colors' : 'any color';
-		if (detail.place === Place.BULK_HIDDEN)
-			return 'A set of loose bricks: the overview lists it only with Bulk sets on.';
+		if (detail.place === Place.HIDDEN)
+			return `The filter hides it: ${detail.hiddenBy.map((r) => hiddenAs[r]).join(', ')}.`;
 		if (detail.place !== Place.NONE) return `On the overview under ${sectionName[detail.place]}.`;
 		let s = `Not on the overview: in ${mode}, ${count(set.have)} of its ${count(set.need)} pieces are here (${share(set.have, set.need)}).`;
 		const o = detail.otherColors;
-		if (o && detail.otherPlace !== Place.NONE && detail.otherPlace !== Place.BULK_HIDDEN)
+		if (o && detail.otherPlace !== Place.NONE && detail.otherPlace !== Place.HIDDEN)
 			s += ` In ${otherMode}, ${count(o.have)} are (${share(o.have, o.need)})${o.wrongColor ? `, ${count(o.wrongColor)} of them in another color` : ''}, and it shows under ${sectionName[detail.otherPlace]} with ${otherMode === 'any color' ? 'Any color' : 'Exact colors'} on.`;
 		return s;
 	});

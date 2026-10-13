@@ -44,9 +44,42 @@ message View {
   // pieces from what the ones before it left; everything else is matched
   // against what is left after all of them.
   repeated string sort_out = 3;
-  // Show sets of loose bricks (buckets, brick boxes, service packs), which
-  // are hidden otherwise.
-  bool show_bulk = 4;
+  // Which sets and custom models are listed.
+  Filter filter = 4;
+}
+
+// Which sets and custom models a view lists; the rest are hidden, except
+// those in the sort-out queue.
+message Filter {
+  // Hide sets of loose bricks: buckets, brick boxes, service packs.
+  bool hide_loose_bricks = 1;
+  // Hide basic sets: almost all plain bricks, plates, tiles and slopes.
+  bool hide_mostly_basic = 2;
+  // Hide sets of ten or fewer different parts.
+  bool hide_few_parts = 3;
+  // Hide sets with nothing unusual: their rarest pieces as common as those
+  // of the most common tenth of sets.
+  bool hide_nothing_unusual = 4;
+  // KIND_UNSPECIFIED is both.
+  Kind kind = 5;
+  // Only this theme group; empty for every theme.
+  string theme_group = 6;
+  bool licensed_only = 7;
+  // Only those of at least this many counted pieces.
+  int32 min_pieces = 8;
+}
+
+// Why a filter hides a set.
+enum Rule {
+  RULE_UNSPECIFIED = 0;
+  RULE_LOOSE_BRICKS = 1;
+  RULE_MOSTLY_BASIC = 2;
+  RULE_FEW_PARTS = 3;
+  RULE_NOTHING_UNUSUAL = 4;
+  RULE_KIND = 5;
+  RULE_THEME = 6;
+  RULE_LICENSED = 7;
+  RULE_SIZE = 8;
 }
 
 message Color {
@@ -170,6 +203,10 @@ message SetMatch {
   // How rare its pieces are on average across all sets: high for a model of
   // something, low for a box of common bricks.
   double rarity = 24;
+  // The filter's rules for basic sets that it fits.
+  bool mostly_basic = 25;
+  bool few_parts = 26;
+  bool nothing_unusual = 27;
 }
 
 // The first sets of a section, and how many it has.
@@ -216,6 +253,9 @@ message GetOverviewResponse {
   Section minifigure = 11;
   // Complete sets of under five counted pieces (key chains, gear).
   Section tiny = 12;
+  // The theme groups of the sets the rest of the filter lets through, most
+  // first.
+  repeated ThemeCount themes = 13;
 }
 
 // Which of the overview's sections a set is in.
@@ -231,8 +271,8 @@ enum Place {
   PLACE_TINY = 7;
   // In the sort-out queue, which shows above them.
   PLACE_SORT_OUT = 8;
-  // A set of loose bricks, and the view does not show them.
-  PLACE_BULK_HIDDEN = 9;
+  // The view's filter hides it.
+  PLACE_HIDDEN = 9;
 }
 
 enum Order {
@@ -254,13 +294,6 @@ enum Order {
 message ListSetsRequest {
   View view = 1;
   Order order = 2;
-  // KIND_UNSPECIFIED is both.
-  Kind kind = 3;
-  // Only this theme group; empty for all.
-  string theme_group = 4;
-  bool licensed_only = 5;
-  // Only sets of at least this many counted pieces.
-  int32 min_pieces = 6;
 }
 
 message ThemeCount {
@@ -270,7 +303,8 @@ message ThemeCount {
 
 message ListSetsResponse {
   repeated SetMatch sets = 1;
-  // The theme groups among the sets the other filters let through, most first.
+  // The theme groups of the sets the rest of the filter lets through, most
+  // first.
   repeated ThemeCount themes = 2;
 }
 
@@ -323,6 +357,8 @@ message GetSetResponse {
   // a page can say why a set is or is not listed.
   SetMatch other_colors = 5;
   Place other_place = 6;
+  // The filter's rules that hide it (with PLACE_HIDDEN).
+  repeated Rule hidden_by = 7;
 }
 
 message ListPartsRequest {

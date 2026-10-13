@@ -70,6 +70,9 @@ func setMatch(m *match.Match) *pilev1.SetMatch {
 		Bulk:                 m.Bulk,
 		DistinctParts:        m.DistinctParts,
 		Rarity:               m.Rarity,
+		MostlyBasic:          m.MostlyBasic,
+		FewParts:             m.FewParts,
+		NothingUnusual:       m.NothingUnusual,
 	}
 }
 

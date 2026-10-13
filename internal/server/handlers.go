@@ -61,8 +61,10 @@ func (s *Service) GetOverview(_ context.Context, req *connect.Request[pilev1.Get
 	for _, m := range w.queue {
 		out.SortOut = append(out.SortOut, &pilev1.QueuedSet{Set: setMatch(m), Lots: st.lotCounts(w.drawn[m.Set.Num].Lots(len(st.lots)))})
 	}
+	listed, themes := w.listed()
+	out.Themes = themes
 	in := map[pilev1.Place][]*match.Match{}
-	for _, m := range w.scores {
+	for _, m := range listed {
 		if p := w.placeOf(m); p != pilev1.Place_PLACE_NONE {
 			in[p] = append(in[p], m)
 		}
@@ -99,31 +101,8 @@ func (s *Service) ListSets(_ context.Context, req *connect.Request[pilev1.ListSe
 		return nil, err
 	}
 	q := req.Msg
-	out := &pilev1.ListSetsResponse{}
-	themes := map[string]int32{}
-	var list []*match.Match
-	for _, m := range w.scores {
-		if !w.shown(m) || m.Need < q.MinPieces || (q.LicensedOnly && !m.Set.Licensed) {
-			continue
-		}
-		if (q.Kind == pilev1.Kind_KIND_SET && m.Set.Custom) || (q.Kind == pilev1.Kind_KIND_CUSTOM && !m.Set.Custom) {
-			continue
-		}
-		themes[m.Set.ThemeGroup]++
-		if q.ThemeGroup != "" && m.Set.ThemeGroup != q.ThemeGroup {
-			continue
-		}
-		list = append(list, m)
-	}
-	for name, n := range themes {
-		out.Themes = append(out.Themes, &pilev1.ThemeCount{Name: name, Sets: n})
-	}
-	sort.Slice(out.Themes, func(i, j int) bool {
-		if out.Themes[i].Sets != out.Themes[j].Sets {
-			return out.Themes[i].Sets > out.Themes[j].Sets
-		}
-		return out.Themes[i].Name < out.Themes[j].Name
-	})
+	list, themes := w.listed()
+	out := &pilev1.ListSetsResponse{Themes: themes}
 	by := map[pilev1.Order]func(a, b *match.Match) bool{
 		pilev1.Order_ORDER_FOUND:   func(a, b *match.Match) bool { return a.Have > b.Have },
 		pilev1.Order_ORDER_BIGGEST: func(a, b *match.Match) bool { return a.Need > b.Need },
@@ -170,7 +149,8 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 		o, _ := s.index.Score(e, w.left.Sum, !w.anyColor)
 		o.Pick = m.Pick
 		out.OtherColors = setMatch(o)
-		out.OtherPlace = (&view{anyColor: !w.anyColor, showBulk: w.showBulk, place: w.place}).placeOf(o)
+		out.OtherPlace = (&view{anyColor: !w.anyColor, filter: w.filter, place: w.place}).placeOf(o)
+		out.HiddenBy = w.hiddenBy(m)
 	}
 	if w.place[set.Num] > 0 {
 		out.Place = pilev1.Place_PLACE_SORT_OUT
