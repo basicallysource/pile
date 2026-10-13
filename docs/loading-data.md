@@ -83,7 +83,12 @@ screen. Changes in one turn share one hold.
   back to the place (a filter emptied what was below it), the browser would
   pull the page down; instead the area gets an empty spacer at its end, as
   tall as it was short, which shrinks as the reader scrolls back up and goes
-  when the page changes (`clearRoom`, from the root layout).
+  when the page changes (`clearRoom`, from the root layout). That hook is an
+  `afterNavigate`, and it must never throw: the first navigation (the page
+  loading) has a `from` whose `url` is null, and a callback throwing there
+  stops SvelteKit before it starts its router, so Back and shallow states
+  (a set's sheet, the Lightbox) stop updating the page. It did, for a few
+  hours on 2026-10-13: the Lightbox opened once and never again.
 - **Which one is held**: in the area under the pointer, the smallest place
   under it; elsewhere, the place at the top of the area. The places nearest
   it are held as well, to fall back on when it is gone after the change (a

@@ -38,8 +38,11 @@
 	let { children } = $props();
 
 	// Room kept at the end of a page for the reader's place is that page's.
+	// The first navigation (the page loading) comes from nowhere: its `from`
+	// has no url. A callback that throws there stops the router from ever
+	// starting (no Back, no shallow states), so it reads both with care.
 	afterNavigate(({ from, to }) => {
-		if (from?.url.pathname !== to?.url.pathname) clearRoom();
+		if (from?.url && from.url.pathname !== to?.url?.pathname) clearRoom();
 	});
 
 	export const snapshot: Snapshot<number> = {
