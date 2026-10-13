@@ -129,6 +129,17 @@ message Totals {
   string machine_name = 6;
   // Their colors by share of the pieces, most first.
   repeated ColorShare colors = 7;
+  // Who gave the pieces their colors, most pieces first.
+  repeated ColorSource color_sources = 8;
+}
+
+// Some pieces' colors, and who gave them.
+message ColorSource {
+  // A model's name for a model run over the pieces' pictures after they
+  // were sorted; "a person" for corrections; empty for the sorter's own
+  // classifier while it sorted.
+  string by = 1;
+  int32 pieces = 2;
 }
 
 message Lot {

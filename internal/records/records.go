@@ -21,7 +21,14 @@ type Piece struct {
 	// it, such as "bricks_red"): which of the sorter's bins it went into.
 	// Empty when the records do not say (records pulled from a Hive).
 	Category string
+	// Who gave it its color: empty for the sorter's own classifier while
+	// sorting, the model's name for a model run over its pictures later,
+	// CorrectedColor for a person.
+	ColorBy string
 }
+
+// CorrectedColor is ColorBy for a color a person corrected.
+const CorrectedColor = "a person"
 
 // Records is the classified pieces of one or more sorters over a stretch of
 // time.

@@ -54,6 +54,11 @@
 				{leftOut(view.counting)
 					? `Left out of how complete a set is: whole minifigures, ${leftOut(view.counting)} (What counts, above the sets); they are still found, and sorted out with their set.`
 					: 'Every part counts toward how complete a set is; whole minifigures are apart.'}
+				{#if t.colorSources.some((c) => c.by)}
+					Colors: {t.colorSources
+						.map((c) => `${c.by || "the sorter's own"} for ${count(c.pieces)}`)
+						.join(', ')} pieces.
+				{/if}
 			</p>
 		</PageHeader>
 

@@ -16,6 +16,8 @@ type lot struct {
 	unmatched []*unmatched
 	pieces    int32
 	pile      *match.Pile
+	// Pieces by who gave them their color (records.Piece.ColorBy).
+	colorBy map[string]int32
 }
 
 type partCount struct {
@@ -32,12 +34,13 @@ type unmatched struct {
 }
 
 func newLot(l *lots.Lot, cat *catalog.Catalog, ix *match.Index) *lot {
-	t := &lot{Lot: l}
+	t := &lot{Lot: l, colorBy: map[string]int32{}}
 	byPC := map[catalog.PartColor]*partCount{}
 	byUn := map[[3]string]*unmatched{}
 	counts := map[catalog.PartColor]int32{}
 	for _, pc := range l.Records.Pieces {
 		t.pieces++
+		t.colorBy[pc.ColorBy]++
 		k, ok := cat.FromBrickLink(pc.BrickLinkPart, pc.BrickLinkColor, pc.ColorKnown)
 		if !ok {
 			k := [3]string{pc.BrickLinkPart, pc.PartName, pc.ColorName}

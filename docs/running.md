@@ -48,7 +48,7 @@ changes it shows in `git status`.
 | `rebrickable/` | yes | Rebrickable's catalog, as gzipped CSVs from [rebrickable.com/downloads](https://rebrickable.com/downloads/): `colors`, `part_categories`, `parts`, `part_relationships`, `themes`, `sets`, `inventories`, `inventory_parts`, `minifigs`, `inventory_minifigs`, each as `NAME.csv.gz`. They need no account or key. |
 | `parts.db` | yes | A sorter Hive's parts catalog (SQLite). pile reads three tables from it: `part_bricklink_ids` (which BrickLink id is which Rebrickable part), `colors` (its `extra` JSON lists each color's BrickLink ids) and `part_geometry` (part sizes). **This is not rebuilt by pile and is slow to rebuild at all:** the Hive builds it itself, by syncing from Rebrickable's API with a key, which takes hours. Take it from a running Hive (`data/profile_builder/parts.db` in the [Hive](https://github.com/basicallysource/sorter-v2/tree/main/software/hive); copy it with SQLite's backup API, not `cp`, while the Hive runs) or from whoever runs one. |
 | `lots.json` | yes | The collection's lots: each a named stretch of sorted pieces. See below. |
-| `machines/NAME/local_state.sqlite` | one of these two | A sorter's own records, copied off the machine (its `local_state.sqlite`; pile reads its `piece_records` table, and `lots` and `sorting_runs` for a lot named on the sorter). |
+| `machines/NAME/local_state.sqlite` | one of these two | A sorter's own records, copied off the machine (its `local_state.sqlite`; pile reads its `piece_records` table, `lots` and `sorting_runs` for a lot named on the sorter, and `piece_prediction_requests` and `piece_predictions` when it has them). |
 | `hive.sqlite` | one of these two | Records pulled from a Hive with `bin/pull-hive`: [hive.md](hive.md). |
 | `custom-models.json` | no | Free custom models, [custom-models.md](custom-models.md). Skipped when absent. |
 | `storage.json` | no | The bins the pieces are kept in, each at an address: [storage.md](storage.md). Empty when absent; pile writes it when the storage is set while it runs. |
@@ -79,9 +79,19 @@ the runs that add to that lot, read from the copy's `lots` and
 
 The records pile reads from `piece_records` are the rows with
 `classification_status = 'classified'`, `dead = 0` and a `part_id`, using the
-columns `part_id`, `part_name`, `color_id`, `color_corrected_id`,
+columns `uuid`, `part_id`, `part_name`, `color_id`, `color_corrected_id`,
 `color_name`, `confidence`, `seen_at` (unix seconds) and `part_correct`.
 Part and color ids are BrickLink's.
+
+A piece's color is a person's correction (`color_corrected_id`) when there
+is one. Otherwise, when a color model was run over the sorter's pictures of
+it after the sort and its answers imported into the copy's
+`piece_prediction_requests` and `piece_predictions`, it is the top answer
+(`kind = 'color'`, `rank = 0`, `value_id` a BrickLink color) of the newest
+request (by `created_at`) whose `source` is not `live` (the sorter's own,
+made while it sorted); a newer model's import takes over by itself. Else it
+is the sorter's own `color_id`. The overview says how many pieces each
+source colored.
 
 ## Start and check
 

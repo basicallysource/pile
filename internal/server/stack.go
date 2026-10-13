@@ -44,9 +44,19 @@ func newStack(ls []*lot, ix *match.Index) *stack {
 	var piles []*match.Pile
 	var machines []string
 	totals := &pilev1.Totals{}
+	colorBy := map[string]*pilev1.ColorSource{}
 	for j, t := range ls {
 		piles = append(piles, t.pile)
 		totals.Pieces += t.pieces
+		for by, n := range t.colorBy {
+			c := colorBy[by]
+			if c == nil {
+				c = &pilev1.ColorSource{By: by}
+				colorBy[by] = c
+				totals.ColorSources = append(totals.ColorSources, c)
+			}
+			c.Pieces += n
+		}
 		for _, m := range t.Records.Machines {
 			if !slices.Contains(machines, m) {
 				machines = append(machines, m)
@@ -109,6 +119,13 @@ func newStack(ls []*lot, ix *match.Index) *stack {
 		g.Pieces += p.count
 	}
 	sort.SliceStable(totals.Colors, func(i, j int) bool { return totals.Colors[i].Pieces > totals.Colors[j].Pieces })
+	sort.Slice(totals.ColorSources, func(i, j int) bool {
+		a, b := totals.ColorSources[i], totals.ColorSources[j]
+		if a.Pieces != b.Pieces {
+			return a.Pieces > b.Pieces
+		}
+		return a.By < b.By
+	})
 	sort.SliceStable(st.cats, func(i, j int) bool { return st.cats[i].Pieces > st.cats[j].Pieces })
 	st.totals = totals
 

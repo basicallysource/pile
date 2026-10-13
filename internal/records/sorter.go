@@ -13,8 +13,9 @@ import (
 // ReadSorter returns the pieces classified from from up to until (the zero
 // time for no end) in a copy of one sorter's own records, its
 // local_state.sqlite: the ones not lost (dead) and not marked wrong by a
-// person, with a person's color correction in place of the classifier's
-// color, each with the category it was sorted to.
+// person, each with the category it was sorted to. A piece's color is a
+// person's correction if there is one, else the newest color a model gave
+// it after the sort (PredictedColors), else the classifier's own.
 func ReadSorter(path, name string, from, until time.Time) (*Records, error) {
 	st, err := os.Stat(path)
 	if err != nil {
@@ -25,9 +26,14 @@ func ReadSorter(path, name string, from, until time.Time) (*Records, error) {
 		return nil, err
 	}
 	defer db.Close()
+	predicted, err := PredictedColors(db)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", path, err)
+	}
 	rows, err := db.Query(`
-		select part_id, coalesce(part_name, ''), coalesce(nullif(color_corrected_id, ''), color_id),
-		       coalesce(color_name, ''), coalesce(confidence, 0), seen_at, coalesce(category_id, '')
+		select part_id, coalesce(part_name, ''), coalesce(color_id, ''), coalesce(color_corrected_id, ''),
+		       coalesce(color_name, ''), coalesce(confidence, 0), seen_at, coalesce(category_id, ''),
+		       coalesce(uuid, '')
 		from piece_records
 		where seen_at >= ? and seen_at < ? and classification_status = 'classified' and dead = 0
 		  and coalesce(part_correct, 1) != 0 and part_id is not null
@@ -39,16 +45,61 @@ func ReadSorter(path, name string, from, until time.Time) (*Records, error) {
 	r := &Records{Machines: []string{name}, CopiedAt: st.ModTime().Unix()}
 	for rows.Next() {
 		var p Piece
-		var color sql.NullString
+		var color, corrected, uuid string
 		var seen float64
-		if err := rows.Scan(&p.BrickLinkPart, &p.PartName, &color, &p.ColorName, &p.Confidence, &seen, &p.Category); err != nil {
+		if err := rows.Scan(&p.BrickLinkPart, &p.PartName, &color, &corrected, &p.ColorName, &p.Confidence, &seen, &p.Category, &uuid); err != nil {
 			return nil, err
 		}
-		p.BrickLinkColor, p.ColorKnown = Color(color.String)
+		switch c, ok := predicted[uuid]; {
+		case corrected != "":
+			color, p.ColorBy = corrected, CorrectedColor
+		case ok:
+			color, p.ColorName, p.ColorBy = c.ID, c.Name, c.Model
+		}
+		p.BrickLinkColor, p.ColorKnown = Color(color)
 		p.SeenAt = int64(seen)
 		r.Add(p)
 	}
 	return r, rows.Err()
+}
+
+// PredictedColor is a color a model gave a piece after it was sorted: a
+// BrickLink color id, its name, and the model.
+type PredictedColor struct{ ID, Name, Model string }
+
+// PredictedColors is, for each piece (by uuid), the top color of the newest
+// request for one that the sorter did not make while sorting (source
+// "live"): a model run over its pictures later, imported into the sorter's
+// piece_prediction_requests and piece_predictions. None when the copy has
+// no such tables.
+func PredictedColors(db *sql.DB) (map[string]PredictedColor, error) {
+	var n int
+	if err := db.QueryRow(`select count(*) from sqlite_master where type = 'table'
+		and name in ('piece_prediction_requests', 'piece_predictions')`).Scan(&n); err != nil {
+		return nil, err
+	}
+	out := map[string]PredictedColor{}
+	if n < 2 {
+		return out, nil
+	}
+	rows, err := db.Query(`
+		select p.piece_uuid, p.value_id, coalesce(p.value_name, ''), coalesce(r.model_name, r.request)
+		from piece_predictions p join piece_prediction_requests r on r.id = p.request_id
+		where r.source != 'live' and p.kind = 'color' and p.rank = 0
+		order by r.created_at, r.id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var uuid string
+		var c PredictedColor
+		if err := rows.Scan(&uuid, &c.ID, &c.Name, &c.Model); err != nil {
+			return nil, err
+		}
+		out[uuid] = c
+	}
+	return out, rows.Err()
 }
 
 // SorterLot returns when a sorter's runs added pieces to one of its own lots
