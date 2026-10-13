@@ -1,5 +1,5 @@
 <!--
-	The set open beside a lot's page (`?set=` in the URL), in a Sheet: its name
+	The set open beside a page of lots (`?set=` in the URL), in a Sheet: its name
 	and number in the head with its Rebrickable link and the button that puts
 	it in or takes it out of the sort-out queue, and SetDetail under them.
 	The page beside it narrows and keeps its place; another set opened swaps it,
@@ -17,22 +17,29 @@
 	import Sheet from '$lib/components/Sheet.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
-	import { lotId, view } from '$lib/view.svelte';
+	import { lotsOf, routeStack, view } from '$lib/view.svelte';
 	import { closeSet, openSet } from './open-set.svelte';
 	import SetDetail from './SetDetail.svelte';
 
-	const lot = $derived(lotId());
+	const stack = $derived(routeStack());
 	const num = $derived(openSet());
 	const answer = query(
 		sources.set,
-		() => (num ? { view: view.forLot(lot), setNum: num } : undefined),
-		(r) => [r.view?.lotId, r.setNum]
+		() => (num ? { view: view.of(stack), setNum: num } : undefined),
+		(r) => r.setNum
+	);
+	// The lots' names, when there are several to tell apart.
+	const collection = query(sources.lots, () => ({}));
+	const names = $derived(
+		lotsOf(stack).length > 1
+			? Object.fromEntries((collection.data?.lots ?? []).map((l) => [l.id, l.name]))
+			: undefined
 	);
 	const detail = $derived(answer.data);
 	const set = $derived(detail?.set);
 	// Its place in the queue, from the view itself: the button changes on
 	// the click, before the new numbers are in.
-	const place = $derived(set ? view.queue(lot).indexOf(set.setNum) + 1 : 0);
+	const place = $derived(set ? view.queue(stack).indexOf(set.setNum) + 1 : 0);
 </script>
 
 {#if num}
@@ -51,7 +58,7 @@
 				size="sm"
 				variant={place ? 'secondary' : 'primary'}
 				icon={place ? X : Plus}
-				onclick={() => view.toggle(lot, set.setNum)}
+				onclick={() => view.toggle(stack, set.setNum)}
 				>{place ? `Sorting out ${place}: take out` : 'Sort this out'}</Button
 			>
 		{/if}
@@ -62,7 +69,7 @@
 				<Skeleton class="h-28 w-full" /><Skeleton class="h-20 w-full" /><Skeleton class="h-96 w-full" />
 			</div>
 		{/snippet}
-		{#snippet children(detail)}<SetDetail {detail} />{/snippet}
+		{#snippet children(detail)}<SetDetail {detail} {names} />{/snippet}
 	</Loaded>
 </Sheet>
 {/if}

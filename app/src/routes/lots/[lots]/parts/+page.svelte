@@ -1,7 +1,8 @@
 <!--
-	The lot's bulk catalog: every part in every color, with its count, and the
-	pieces the catalog cannot place. Downloads as a BrickLink XML list (the
-	sorter's own BrickLink ids and colors).
+	The lots' bulk catalog: every part in every color, with its count (with
+	several lots, each lot's too), and the pieces the catalog cannot place.
+	Downloads as one BrickLink XML list (the sorter's own BrickLink ids and
+	colors).
 -->
 <script lang="ts">
 	import Download from '@lucide/svelte/icons/download';
@@ -17,13 +18,20 @@
 	import Button from '$lib/components/Button.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import { bricklinkXML } from '$lib/pile/bricklink';
-	import { lotId } from '$lib/view.svelte';
+	import { lotsOf, routeStack } from '$lib/view.svelte';
 	import { zoomsTo } from '$lib/pile/zoom.svelte';
 
 	type Order = 'count' | 'color' | 'category';
-	const lot = $derived(lotId());
-	const answer = ask(sources.parts, () => ({ lotId: lot }), (r) => r.lotId);
+	const stack = $derived(routeStack());
+	const answer = ask(sources.parts, () => ({ lots: lotsOf(stack) }));
 	const data = $derived(answer.data);
+	// The lots' names, when there are several to tell apart.
+	const collection = ask(sources.lots, () => ({}));
+	const names = $derived(
+		lotsOf(stack).length > 1
+			? Object.fromEntries((collection.data?.lots ?? []).map((l) => [l.id, l.name]))
+			: undefined
+	);
 	let query = $state('');
 	let order = $state<Order>('count');
 
@@ -51,7 +59,7 @@
 		const blob = new Blob([bricklinkXML(data.parts)], { type: 'application/xml' });
 		const a = document.createElement('a');
 		a.href = URL.createObjectURL(blob);
-		a.download = `${lot}-bricklink.xml`;
+		a.download = `${lotsOf(stack).join('+')}-bricklink.xml`;
 		a.click();
 		// Freed once the browser has started saving it; freed at once, some
 		// browsers save nothing.
@@ -63,7 +71,7 @@
 	title="Parts"
 	description={data
 		? `${total.toLocaleString()} pieces: ${data.parts.length.toLocaleString()} parts in a color.`
-		: 'Every part in every color in this lot.'}
+		: 'Every part in every color, with its count.'}
 >
 	{#snippet actions()}
 		<Button variant="primary" icon={Download} onclick={download} disabled={!data}
@@ -110,7 +118,13 @@
 						onzoom={zoomsTo(`${l.name}${l.color ? `, ${l.color.name}` : ''}, ${l.partNum}`)}
 						color={l.color ? { name: l.color.name, rgb: l.color.rgb } : null}
 						quantity={l.count}
-					/>
+					>
+						{#if names}
+							<span class="text-xs text-ink-muted"
+								>{l.lots.map((c) => `${c.pieces} in ${names[c.lotId] ?? c.lotId}`).join(' · ')}</span
+							>
+						{/if}
+					</PartTile>
 				{/each}
 			</div>
 		{/snippet}

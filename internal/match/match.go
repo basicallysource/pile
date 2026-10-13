@@ -14,6 +14,8 @@
 //
 // Index holds every set's counted lines, built once from the catalog. Pile
 // holds a lot's pieces; Take takes a set's pieces out of it, so a sort-out
-// queue leaves a smaller pile for everything after it. Explain orders the
-// sets a pile most likely came from.
+// queue leaves a smaller pile for everything after it. Stack is several
+// lots' piles in priority order and their sum: sets are matched against the
+// sum, and what one takes is drawn from the first lot that has it. Explain
+// orders the sets a pile most likely came from.
 package match

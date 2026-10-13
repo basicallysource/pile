@@ -1,14 +1,15 @@
 <!--
-	The lot's sort-out queue: the sets and custom models to pull from the
-	pile, most wanted first, each counted against what the ones before it
-	left. Arrows reorder it; everything below on the page is matched against
-	what is left after all of them.
+	The sort-out queue: the sets and custom models to pull from the pile,
+	most wanted first, each counted against what the ones before it left.
+	Arrows reorder it; everything below on the page is matched against what
+	is left after all of them. With several lots, each says how many of its
+	pieces come from which lot (the first lot that has them, then the next).
 -->
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import X from '@lucide/svelte/icons/x';
-	import type { SetMatch } from '$lib/gen/pile/v1/pile_pb';
+	import type { QueuedSet } from '$lib/gen/pile/v1/pile_pb';
 	import Panel from '$lib/components/Panel.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import PartImage from '$lib/components/PartImage.svelte';
@@ -19,10 +20,20 @@
 
 	let {
 		queue,
-		lot,
+		stack,
+		names,
 		pieces,
 		left
-	}: { queue: SetMatch[]; lot: string; pieces: number; left: number } = $props();
+	}: {
+		queue: QueuedSet[];
+		// The lots, as the route has them, and their names.
+		stack: string;
+		names: Record<string, string>;
+		pieces: number;
+		left: number;
+	} = $props();
+
+	const several = $derived(Object.keys(names).length > 1);
 </script>
 
 <Panel
@@ -31,10 +42,11 @@
 	flush
 >
 	{#snippet actions()}
-		<Button size="sm" variant="ghost" icon={X} onclick={() => view.clear(lot)}>Clear</Button>
+		<Button size="sm" variant="ghost" icon={X} onclick={() => view.clear(stack)}>Clear</Button>
 	{/snippet}
 	<div class="flex gap-2 overflow-x-auto p-2">
-		{#each queue as set, i (set.setNum)}
+		{#each queue as q, i (q.set?.setNum)}
+			{@const set = q.set!}
 			{@const done = set.have >= set.need}
 			<div class="flex w-36 shrink-0 flex-col gap-1.5 rounded-control bg-well p-2">
 				<div class="flex items-center justify-between">
@@ -46,7 +58,7 @@
 							icon={ArrowLeft}
 							label="Sort out sooner"
 							disabled={i === 0}
-							onclick={() => view.move(lot, set.setNum, -1)}
+							onclick={() => view.move(stack, set.setNum, -1)}
 						/>
 						<Button
 							size="sm"
@@ -54,14 +66,14 @@
 							icon={ArrowRight}
 							label="Sort out later"
 							disabled={i === queue.length - 1}
-							onclick={() => view.move(lot, set.setNum, 1)}
+							onclick={() => view.move(stack, set.setNum, 1)}
 						/>
 						<Button
 							size="sm"
 							variant="ghost"
 							icon={X}
 							label="Take out of the queue"
-							onclick={() => view.toggle(lot, set.setNum)}
+							onclick={() => view.toggle(stack, set.setNum)}
 						/>
 					</div>
 				</div>
@@ -80,6 +92,15 @@
 							· {set.wrongColor} recolor</span
 						>{/if}
 				</div>
+				{#if several}
+					<ul class="num flex flex-col text-xs text-ink-muted" aria-label="Pulled from">
+						{#each q.lots as l (l.lotId)}
+							<li class="truncate" title="{l.pieces} from {names[l.lotId]}">
+								{l.pieces} from {names[l.lotId] ?? l.lotId}
+							</li>
+						{/each}
+					</ul>
+				{/if}
 			</div>
 		{/each}
 	</div>

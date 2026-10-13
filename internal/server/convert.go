@@ -9,27 +9,18 @@ import (
 )
 
 func (s *Service) lotMessage(t *lot) *pilev1.Lot {
-	l := &pilev1.Lot{
-		Id:              t.ID,
-		Name:            t.Name,
-		Description:     t.Description,
-		MachineName:     machineName(t.Records.Machines),
-		Pieces:          t.pieces,
-		PartColors:      int32(len(t.parts)),
-		UnmatchedPieces: t.unmatchedPieces(),
-		FirstSeenUnix:   t.Records.FirstSeen,
-		LastSeenUnix:    t.Records.LastSeen,
-		SnapshotUnix:    t.Records.CopiedAt,
-		Unlisted:        t.Unlisted,
+	return &pilev1.Lot{
+		Id:           t.ID,
+		Name:         t.Name,
+		Description:  t.Description,
+		SnapshotUnix: t.Records.CopiedAt,
+		Unlisted:     t.Unlisted,
+		Totals:       s.stacks.one[t.ID].totals,
 	}
-	for _, c := range t.colors {
-		l.Colors = append(l.Colors, &pilev1.ColorShare{Color: color(c.color), Pieces: c.n})
-	}
-	return l
 }
 
-// machineName names the sorters a lot's pieces came from, when they are few
-// enough to name.
+// machineName names the sorters pieces came from, when they are few enough
+// to name.
 func machineName(ms []string) string {
 	switch len(ms) {
 	case 1:

@@ -1,12 +1,18 @@
 <!--
 	Time to collect: how long one sorter, running nonstop and fed bulk mixed
-	like this lot, takes to come across every piece of a set, in exact colors,
+	like a lot, takes to come across every piece of a set, in exact colors,
 	near colors (the old and new grays and browns as one) and any color. The
-	server works it out from the lot's data at start, a set at a time, so the
-	page asks again every few seconds while anything is on its way (its
-	source is not settled until then: docs/loading-data.md). A set added here is
-	timed too and remembered in this browser.
+	mix is one lot's: with several, a switch picks which (the first, until
+	another is picked; kept for the visit). The server works it out from the
+	lot's data at start, a set at a time, so the page asks again every few
+	seconds while anything is on its way (its source is not settled until
+	then: docs/loading-data.md). A set added here is timed too and remembered
+	in this browser.
 -->
+<script lang="ts" module>
+	// The lot timed, for each stack that picked one.
+	const timed = new Map<string, string>();
+</script>
 
 <script lang="ts">
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -25,7 +31,8 @@
 	import { zoomsTo } from '$lib/pile/zoom.svelte';
 	import { count, dayOf, dayTimeOf } from '$lib/format';
 	import { span, hoursOf } from '$lib/pile/hours';
-	import { lotId } from '$lib/view.svelte';
+	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
+	import { lotsOf, routeStack } from '$lib/view.svelte';
 
 	const KEY = 'pile-collect-extra';
 	function loadExtra(): string[] {
@@ -37,16 +44,19 @@
 		}
 	}
 
-	const lot = $derived(lotId());
+	const stack = $derived(routeStack());
+	const lots = $derived(lotsOf(stack));
+	let picked = $state(timed.get(routeStack()));
+	const lot = $derived(picked && lots.includes(picked) ? picked : lots[0]);
+	$effect(() => {
+		if (picked) timed.set(stack, picked);
+	});
+	const collection = query(sources.lots, () => ({}));
 	let extra = $state<string[]>(loadExtra());
 	let adding = $state('');
 	let open = $state<string | null>(null);
 
-	const times = query(
-		sources.collectTimes,
-		() => ({ lotId: lot, extra: [...extra] }),
-		(r) => r.lotId
-	);
+	const times = query(sources.collectTimes, () => ({ lotId: lot, extra: [...extra] }));
 	const data = $derived(times.data);
 	const working = $derived(!data || !sources.collectTimes.final(data));
 
@@ -136,6 +146,20 @@
 	title="Time to collect"
 	description="How long one sorter, running nonstop and fed bulk mixed like this lot, takes to come across every piece of a set."
 >
+	{#if lots.length > 1}
+		<div class="mb-2">
+			<SegmentedControl
+				label="Lot timed"
+				size="sm"
+				value={lot}
+				onchange={(v) => (picked = v)}
+				options={lots.map((id) => ({
+					value: id,
+					label: collection.data?.lots.find((l) => l.id === id)?.name ?? id
+				}))}
+			/>
+		</div>
+	{/if}
 	{#snippet actions()}
 		<form class="flex items-center gap-2" onsubmit={add}>
 			<Input bind:value={adding} placeholder="Set number" aria-label="Set number to add" class="w-36" />

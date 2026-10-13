@@ -70,9 +70,12 @@ the public record).
   `cmd/collect-time` (how long one sorter takes to come across a set's
   pieces: `docs/collect-time.md`), `cmd/export-pieces` (a lot as CSV),
   `cmd/import-custom-models`.
-- **Lots and views.** The collection is lots (`internal/lots`); every request
-  about a lot carries a View: the lot, any-color matching, and a sort-out
-  queue whose sets take their pieces first (`internal/server/view.go`).
+- **Lots, stacks and views.** The collection is lots (`internal/lots`). A
+  page looks at a stack of them in priority order (`/lots/a,b`), and every
+  request about them carries a View: the lots, any-color matching, and a
+  sort-out queue whose sets take their pieces first, drawn from the first
+  lot that has them (`internal/server/view.go`, `stack.go`;
+  `docs/views.md`).
 - **Contract.** `proto/pile/v1/pile.proto`, served with Connect;
   `buf generate` writes `gen/` (Go) and `app/src/lib/gen/` (TypeScript).
   Generated code is committed.

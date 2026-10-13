@@ -1,7 +1,7 @@
 <!--
-	Every set and custom model with a piece in the lot, through the view, to
+	Every set and custom model with a piece in the lots, through the view, to
 	browse: by kind, theme, licensed or not, and size, in the chosen order,
-	and filtered by words. Tiles are drawn a page at a time. Each lot's list
+	and filtered by words. Tiles are drawn a page at a time. Each stack's list
 	is kept as it was left (its filters, how far it was drawn, its answers),
 	so coming back to it lands where it was scrolled.
 -->
@@ -18,7 +18,7 @@
 		drawn: number;
 	};
 	const PAGE = 200;
-	// Each lot's list as it was left, for the visit.
+	// Each stack's list as it was left, for the visit.
 	const left = new Map<string, Left>();
 	const fresh: Left = {
 		order: 'interesting',
@@ -47,11 +47,11 @@
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import SetGrid from '$lib/pile/SetGrid.svelte';
 	import { count } from '$lib/format';
-	import { lotId, view } from '$lib/view.svelte';
+	import { routeStack, view } from '$lib/view.svelte';
 	import { untrack } from 'svelte';
 
-	const lot = $derived(lotId());
-	const was = left.get(lotId()) ?? fresh;
+	const stack = $derived(routeStack());
+	const was = left.get(routeStack()) ?? fresh;
 	let order = $state<OrderName>(was.order);
 	let kind = $state<KindName>(was.kind);
 	let theme = $state(was.theme);
@@ -61,7 +61,7 @@
 	let drawn = $state(was.drawn);
 
 	const request = $derived({
-		view: view.forLot(lot),
+		view: view.of(stack),
 		order: {
 			interesting: Order.INTERESTING,
 			biggest: Order.BIGGEST,
@@ -74,7 +74,7 @@
 		licensedOnly,
 		minPieces: +minPieces
 	});
-	const answer = ask(sources.sets, () => request, (r) => r.view?.lotId);
+	const answer = ask(sources.sets, () => request);
 	const themes = $derived(answer.data?.themes ?? []);
 
 	const shown = $derived.by(() => {
@@ -98,13 +98,13 @@
 	});
 
 	$effect(() => {
-		left.set(lot, { order, kind, theme, licensedOnly, minPieces, query, drawn });
+		left.set(stack, { order, kind, theme, licensedOnly, minPieces, query, drawn });
 	});
 </script>
 
 <PageHeader
 	title="Every set"
-	description="Every set and custom model with a piece in this lot, each against what the sort-out queue leaves. Sets of loose bricks show only with Bulk sets on."
+	description="Every set and custom model with a piece in these lots, each against what the sort-out queue leaves. Sets of loose bricks show only with Bulk sets on."
 />
 
 <Panel flush>
@@ -178,7 +178,7 @@
 				</div>
 			{:else}
 				<p class="px-(--pad-panel) pt-3 text-sm text-ink-muted">{count(shown.length)} with a piece here.</p>
-				<SetGrid sets={shown.slice(0, drawn)} {lot} />
+				<SetGrid sets={shown.slice(0, drawn)} {stack} />
 				{#if shown.length > drawn}
 					<div class="border-t border-line px-(--pad-panel) py-3">
 						<Button onclick={() => (drawn += PAGE)}

@@ -12,7 +12,7 @@ export const pile = createClient(PileService, createConnectTransport({ baseUrl: 
 // answer lasts the visit; the bins are the exception.
 export const sources = {
 	lots: new Source(pile.listLots, { doing: 'Loading the collection' }),
-	lot: new Source(pile.getLot, { doing: "Matching the lot's sets" }),
+	overview: new Source(pile.getOverview, { doing: 'Matching the sets' }),
 	sets: new Source(pile.listSets, { doing: 'Matching every set' }),
 	parts: new Source(pile.listParts, { doing: 'Counting the parts' }),
 	set: new Source(pile.getSet, { doing: "Counting the set's pieces" }),

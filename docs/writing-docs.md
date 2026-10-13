@@ -46,6 +46,8 @@ same merge rules on both sides...
 - `hive.md`: pulling records from a Hive, and lots made of them.
 - `collect-time.md`: how long one sorter takes to come across a set's pieces.
 - `storage.md`: bins at addresses, what each holds, and finding pieces in them.
+- `views.md`: looking at lots: a stack of them in priority order, the
+  color mode, the sort-out queue.
 - `loading-data.md`: how the app loads and refreshes what it shows, and keeps
   the reader's place.
 

@@ -1,5 +1,5 @@
 <!--
-	One section of a lot's sets: a flush panel titled with its count, one
+	One section of the overview's sets: a flush panel titled with its count, one
 	sentence on what is in it, and its grid, drawn a page at a time with a
 	button for more. When the server sent only the first of them, the last
 	button goes to every set. How far each section was drawn is kept for the
@@ -24,19 +24,20 @@
 		title,
 		description,
 		section,
-		lot,
+		stack,
 		numbered = false,
 		small = false
 	}: {
 		title: string;
 		description: string;
 		section: Section | undefined;
-		lot: string;
+		// The lots, as the route has them.
+		stack: string;
 		numbered?: boolean;
 		small?: boolean;
 	} = $props();
 
-	const key = $derived(`${lot}:${title}`);
+	const key = $derived(`${stack}:${title}`);
 	let drawn = $state(untrack(() => drawnOf.get(key) ?? PAGE));
 	$effect(() => {
 		drawnOf.set(key, drawn);
@@ -46,7 +47,7 @@
 
 {#if section && section.total > 0}
 	<Panel title="{title} · {count(section.total)}" {description} flush>
-		<SetGrid sets={sets.slice(0, drawn)} {lot} {numbered} {small} />
+		<SetGrid sets={sets.slice(0, drawn)} {stack} {numbered} {small} />
 		{#if sets.length > drawn}
 			<div class="border-t border-line px-(--pad-panel) py-3">
 				<Button size="sm" icon={ChevronDown} onclick={() => (drawn += PAGE)}
@@ -55,7 +56,7 @@
 			</div>
 		{:else if section.total > sets.length}
 			<div class="border-t border-line px-(--pad-panel) py-3">
-				<Button href="/lots/{lot}/sets" size="sm" icon={ArrowRight}
+				<Button href="/lots/{stack}/sets" size="sm" icon={ArrowRight}
 					>Showing {count(sets.length)} of {count(section.total)}: every set</Button
 				>
 			</div>

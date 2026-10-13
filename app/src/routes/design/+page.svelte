@@ -106,7 +106,7 @@
 	flush
 >
 	<SetGrid
-		lot="design"
+		stack="design"
 		sets={[sample('7610-1', 18, 18), sample('7610-2', 15, 18, 3), sample('7610-3', 4, 18)]}
 	/>
 </Panel>

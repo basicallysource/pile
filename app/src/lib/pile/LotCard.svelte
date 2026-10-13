@@ -8,6 +8,7 @@
 	import ColorBar from './ColorBar.svelte';
 
 	let { lot }: { lot: Lot } = $props();
+	const t = $derived(lot.totals!);
 </script>
 
 <a
@@ -19,13 +20,13 @@
 		<p class="text-sm text-ink-muted">{lot.description}</p>
 	</div>
 	<div class="num flex flex-wrap gap-x-6 gap-y-1 text-sm">
-		<span><span class="font-medium text-ink">{count(lot.pieces)}</span> <span class="text-ink-muted">pieces</span></span>
-		<span><span class="font-medium text-ink">{count(lot.partColors)}</span> <span class="text-ink-muted">parts in a color</span></span>
+		<span><span class="font-medium text-ink">{count(t.pieces)}</span> <span class="text-ink-muted">pieces</span></span>
+		<span><span class="font-medium text-ink">{count(t.partColors)}</span> <span class="text-ink-muted">parts in a color</span></span>
 		<span class="text-ink-muted"
-			>sorted {dayOf(lot.firstSeenUnix)} to {dayOf(lot.lastSeenUnix)}{lot.machineName
-				? ` on ${lot.machineName}`
+			>sorted {dayOf(t.firstSeenUnix)} to {dayOf(t.lastSeenUnix)}{t.machineName
+				? ` on ${t.machineName}`
 				: ''}</span
 		>
 	</div>
-	<ColorBar colors={lot.colors} height="h-2" />
+	<ColorBar colors={t.colors} height="h-2" />
 </a>

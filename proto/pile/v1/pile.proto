@@ -5,20 +5,20 @@ package pile.v1;
 option go_package = "github.com/basicallysource/pile/gen/pile/v1;pilev1";
 
 // A collection of sorted pieces, kept as lots (one box, one sort), the
-// LEGO sets and custom models each lot's pieces make up, and the bins they
-// are kept in.
+// LEGO sets and custom models the pieces of one or more lots make up, and
+// the bins they are kept in.
 service PileService {
   // The collection: every lot, with its totals.
   rpc ListLots(ListLotsRequest) returns (ListLotsResponse);
-  // One lot as seen through a view: its totals, what its pieces are, the sets
-  // it completes, nearly completes and most likely came from, the custom
-  // models it can build, and the sort-out queue.
-  rpc GetLot(GetLotRequest) returns (GetLotResponse);
-  // Every set and custom model with a piece in the lot, through a view.
+  // A view's lots taken together: their totals, what their pieces are, the
+  // sets they complete, nearly complete and most likely came from, the
+  // custom models they can build, and the sort-out queue.
+  rpc GetOverview(GetOverviewRequest) returns (GetOverviewResponse);
+  // Every set and custom model with a piece in a view's lots.
   rpc ListSets(ListSetsRequest) returns (ListSetsResponse);
   // One set or custom model, line by line, through a view.
   rpc GetSet(GetSetRequest) returns (GetSetResponse);
-  // The lot's bulk catalog: every part in every color, with its count.
+  // Lots' bulk catalog: every part in every color, with its count in each.
   rpc ListParts(ListPartsRequest) returns (ListPartsResponse);
   // How long one sorter, fed bulk mixed like the lot, takes to come across
   // every piece of each set: the standard sets and any others asked for.
@@ -32,9 +32,11 @@ service PileService {
   rpc FindPieces(FindPiecesRequest) returns (FindPiecesResponse);
 }
 
-// How a lot is looked at.
+// How lots are looked at.
 message View {
-  string lot_id = 1;
+  // The lots, taken together, in priority order: whatever a set takes is
+  // drawn from the first lot that has those pieces, then the next.
+  repeated string lots = 1;
   // Match parts in any color: a set counts a piece of the right part in
   // another color as found, and says how many of its pieces are.
   bool any_color = 2;
@@ -57,27 +59,38 @@ message Color {
   int32 bricklink_id = 5;
 }
 
+// Pieces taken together: one lot's, or a view's lots'.
+message Totals {
+  // Pieces the sorters classified.
+  int32 pieces = 1;
+  // Distinct part and color pairs among them.
+  int32 part_colors = 2;
+  // Pieces whose part or color has no Rebrickable match.
+  int32 unmatched_pieces = 3;
+  int64 first_seen_unix = 4;
+  int64 last_seen_unix = 5;
+  // The sorters they came from, when there are three or fewer.
+  string machine_name = 6;
+  // Their colors by share of the pieces, most first.
+  repeated ColorShare colors = 7;
+}
+
 message Lot {
   string id = 1;
   string name = 2;
   // One sentence: where the pieces came from.
   string description = 3;
-  // The sorters its pieces came from, when there are three or fewer.
-  string machine_name = 4;
-  // Pieces the machine classified in the lot.
-  int32 pieces = 5;
-  // Distinct part and color pairs among them.
-  int32 part_colors = 6;
-  // Pieces whose part or color has no Rebrickable match.
-  int32 unmatched_pieces = 7;
-  int64 first_seen_unix = 8;
-  int64 last_seen_unix = 9;
   // When the machine's records were copied.
-  int64 snapshot_unix = 10;
-  // The lot's colors by share of its pieces, most first.
-  repeated ColorShare colors = 11;
-  // Left off the collection page: it opens only from the lot menu.
-  bool unlisted = 12;
+  int64 snapshot_unix = 4;
+  // Left off the collection page: it is added to a view from its lots.
+  bool unlisted = 5;
+  Totals totals = 6;
+}
+
+// Some pieces of something, in one lot.
+message LotCount {
+  string lot_id = 1;
+  int32 pieces = 2;
 }
 
 message ColorShare {
@@ -165,37 +178,47 @@ message Section {
   int32 total = 2;
 }
 
-message GetLotRequest {
+message GetOverviewRequest {
   View view = 1;
 }
 
-message GetLotResponse {
-  Lot lot = 1;
-  // The parts' categories by share of the lot's pieces, most first.
-  repeated CategoryShare categories = 2;
-  // The sort-out queue in order, each against what the ones before it left.
-  repeated SetMatch sort_out = 3;
-  // Pieces left once the queue has taken its pieces.
-  int32 pieces_left = 4;
-  // Every counted piece is there. Most interesting first.
-  Section complete = 5;
-  // At least 80% there and not complete. Most interesting first.
-  Section almost = 6;
-  // The sets the pieces most likely came from (judged in exact colors) that
-  // are neither complete nor almost, most likely first.
-  Section likely = 7;
-  // Free custom models at least 60% there, most complete first.
-  Section custom = 8;
-  // Sets that are basically a minifigure, complete, almost or likely.
-  Section minifigure = 9;
-  // Complete sets of under five counted pieces (key chains, gear).
-  Section tiny = 10;
-  // Sets of at least 50 counted pieces with half or more there, under
-  // almost and not likely. Most pieces found first.
-  Section half = 11;
+// A set in the sort-out queue, and the lots its pieces are drawn from.
+message QueuedSet {
+  SetMatch set = 1;
+  // In the view's order; a lot it draws nothing from is left out.
+  repeated LotCount lots = 2;
 }
 
-// Which of a lot's overview sections a set is in.
+message GetOverviewResponse {
+  // The view's lots, in its order.
+  repeated Lot lots = 1;
+  // Theirs together.
+  Totals totals = 2;
+  // The parts' categories by share of the pieces, most first.
+  repeated CategoryShare categories = 3;
+  // The sort-out queue in order, each against what the ones before it left.
+  repeated QueuedSet sort_out = 4;
+  // Pieces left once the queue has taken its pieces.
+  int32 pieces_left = 5;
+  // Every counted piece is there. Most interesting first.
+  Section complete = 6;
+  // At least 80% there and not complete. Most interesting first.
+  Section almost = 7;
+  // Sets of at least 50 counted pieces with half or more there, under
+  // almost and not likely. Most pieces found first.
+  Section half = 8;
+  // The sets the pieces most likely came from (judged in exact colors) that
+  // are neither complete nor almost, most likely first.
+  Section likely = 9;
+  // Free custom models at least 60% there, most complete first.
+  Section custom = 10;
+  // Sets that are basically a minifigure, complete, almost or likely.
+  Section minifigure = 11;
+  // Complete sets of under five counted pieces (key chains, gear).
+  Section tiny = 12;
+}
+
+// Which of the overview's sections a set is in.
 enum Place {
   // In none of them.
   PLACE_NONE = 0;
@@ -278,6 +301,8 @@ message SetLine {
   int32 wrong_color = 6;
   string image_url = 7;
   Counting counting = 8;
+  // The lots `found` is drawn from, in the view's order.
+  repeated LotCount lots = 9;
 }
 
 message Minifigure {
@@ -291,22 +316,21 @@ message GetSetResponse {
   SetMatch set = 1;
   repeated SetLine lines = 2;
   repeated Minifigure minifigures = 3;
-  // Its place in the view's sort-out queue, from 1; 0 when not in it.
-  int32 sort_out_place = 4;
-  // Where the lot's overview shows it in this view.
-  Place place = 5;
+  // Where the overview shows it in this view.
+  Place place = 4;
   // The same set in the other color matching (any color when the view is
   // exact, exact when it is any), and where the overview shows it then: so
   // a page can say why a set is or is not listed.
-  SetMatch other_colors = 6;
-  Place other_place = 7;
+  SetMatch other_colors = 5;
+  Place other_place = 6;
 }
 
 message ListPartsRequest {
-  string lot_id = 1;
+  // Taken together, in a view's order.
+  repeated string lots = 1;
 }
 
-// A part in a color, and how many the lot has.
+// A part in a color, and how many the lots have.
 message PartCount {
   string part_num = 1;
   string bricklink_id = 2;
@@ -317,6 +341,8 @@ message PartCount {
   string category = 7;
   // The classifier's mean confidence over these pieces, 0 to 1.
   float mean_confidence = 8;
+  // How many each lot has, in the request's order; a lot with none is left out.
+  repeated LotCount lots = 9;
 }
 
 // Pieces the catalog cannot place: the classifier's own names.

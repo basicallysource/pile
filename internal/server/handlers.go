@@ -48,17 +48,18 @@ func (s *Service) ListLots(_ context.Context, _ *connect.Request[pilev1.ListLots
 	return connect.NewResponse(out), nil
 }
 
-func (s *Service) GetLot(_ context.Context, req *connect.Request[pilev1.GetLotRequest]) (*connect.Response[pilev1.GetLotResponse], error) {
+func (s *Service) GetOverview(_ context.Context, req *connect.Request[pilev1.GetOverviewRequest]) (*connect.Response[pilev1.GetOverviewResponse], error) {
 	w, err := s.view(req.Msg.View)
 	if err != nil {
 		return nil, err
 	}
-	out := &pilev1.GetLotResponse{Lot: s.lotMessage(w.lot), PiecesLeft: w.left.Pieces()}
-	for _, c := range w.lot.cats {
-		out.Categories = append(out.Categories, &pilev1.CategoryShare{Name: c.name, Pieces: c.n})
+	st := w.stack
+	out := &pilev1.GetOverviewResponse{Totals: st.totals, Categories: st.cats, PiecesLeft: w.left.Sum.Pieces()}
+	for _, t := range st.lots {
+		out.Lots = append(out.Lots, s.lotMessage(t))
 	}
 	for _, m := range w.queue {
-		out.SortOut = append(out.SortOut, setMatch(m))
+		out.SortOut = append(out.SortOut, &pilev1.QueuedSet{Set: setMatch(m), Lots: st.lotCounts(w.drawn[m.Set.Num].Lots(len(st.lots)))})
 	}
 	in := map[pilev1.Place][]*match.Match{}
 	for _, m := range w.scores {
@@ -151,21 +152,22 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 	if set == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("no set "+req.Msg.SetNum))
 	}
-	out := &pilev1.GetSetResponse{SortOutPlace: int32(w.place[set.Num])}
+	out := &pilev1.GetSetResponse{}
 	e := s.index.Entry(set.Num)
 	var found match.Found
+	var drawn match.Drawn
 	if e == nil {
 		out.Set = setMatch(&match.Match{Entry: &match.Entry{Set: set}})
 	} else if f, ok := w.found[set.Num]; ok {
 		// In the queue: against what the sets before it left.
 		out.Set = setMatch(w.queue[w.place[set.Num]-1])
-		found = f
+		found, drawn = f, w.drawn[set.Num]
 	} else {
-		m, f := s.index.Score(e, w.left, w.anyColor)
-		m.Pick = w.lot.picks[set.Num]
-		out.Set, found = setMatch(m), f
+		m, f := s.index.Score(e, w.left.Sum, w.anyColor)
+		m.Pick = w.stack.picks[set.Num]
+		out.Set, found, drawn = setMatch(m), f, w.left.Sources(e, w.anyColor)
 		out.Place = w.placeOf(m)
-		o, _ := s.index.Score(e, w.left, !w.anyColor)
+		o, _ := s.index.Score(e, w.left.Sum, !w.anyColor)
 		o.Pick = m.Pick
 		out.OtherColors = setMatch(o)
 		out.OtherPlace = (&view{anyColor: !w.anyColor, showBulk: w.showBulk, place: w.place}).placeOf(o)
@@ -174,11 +176,12 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 		out.Place = pilev1.Place_PLACE_SORT_OUT
 	}
 	// Lines of one part (or its variants) and color share what was found for
-	// it, first come first served.
+	// it, and the lots it is in, first come first served.
 	exactLeft := map[int]int32{}
 	otherLeft := map[int]int32{}
+	lotsLeft := map[int][]int32{}
 	for i := range found.Exact {
-		exactLeft[i], otherLeft[i] = found.Exact[i], found.Other[i]
+		exactLeft[i], otherLeft[i], lotsLeft[i] = found.Exact[i], found.Other[i], drawn[i]
 	}
 	for _, l := range set.Lines {
 		line := &pilev1.SetLine{PartNum: l.Part, Color: color(s.cat.Colors[l.Color]), Need: l.Quantity, ImageUrl: l.ImageURL, Counting: pilev1.Counting_COUNTING_COUNTED}
@@ -198,6 +201,13 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 				exactLeft[i] -= x
 				otherLeft[i] -= o
 				line.Found, line.WrongColor = x+o, o
+				from := make([]int32, len(w.stack.lots))
+				n := x + o
+				for j, have := range lotsLeft[i] {
+					t := min(have, n)
+					from[j], lotsLeft[i][j], n = t, have-t, n-t
+				}
+				line.Lots = w.stack.lotCounts(from)
 			}
 		}
 		out.Lines = append(out.Lines, line)
@@ -209,12 +219,12 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 }
 
 func (s *Service) ListParts(_ context.Context, req *connect.Request[pilev1.ListPartsRequest]) (*connect.Response[pilev1.ListPartsResponse], error) {
-	t := s.lots[req.Msg.LotId]
-	if t == nil {
-		return nil, connect.NewError(connect.CodeNotFound, errors.New("no lot "+req.Msg.LotId))
+	st, err := s.stacks.get(req.Msg.Lots)
+	if err != nil {
+		return nil, err
 	}
 	out := &pilev1.ListPartsResponse{}
-	for _, p := range t.parts {
+	for _, p := range st.parts {
 		out.Parts = append(out.Parts, &pilev1.PartCount{
 			PartNum:        p.part.Num,
 			BricklinkId:    p.bricklinkPart,
@@ -224,9 +234,10 @@ func (s *Service) ListParts(_ context.Context, req *connect.Request[pilev1.ListP
 			ImageUrl:       s.cat.Images[catalog.PartColor{Part: p.part.Num, Color: p.color.ID}],
 			Category:       p.part.Category,
 			MeanConfidence: float32(p.confidence / float64(p.count)),
+			Lots:           st.lotCounts(p.lots),
 		})
 	}
-	for _, u := range t.unmatched {
+	for _, u := range st.unmatched {
 		out.Unmatched = append(out.Unmatched, &pilev1.UnmatchedPart{BricklinkId: u.bricklinkPart, Name: u.name, ColorName: u.colorName, Count: u.count})
 	}
 	return connect.NewResponse(out), nil

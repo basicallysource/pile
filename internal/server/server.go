@@ -18,13 +18,15 @@ import (
 	"github.com/basicallysource/pile/internal/storage"
 )
 
-// Service holds the catalog, its index, every lot ready to match, the lots'
-// collect times as they are worked out, and what the storage's bins hold.
+// Service holds the catalog, its index, every lot, the stacks of lots views
+// look at, the lots' collect times as they are worked out, and what the
+// storage's bins hold.
 type Service struct {
 	cat        *catalog.Catalog
 	index      *match.Index
 	order      []*lot
 	lots       map[string]*lot
+	stacks     *stacks
 	collecting *collecting
 	// The data folder, where a new storage is kept.
 	dataDir string
@@ -32,7 +34,7 @@ type Service struct {
 	storing sync.Mutex
 }
 
-// New readies every lot, puts their pieces in the storage's bins and starts
+// New readies every lot and each lot's stack, puts their pieces in the storage's bins and starts
 // working out the lots' collect times; dataDir is the data folder (its
 // hive.sqlite, and where a new storage is kept), sizes each part's size
 // (collect.LoadSizes).
@@ -43,6 +45,7 @@ func New(cat *catalog.Catalog, ls []*lots.Lot, st *storage.Storage, sizes map[st
 		s.order = append(s.order, t)
 		s.lots[l.ID] = t
 	}
+	s.stacks = newStacks(s.index, s.order, s.lots)
 	if err := st.Check(func(id string) bool { return s.lots[id] != nil }); err != nil {
 		return nil, fmt.Errorf("%s: %w", storage.File, err)
 	}

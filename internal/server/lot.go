@@ -8,18 +8,14 @@ import (
 	"github.com/basicallysource/pile/internal/match"
 )
 
-// lot is one lot's pieces in Rebrickable's terms, ready to match.
+// lot is one lot's pieces in Rebrickable's terms, ready to stack.
 type lot struct {
 	*lots.Lot
+	// Most first.
 	parts     []*partCount
 	unmatched []*unmatched
 	pieces    int32
 	pile      *match.Pile
-	colors    []share
-	cats      []share
-	// The likely order, judged in exact colors (any color would let every big
-	// set claim a pile of common bricks): set number to place, from 1.
-	picks map[string]int
 }
 
 type partCount struct {
@@ -33,12 +29,6 @@ type partCount struct {
 type unmatched struct {
 	bricklinkPart, name, colorName string
 	count                          int32
-}
-
-type share struct {
-	color *catalog.Color
-	name  string
-	n     int32
 }
 
 func newLot(l *lots.Lot, cat *catalog.Catalog, ix *match.Index) *lot {
@@ -55,6 +45,7 @@ func newLot(l *lots.Lot, cat *catalog.Catalog, ix *match.Index) *lot {
 			if u == nil {
 				u = &unmatched{bricklinkPart: k[0], name: k[1], colorName: k[2]}
 				byUn[k] = u
+				t.unmatched = append(t.unmatched, u)
 			}
 			u.count++
 			continue
@@ -63,27 +54,11 @@ func newLot(l *lots.Lot, cat *catalog.Catalog, ix *match.Index) *lot {
 		if p == nil {
 			p = &partCount{part: cat.Parts[k.Part], bricklinkPart: pc.BrickLinkPart, color: cat.Colors[k.Color]}
 			byPC[k] = p
+			t.parts = append(t.parts, p)
 		}
 		p.count++
 		p.confidence += pc.Confidence
 		counts[k]++
-	}
-	colors := map[int32]*share{}
-	cats := map[string]*share{}
-	for _, p := range byPC {
-		t.parts = append(t.parts, p)
-		c := colors[p.color.ID]
-		if c == nil {
-			c = &share{color: p.color}
-			colors[p.color.ID] = c
-		}
-		c.n += p.count
-		g := cats[p.part.Category]
-		if g == nil {
-			g = &share{name: p.part.Category}
-			cats[p.part.Category] = g
-		}
-		g.n += p.count
 	}
 	sort.Slice(t.parts, func(i, j int) bool {
 		if t.parts[i].count != t.parts[j].count {
@@ -91,33 +66,7 @@ func newLot(l *lots.Lot, cat *catalog.Catalog, ix *match.Index) *lot {
 		}
 		return t.parts[i].part.Num < t.parts[j].part.Num
 	})
-	for _, u := range byUn {
-		t.unmatched = append(t.unmatched, u)
-	}
 	sort.Slice(t.unmatched, func(i, j int) bool { return t.unmatched[i].count > t.unmatched[j].count })
-	for _, c := range colors {
-		t.colors = append(t.colors, *c)
-	}
-	for _, g := range cats {
-		t.cats = append(t.cats, *g)
-	}
-	byCount := func(s []share) { sort.Slice(s, func(i, j int) bool { return s[i].n > s[j].n }) }
-	byCount(t.colors)
-	byCount(t.cats)
-
 	t.pile = ix.NewPile(counts)
-	t.picks = map[string]int{}
-	for n, e := range ix.Explain(t.pile, false) {
-		t.picks[e.Set.Num] = n + 1
-	}
 	return t
-}
-
-// unmatchedPieces is how many pieces have no Rebrickable match.
-func (t *lot) unmatchedPieces() int32 {
-	var n int32
-	for _, u := range t.unmatched {
-		n += u.count
-	}
-	return n
 }

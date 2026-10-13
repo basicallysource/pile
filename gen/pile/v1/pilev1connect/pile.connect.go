@@ -35,8 +35,8 @@ const (
 const (
 	// PileServiceListLotsProcedure is the fully-qualified name of the PileService's ListLots RPC.
 	PileServiceListLotsProcedure = "/pile.v1.PileService/ListLots"
-	// PileServiceGetLotProcedure is the fully-qualified name of the PileService's GetLot RPC.
-	PileServiceGetLotProcedure = "/pile.v1.PileService/GetLot"
+	// PileServiceGetOverviewProcedure is the fully-qualified name of the PileService's GetOverview RPC.
+	PileServiceGetOverviewProcedure = "/pile.v1.PileService/GetOverview"
 	// PileServiceListSetsProcedure is the fully-qualified name of the PileService's ListSets RPC.
 	PileServiceListSetsProcedure = "/pile.v1.PileService/ListSets"
 	// PileServiceGetSetProcedure is the fully-qualified name of the PileService's GetSet RPC.
@@ -58,15 +58,15 @@ const (
 type PileServiceClient interface {
 	// The collection: every lot, with its totals.
 	ListLots(context.Context, *connect.Request[v1.ListLotsRequest]) (*connect.Response[v1.ListLotsResponse], error)
-	// One lot as seen through a view: its totals, what its pieces are, the sets
-	// it completes, nearly completes and most likely came from, the custom
-	// models it can build, and the sort-out queue.
-	GetLot(context.Context, *connect.Request[v1.GetLotRequest]) (*connect.Response[v1.GetLotResponse], error)
-	// Every set and custom model with a piece in the lot, through a view.
+	// A view's lots taken together: their totals, what their pieces are, the
+	// sets they complete, nearly complete and most likely came from, the
+	// custom models they can build, and the sort-out queue.
+	GetOverview(context.Context, *connect.Request[v1.GetOverviewRequest]) (*connect.Response[v1.GetOverviewResponse], error)
+	// Every set and custom model with a piece in a view's lots.
 	ListSets(context.Context, *connect.Request[v1.ListSetsRequest]) (*connect.Response[v1.ListSetsResponse], error)
 	// One set or custom model, line by line, through a view.
 	GetSet(context.Context, *connect.Request[v1.GetSetRequest]) (*connect.Response[v1.GetSetResponse], error)
-	// The lot's bulk catalog: every part in every color, with its count.
+	// Lots' bulk catalog: every part in every color, with its count in each.
 	ListParts(context.Context, *connect.Request[v1.ListPartsRequest]) (*connect.Response[v1.ListPartsResponse], error)
 	// How long one sorter, fed bulk mixed like the lot, takes to come across
 	// every piece of each set: the standard sets and any others asked for.
@@ -97,10 +97,10 @@ func NewPileServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(pileServiceMethods.ByName("ListLots")),
 			connect.WithClientOptions(opts...),
 		),
-		getLot: connect.NewClient[v1.GetLotRequest, v1.GetLotResponse](
+		getOverview: connect.NewClient[v1.GetOverviewRequest, v1.GetOverviewResponse](
 			httpClient,
-			baseURL+PileServiceGetLotProcedure,
-			connect.WithSchema(pileServiceMethods.ByName("GetLot")),
+			baseURL+PileServiceGetOverviewProcedure,
+			connect.WithSchema(pileServiceMethods.ByName("GetOverview")),
 			connect.WithClientOptions(opts...),
 		),
 		listSets: connect.NewClient[v1.ListSetsRequest, v1.ListSetsResponse](
@@ -151,7 +151,7 @@ func NewPileServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 // pileServiceClient implements PileServiceClient.
 type pileServiceClient struct {
 	listLots        *connect.Client[v1.ListLotsRequest, v1.ListLotsResponse]
-	getLot          *connect.Client[v1.GetLotRequest, v1.GetLotResponse]
+	getOverview     *connect.Client[v1.GetOverviewRequest, v1.GetOverviewResponse]
 	listSets        *connect.Client[v1.ListSetsRequest, v1.ListSetsResponse]
 	getSet          *connect.Client[v1.GetSetRequest, v1.GetSetResponse]
 	listParts       *connect.Client[v1.ListPartsRequest, v1.ListPartsResponse]
@@ -166,9 +166,9 @@ func (c *pileServiceClient) ListLots(ctx context.Context, req *connect.Request[v
 	return c.listLots.CallUnary(ctx, req)
 }
 
-// GetLot calls pile.v1.PileService.GetLot.
-func (c *pileServiceClient) GetLot(ctx context.Context, req *connect.Request[v1.GetLotRequest]) (*connect.Response[v1.GetLotResponse], error) {
-	return c.getLot.CallUnary(ctx, req)
+// GetOverview calls pile.v1.PileService.GetOverview.
+func (c *pileServiceClient) GetOverview(ctx context.Context, req *connect.Request[v1.GetOverviewRequest]) (*connect.Response[v1.GetOverviewResponse], error) {
+	return c.getOverview.CallUnary(ctx, req)
 }
 
 // ListSets calls pile.v1.PileService.ListSets.
@@ -210,15 +210,15 @@ func (c *pileServiceClient) FindPieces(ctx context.Context, req *connect.Request
 type PileServiceHandler interface {
 	// The collection: every lot, with its totals.
 	ListLots(context.Context, *connect.Request[v1.ListLotsRequest]) (*connect.Response[v1.ListLotsResponse], error)
-	// One lot as seen through a view: its totals, what its pieces are, the sets
-	// it completes, nearly completes and most likely came from, the custom
-	// models it can build, and the sort-out queue.
-	GetLot(context.Context, *connect.Request[v1.GetLotRequest]) (*connect.Response[v1.GetLotResponse], error)
-	// Every set and custom model with a piece in the lot, through a view.
+	// A view's lots taken together: their totals, what their pieces are, the
+	// sets they complete, nearly complete and most likely came from, the
+	// custom models they can build, and the sort-out queue.
+	GetOverview(context.Context, *connect.Request[v1.GetOverviewRequest]) (*connect.Response[v1.GetOverviewResponse], error)
+	// Every set and custom model with a piece in a view's lots.
 	ListSets(context.Context, *connect.Request[v1.ListSetsRequest]) (*connect.Response[v1.ListSetsResponse], error)
 	// One set or custom model, line by line, through a view.
 	GetSet(context.Context, *connect.Request[v1.GetSetRequest]) (*connect.Response[v1.GetSetResponse], error)
-	// The lot's bulk catalog: every part in every color, with its count.
+	// Lots' bulk catalog: every part in every color, with its count in each.
 	ListParts(context.Context, *connect.Request[v1.ListPartsRequest]) (*connect.Response[v1.ListPartsResponse], error)
 	// How long one sorter, fed bulk mixed like the lot, takes to come across
 	// every piece of each set: the standard sets and any others asked for.
@@ -245,10 +245,10 @@ func NewPileServiceHandler(svc PileServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(pileServiceMethods.ByName("ListLots")),
 		connect.WithHandlerOptions(opts...),
 	)
-	pileServiceGetLotHandler := connect.NewUnaryHandler(
-		PileServiceGetLotProcedure,
-		svc.GetLot,
-		connect.WithSchema(pileServiceMethods.ByName("GetLot")),
+	pileServiceGetOverviewHandler := connect.NewUnaryHandler(
+		PileServiceGetOverviewProcedure,
+		svc.GetOverview,
+		connect.WithSchema(pileServiceMethods.ByName("GetOverview")),
 		connect.WithHandlerOptions(opts...),
 	)
 	pileServiceListSetsHandler := connect.NewUnaryHandler(
@@ -297,8 +297,8 @@ func NewPileServiceHandler(svc PileServiceHandler, opts ...connect.HandlerOption
 		switch r.URL.Path {
 		case PileServiceListLotsProcedure:
 			pileServiceListLotsHandler.ServeHTTP(w, r)
-		case PileServiceGetLotProcedure:
-			pileServiceGetLotHandler.ServeHTTP(w, r)
+		case PileServiceGetOverviewProcedure:
+			pileServiceGetOverviewHandler.ServeHTTP(w, r)
 		case PileServiceListSetsProcedure:
 			pileServiceListSetsHandler.ServeHTTP(w, r)
 		case PileServiceGetSetProcedure:
@@ -326,8 +326,8 @@ func (UnimplementedPileServiceHandler) ListLots(context.Context, *connect.Reques
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.ListLots is not implemented"))
 }
 
-func (UnimplementedPileServiceHandler) GetLot(context.Context, *connect.Request[v1.GetLotRequest]) (*connect.Response[v1.GetLotResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.GetLot is not implemented"))
+func (UnimplementedPileServiceHandler) GetOverview(context.Context, *connect.Request[v1.GetOverviewRequest]) (*connect.Response[v1.GetOverviewResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.GetOverview is not implemented"))
 }
 
 func (UnimplementedPileServiceHandler) ListSets(context.Context, *connect.Request[v1.ListSetsRequest]) (*connect.Response[v1.ListSetsResponse], error) {

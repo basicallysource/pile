@@ -33,7 +33,7 @@
 		<div class="grid gap-(--gap-panels) md:grid-cols-2"><Skeleton class="h-40" /><Skeleton class="h-40" /></div>
 	{/snippet}
 	{#snippet children(data)}
-		<!-- Unlisted lots open only from a lot's menu. -->
+		<!-- Unlisted lots are added to a view from its lots (StackBar). -->
 		{@const listed = data.lots.filter((l) => !l.unlisted)}
 		{#if listed.length === 0}
 			<EmptyState title="No lots yet." />

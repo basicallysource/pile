@@ -30,17 +30,19 @@ client (`pile` in `app/src/lib/api.ts`) itself.
   Everything else in pile changes only when it restarts, so an answer lasts
   the visit and a reload picks up a restart.
 - **A Query** is a component asking a source:
-  `query(sources.lot, () => request, (req) => req.view?.lotId)`. The request
+  `query(sources.set, () => request, (req) => req.setNum)`. The request
   function is reactive: whenever what it reads changes (the view, a filter,
   the route), the query asks again. Returning `undefined` asks nothing (a
   sheet with nothing open). The third argument says what the answer is
-  about. The query keeps `data` (what is shown), `error`, `asking` (a newer
+  about (here a set: another set does not show this one's answer); left
+  out, every request is about the same thing, as for an overview whose
+  lots change. The query keeps `data` (what is shown), `error`, `asking` (a newer
   answer is on its way) and `slow` (it has taken more than 300 ms).
 - **The rules.** An answer already had is drawn on the first render, so a
   page come back to is already its full height when the browser restores
   its scroll. A new request about the same thing keeps the last answer shown
   until its own is in; it never blanks the page. A request about something
-  else (another lot, another set) shows nothing of the last one: it waits,
+  else (another set) shows nothing of the last one: it waits,
   in the shape of what is coming. A newer answer replaces what is shown
   through `keepPlace`, below.
 - **Drawing it.** `Loaded.svelte` draws a query: `waiting` (a skeleton the

@@ -1,7 +1,8 @@
 <!--
-	One set or custom model against the lot, as its sheet's body: how complete
-	it is, and every line with what was found for it (in an any-color view,
-	how many of those are another color). In the sort-out queue it is counted
+	One set or custom model against the lots, as its sheet's body: how
+	complete it is, and every line with what was found for it (in an
+	any-color view, how many of those are another color; with several lots,
+	which lots they are in, first first). In the sort-out queue it is counted
 	against what the sets before it left; otherwise against what the whole
 	queue leaves.
 -->
@@ -16,7 +17,14 @@
 	import { view } from '$lib/view.svelte';
 	import { zoomsTo } from './zoom.svelte';
 
-	let { detail }: { detail: GetSetResponse } = $props();
+	let {
+		detail,
+		names
+	}: {
+		detail: GetSetResponse;
+		// The lots' names, when there are several to tell apart.
+		names?: Record<string, string>;
+	} = $props();
 
 	type Show = 'all' | 'missing' | 'found';
 	let show = $state<Show>('all');
@@ -118,6 +126,11 @@
 		{#each lines as l (l.partNum + ':' + l.color?.id)}
 			<PartTile layout="tile" {...tile(l)} onzoom={zoomsTo(caption(l))} quantity={l.need} found={l.found}>
 				{#if l.wrongColor}<span class="text-xs text-warning-ink">{l.wrongColor} in another color</span>{/if}
+				{#if names && l.lots.length}
+					<span class="text-xs text-ink-muted"
+						>{l.lots.map((c) => `${c.pieces} in ${names[c.lotId] ?? c.lotId}`).join(' · ')}</span
+					>
+				{/if}
 			</PartTile>
 		{:else}
 			<p class="col-span-full text-sm text-ink-muted">No lines to show.</p>

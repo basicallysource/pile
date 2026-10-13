@@ -1,7 +1,7 @@
 package match
 
 import (
-	"sort"
+	"slices"
 
 	"github.com/basicallysource/pile/internal/catalog"
 )
@@ -28,6 +28,24 @@ func (ix *Index) NewPile(counts map[catalog.PartColor]int32) *Pile {
 		p.byPart[part] += n
 	}
 	return p
+}
+
+// Sum is the piles' pieces together.
+func Sum(piles []*Pile) *Pile {
+	s := &Pile{exact: map[uint64]int32{}, byPart: map[int32]int32{}, colors: map[int32][]int32{}}
+	for _, p := range piles {
+		for k, n := range p.exact {
+			if s.exact[k] == 0 {
+				part := int32(k >> 32)
+				s.colors[part] = append(s.colors[part], int32(uint32(k)))
+			}
+			s.exact[k] += n
+		}
+		for part, n := range p.byPart {
+			s.byPart[part] += n
+		}
+	}
+	return s
 }
 
 func (p *Pile) Clone() *Pile {
@@ -81,29 +99,64 @@ func (p *Pile) find(e *Entry, anyColor bool) Found {
 	return f
 }
 
-// Take takes e's pieces out of the pile: each line's own color first, then
-// (with anyColor) the part's other colors, most plentiful first.
-func (p *Pile) Take(e *Entry, anyColor bool) {
+// drawn is some of a pile's pieces of one part in one color (key), taken
+// for one of an entry's lines.
+type drawn struct {
+	line int
+	key  uint64
+	n    int32
+}
+
+// draw is what taking e's pieces out of the pile takes, without taking it:
+// every line's own color first, then (with anyColor) the part's other colors
+// left once every line has had its own, most plentiful first.
+func (p *Pile) draw(e *Entry, anyColor bool) []drawn {
 	f := p.find(e, anyColor)
+	var out []drawn
+	used := map[uint64]int32{}
 	for i, l := range e.Lines {
-		k := key(l.Part, l.Color)
-		p.exact[k] -= f.Exact[i]
-		p.byPart[l.Part] -= f.Exact[i]
+		if f.Exact[i] > 0 {
+			k := key(l.Part, l.Color)
+			out = append(out, drawn{i, k, f.Exact[i]})
+			used[k] += f.Exact[i]
+		}
+	}
+	for i, l := range e.Lines {
 		rest := f.Other[i]
 		if rest == 0 {
 			continue
 		}
-		cs := append([]int32(nil), p.colors[l.Part]...)
-		sort.Slice(cs, func(a, b int) bool { return p.exact[key(l.Part, cs[a])] > p.exact[key(l.Part, cs[b])] })
+		left := func(c int32) int32 { k := key(l.Part, c); return p.exact[k] - used[k] }
+		cs := slices.Clone(p.colors[l.Part])
+		slices.SortFunc(cs, func(a, b int32) int {
+			if d := left(b) - left(a); d != 0 {
+				return int(d)
+			}
+			return int(a - b)
+		})
 		for _, c := range cs {
 			if rest == 0 {
 				break
 			}
-			kc := key(l.Part, c)
-			t := min(p.exact[kc], rest)
-			p.exact[kc] -= t
-			p.byPart[l.Part] -= t
-			rest -= t
+			if t := min(left(c), rest); t > 0 {
+				k := key(l.Part, c)
+				out = append(out, drawn{i, k, t})
+				used[k] += t
+				rest -= t
+			}
 		}
+	}
+	return out
+}
+
+func (p *Pile) remove(k uint64, n int32) {
+	p.exact[k] -= n
+	p.byPart[int32(k>>32)] -= n
+}
+
+// Take takes e's pieces out of the pile, as draw says.
+func (p *Pile) Take(e *Entry, anyColor bool) {
+	for _, d := range p.draw(e, anyColor) {
+		p.remove(d.key, d.n)
 	}
 }

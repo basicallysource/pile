@@ -9,10 +9,10 @@
 
 	let {
 		sets,
-		lot,
+		stack,
 		numbered = false,
 		small = false
-	}: { sets: SetMatch[]; lot: string; numbered?: boolean; small?: boolean } = $props();
+	}: { sets: SetMatch[]; stack: string; numbered?: boolean; small?: boolean } = $props();
 </script>
 
 <div
@@ -20,5 +20,5 @@
 		? 'grid-cols-[repeat(auto-fill,minmax(5.5rem,1fr))]'
 		: 'grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))]'}"
 >
-	{#each sets as set (set.setNum)}<SetTile {set} {lot} {numbered} />{/each}
+	{#each sets as set (set.setNum)}<SetTile {set} {stack} {numbered} />{/each}
 </div>

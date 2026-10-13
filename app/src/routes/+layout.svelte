@@ -1,16 +1,17 @@
 <!--
-	The shell: the top bar and the page under it. In a lot the bar holds the
-	lot's pages, the color mode and whether sets of loose bricks show, which
-	apply on all of them; outside one
-	it holds the collection and the design page. Find pieces, at the end of
-	the bar on every page (or the / key), searches what the bins hold. On a
-	narrow screen the lot's color mode and bulk switch give way to it. In a lot, the set open in
-	the URL (`?set=`) shows in a sheet beside whichever page it is on, which
-	narrows to make room. A
-	picture seen up close shows in the Lightbox over everything. While an
-	answer takes more than a moment, the bar says what is updating; coming
-	back to a page (Back, a reload) returns to where it was scrolled, even
-	when its answers are slow to come (docs/loading-data.md).
+	The shell: the top bar and the page under it. In lots (`/lots/a,b/...`)
+	the bar holds their pages, the color mode and whether sets of loose
+	bricks show, which apply on all of them, and the page starts with the
+	lots it looks at (StackBar); outside them the bar holds the collection
+	and the design page. Find pieces, at the end of the bar on every page (or
+	the / key), searches what the bins hold. On a narrow screen the color
+	mode and bulk switch give way to it. In lots, the set open in the URL
+	(`?set=`) shows in a sheet beside whichever page it is on, which narrows
+	to make room. A picture seen up close shows in the Lightbox over
+	everything. While an answer takes more than a moment, the bar says what
+	is updating; coming back to a page (Back, a reload) returns to where it
+	was scrolled, even when its answers are slow to come
+	(docs/loading-data.md).
 -->
 <script lang="ts">
 	import '../app.css';
@@ -27,6 +28,7 @@
 	import Search from '@lucide/svelte/icons/search';
 	import FindPieces from '$lib/pile/FindPieces.svelte';
 	import SetSheet from '$lib/pile/SetSheet.svelte';
+	import StackBar from '$lib/pile/StackBar.svelte';
 	import Lightbox from '$lib/components/Lightbox.svelte';
 	import { unzoom, zoomed } from '$lib/pile/zoom.svelte';
 	import { view } from '$lib/view.svelte';
@@ -50,14 +52,14 @@
 		event.preventDefault();
 		finding = true;
 	}
-	const lot = $derived(page.params.lot);
+	const lots = $derived(page.params.lots);
 	const items = $derived(
-		lot
+		lots
 			? [
-					{ href: `/lots/${lot}`, label: 'Overview' },
-					{ href: `/lots/${lot}/sets`, label: 'Every set' },
-					{ href: `/lots/${lot}/parts`, label: 'Parts' },
-					{ href: `/lots/${lot}/collect`, label: 'Time to collect' }
+					{ href: `/lots/${lots}`, label: 'Overview' },
+					{ href: `/lots/${lots}/sets`, label: 'Every set' },
+					{ href: `/lots/${lots}/parts`, label: 'Parts' },
+					{ href: `/lots/${lots}/collect`, label: 'Time to collect' }
 				]
 			: [
 					{ href: '/', label: 'Collection' },
@@ -71,7 +73,7 @@
 		{#snippet brand()}<Wordmark name="Pile" href="/" />{/snippet}
 		{#snippet end()}
 			<Updating />
-			{#if lot}
+			{#if lots}
 				<div class="hidden items-center gap-2 md:flex">
 					<label class="flex items-center gap-2 text-sm whitespace-nowrap text-ink-muted">
 						<Switch checked={view.showBulk} onchange={(v) => view.setShowBulk(v)} />
@@ -96,9 +98,10 @@
 		<main
 			class="mx-auto flex w-full max-w-7xl min-w-0 flex-1 flex-col gap-(--gap-panels) p-4 md:p-6"
 		>
+			{#if lots}<StackBar />{/if}
 			{@render children()}
 		</main>
-		{#if lot}<SetSheet />{/if}
+		{#if lots}<SetSheet />{/if}
 	</div>
 </div>
 <Lightbox src={zoomed()?.src} alt={zoomed()?.alt} onclose={unzoom} />
