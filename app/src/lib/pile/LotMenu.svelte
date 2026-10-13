@@ -5,19 +5,14 @@
 -->
 <script lang="ts">
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import type { Lot } from '$lib/gen/pile/v1/pile_pb';
-	import { pile } from '$lib/api';
+	import { sources } from '$lib/api';
+	import { query } from '$lib/data/query.svelte';
 	import Menu from '$lib/components/Menu.svelte';
 
 	let { lot, name }: { lot: string; name: string } = $props();
 
-	let lots = $state<Lot[]>([]);
-	$effect(() => {
-		pile.listLots({}).then(
-			(r) => (lots = r.lots),
-			() => (lots = [])
-		);
-	});
+	const collection = query(sources.lots, () => ({}));
+	const lots = $derived(collection.data?.lots ?? []);
 </script>
 
 {#if lots.length > 1}

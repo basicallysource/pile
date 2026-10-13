@@ -1,12 +1,14 @@
 // The set open in a lot's sheet, kept in the URL (`?set=10252-1`) so a
 // reload or a link opens it again and Back closes it. Opening the first set
 // adds a history entry; opening another while one is open replaces it, so
-// one Back always returns to the page under it, scrolled where it was. The
-// page narrows beside the sheet, so the item clicked is brought back into
-// view when the first one opens.
+// one Back always returns to the page under it. The page narrows beside the
+// sheet and widens again when it closes; either way the reader's place
+// holds (docs/loading-data.md#keeping-the-place): the item clicked, or the open
+// one, stays where it was on the screen.
 import { tick } from 'svelte';
 import { goto } from '$app/navigation';
 import { page } from '$app/state';
+import { holdPlace, returnWith } from '$lib/data/place';
 
 const PARAM = 'set';
 
@@ -35,7 +37,7 @@ export function opensSet(num: string) {
 		event.preventDefault();
 		if (openSet() === num) return;
 		const opened = openSet() !== null;
-		const item = event.currentTarget;
+		const place = holdPlace(event.currentTarget instanceof Element ? event.currentTarget : undefined);
 		goto(withSet(num), {
 			noScroll: true,
 			keepFocus: true,
@@ -43,13 +45,20 @@ export function opensSet(num: string) {
 			state: { sheet: opened ? !!page.state.sheet : true }
 		})
 			.then(tick)
-			.then(() => {
-				if (!opened && item instanceof Element) item.scrollIntoView({ block: 'center' });
-			});
+			.then(place.restore);
 	};
 }
 
 export function closeSet() {
-	if (page.state.sheet) history.back();
-	else goto(withSet(null), { noScroll: true, keepFocus: true, replaceState: true });
+	// The open set's tile on the page, if it is on screen.
+	const tile = document.querySelector('main [aria-current="true"]') ?? undefined;
+	const place = holdPlace(tile);
+	if (page.state.sheet) {
+		// Back restores the page's own scroll; this place is restored instead.
+		returnWith(place);
+		history.back();
+	} else
+		goto(withSet(null), { noScroll: true, keepFocus: true, replaceState: true })
+			.then(tick)
+			.then(place.restore);
 }

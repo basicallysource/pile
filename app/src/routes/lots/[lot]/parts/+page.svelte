@@ -5,8 +5,10 @@
 -->
 <script lang="ts">
 	import Download from '@lucide/svelte/icons/download';
-	import type { ListPartsResponse, PartCount } from '$lib/gen/pile/v1/pile_pb';
-	import { partsAnswers } from '$lib/api';
+	import type { PartCount } from '$lib/gen/pile/v1/pile_pb';
+	import { sources } from '$lib/api';
+	import { query as ask } from '$lib/data/query.svelte';
+	import Loaded from '$lib/data/Loaded.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Panel from '$lib/components/Panel.svelte';
 	import PartTile from '$lib/components/PartTile.svelte';
@@ -14,21 +16,16 @@
 	import Select from '$lib/components/Select.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
-	import Alert from '$lib/components/Alert.svelte';
 	import { bricklinkXML } from '$lib/pile/bricklink';
 	import { lotId } from '$lib/view.svelte';
 	import { zoomsTo } from '$lib/pile/zoom.svelte';
 
 	type Order = 'count' | 'color' | 'category';
-	let data = $state<ListPartsResponse | null>(partsAnswers.peek({ lotId: lotId() }) ?? null);
 	const lot = $derived(lotId());
-	let error = $state<string | null>(null);
+	const answer = ask(sources.parts, () => ({ lotId: lot }), (r) => r.lotId);
+	const data = $derived(answer.data);
 	let query = $state('');
 	let order = $state<Order>('count');
-
-	$effect(() => {
-		partsAnswers.get({ lotId: lot }).then((r) => (data = r), (e) => (error = String(e)));
-	});
 
 	const total = $derived(data?.parts.reduce((n, l) => n + l.count, 0) ?? 0);
 	const shown = $derived.by(() => {
@@ -56,7 +53,9 @@
 		a.href = URL.createObjectURL(blob);
 		a.download = `${lot}-bricklink.xml`;
 		a.click();
-		URL.revokeObjectURL(a.href);
+		// Freed once the browser has started saving it; freed at once, some
+		// browsers save nothing.
+		setTimeout(() => URL.revokeObjectURL(a.href), 10000);
 	}
 </script>
 
@@ -72,10 +71,6 @@
 		>
 	{/snippet}
 </PageHeader>
-
-{#if error}
-	<Alert tone="danger" title="The pile did not load">{error}</Alert>
-{/if}
 
 <Panel flush>
 	<div class="flex flex-wrap items-center gap-3 border-b border-line px-(--pad-panel) py-3">
@@ -97,26 +92,29 @@
 			]}
 		/>
 	</div>
-	{#if !data}
-		<div aria-busy="true" class="grid grid-cols-2 gap-4 p-(--pad-panel) sm:grid-cols-4 lg:grid-cols-6">
-			{#each { length: 12 } as _}<Skeleton class="aspect-square w-full" />{/each}
-		</div>
-	{:else}
-		<div class="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-x-3 gap-y-4 p-(--pad-panel)">
-			{#each shown as l (l.partNum + ':' + l.color?.id)}
-				<PartTile
-					layout="tile"
-					name={l.name}
-					bricklinkId={l.bricklinkId}
-					partNum={l.partNum}
-					imgUrl={l.imageUrl}
-					onzoom={zoomsTo(`${l.name}${l.color ? `, ${l.color.name}` : ''}, ${l.partNum}`)}
-					color={l.color ? { name: l.color.name, rgb: l.color.rgb } : null}
-					quantity={l.count}
-				/>
-			{/each}
-		</div>
-	{/if}
+	<Loaded query={answer} what="The parts">
+		{#snippet waiting()}
+			<div class="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-x-3 gap-y-4 p-(--pad-panel)">
+				{#each { length: 12 } as _}<Skeleton class="aspect-square w-full" />{/each}
+			</div>
+		{/snippet}
+		{#snippet children()}
+			<div class="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-x-3 gap-y-4 p-(--pad-panel)">
+				{#each shown as l (l.partNum + ':' + l.color?.id)}
+					<PartTile
+						layout="tile"
+						name={l.name}
+						bricklinkId={l.bricklinkId}
+						partNum={l.partNum}
+						imgUrl={l.imageUrl}
+						onzoom={zoomsTo(`${l.name}${l.color ? `, ${l.color.name}` : ''}, ${l.partNum}`)}
+						color={l.color ? { name: l.color.name, rgb: l.color.rgb } : null}
+						quantity={l.count}
+					/>
+				{/each}
+			</div>
+		{/snippet}
+	</Loaded>
 </Panel>
 
 {#if data?.unmatched.length}

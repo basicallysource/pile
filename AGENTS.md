@@ -85,7 +85,9 @@ the public record).
   in `stock.go`). `internal/collect` is the collect-time model.
 - **App.** SvelteKit 5 + Tailwind, static, in `app/`, embedded into the
   binary (`embed.go`). It follows the Sorter design system
-  (`docs/design-system/README.md`).
+  (`docs/design-system/README.md`). Every page loads through
+  `app/src/lib/data/` (a query per call, the last answer kept on screen,
+  the reader's place kept when a newer one lands): `docs/loading-data.md`.
 - **Build:** `scripts/build.sh` (packages, generate, app build, vet, every
   command to `bin/`). Run: `bin/pile -data DIR -addr :PORT`. Test:
   `go test ./...`.

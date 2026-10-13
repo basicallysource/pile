@@ -5,6 +5,10 @@
 	a badge for each bin they are in with how many are there. Each filter
 	offers only what the search and the other filters leave, with its pieces.
 
+	Each keystroke asks again; the last answer stays shown until the new one
+	is in, and an answer had this visit shows at once while it is asked for
+	again (the bins can change while pile runs: docs/loading-data.md).
+
 	It fills the screen on a phone and floats over the page on a wider one.
 	Scrolling the list folds the filters away, leaving the field and a line
 	saying what is chosen; back at the top they unfold. Escape and the close
@@ -12,8 +16,10 @@
 -->
 <script lang="ts">
 	import X from '@lucide/svelte/icons/x';
-	import type { FilterOption, FindPiecesResponse } from '$lib/gen/pile/v1/pile_pb';
-	import { pile } from '$lib/api';
+	import type { FilterOption } from '$lib/gen/pile/v1/pile_pb';
+	import { sources } from '$lib/api';
+	import { query as ask } from '$lib/data/query.svelte';
+	import Loaded from '$lib/data/Loaded.svelte';
 	import { count } from '$lib/format';
 	import Input from '$lib/components/Input.svelte';
 	import Select from '$lib/components/Select.svelte';
@@ -22,7 +28,7 @@
 	import ColorChip from '$lib/components/ColorChip.svelte';
 	import PartImage from '$lib/components/PartImage.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
-	import Alert from '$lib/components/Alert.svelte';
+	import Skeleton from '$lib/components/Skeleton.svelte';
 
 	let { open = $bindable(false) }: { open?: boolean } = $props();
 
@@ -33,10 +39,7 @@
 	let type = $state('');
 	let bin = $state('');
 	let lot = $state('');
-	let found = $state<FindPiecesResponse | null>(null);
-	let error = $state<string | null>(null);
 	let folded = $state(false);
-	let asked = 0;
 
 	$effect(() => {
 		if (open && !dialog.open) {
@@ -46,21 +49,10 @@
 		if (!open && dialog.open) dialog.close();
 	});
 
-	// Every keystroke and choice asks again; only the latest answer is shown.
-	$effect(() => {
-		if (!open) return;
-		const n = ++asked;
-		pile.findPieces({ query, color, type, bin, lotId: lot }).then(
-			(r) => {
-				if (n !== asked) return;
-				found = r;
-				error = null;
-			},
-			(e) => {
-				if (n === asked) error = String(e);
-			}
-		);
-	});
+	const answer = ask(sources.pieces, () =>
+		open ? { query, color, type, bin, lotId: lot } : undefined
+	);
+	const found = $derived(answer.data);
 
 	// A filter's choices: any, then what is left with its pieces, and the
 	// chosen one even when nothing is left of it.
@@ -165,54 +157,66 @@
 	</header>
 
 	<div class="min-h-0 flex-1 overflow-y-auto overscroll-contain" {onscroll}>
-		{#if error}
-			<div class="p-4"><Alert tone="danger" title="The search did not run">{error}</Alert></div>
-		{:else if found && found.storedPieces === 0}
-			<EmptyState title="No bins yet.">
-				Once bins are set out, each with an address and what it holds, their pieces can be found
-				here.
-			</EmptyState>
-		{:else if found && found.parts.length === 0}
-			<EmptyState title="Nothing in the bins matches." />
-		{:else if found}
-			<ul>
-				{#each found.parts as p (p.partNum + '/' + (p.color?.id ?? ''))}
-					<li class="flex gap-3 border-b border-line px-4 py-3 sm:px-5">
-						<PartImage src={p.imageUrl} class="size-14 shrink-0" />
-						<div class="min-w-0 flex-1">
-							<div class="flex items-start justify-between gap-3">
-								<div class="min-w-0">
-									<p class="text-sm leading-snug font-medium">{p.name}</p>
-									<p class="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-ink-muted">
-										<ColorChip name={p.color?.name} rgb={p.color?.rgb} />
-										<span class="font-mono">{p.bricklinkId || p.partNum}</span>
-									</p>
-								</div>
-								<p class="shrink-0 text-lg leading-none font-semibold tabular-nums">
-									{count(p.count)}
-								</p>
-							</div>
-							<ul class="mt-2 flex flex-wrap gap-1.5" aria-label="Bins">
-								{#each p.bins as b (b.address)}
-									<li title={b.name}>
-										<Badge tone="primary"
-											><span class="font-mono font-semibold">{b.address}</span><span
-												class="tabular-nums">× {count(b.count)}</span
-											></Badge
-										>
-									</li>
-								{/each}
-							</ul>
+		<Loaded query={answer} what="The search">
+			{#snippet waiting()}
+				<div class="flex flex-col">
+					{#each { length: 6 } as _}
+						<div class="flex gap-3 border-b border-line px-4 py-3 sm:px-5">
+							<Skeleton class="size-14 shrink-0" />
+							<div class="flex flex-1 flex-col gap-2"><Skeleton class="h-4 w-2/3" /><Skeleton class="h-3 w-1/3" /></div>
 						</div>
-					</li>
-				{/each}
-			</ul>
-			{#if found.totalParts > found.parts.length}
-				<p class="px-4 py-4 text-center text-xs text-ink-faint">
-					The first {count(found.parts.length)} of {count(found.totalParts)}. Search or filter to
-					narrow them down.
-				</p>
-			{/if}
-		{/if}
+					{/each}
+				</div>
+			{/snippet}
+			{#snippet children(found)}
+				{#if found.storedPieces === 0}
+					<EmptyState title="No bins yet.">
+						Once bins are set out, each with an address and what it holds, their pieces can be found
+						here.
+					</EmptyState>
+				{:else if found.parts.length === 0}
+					<EmptyState title="Nothing in the bins matches." />
+				{:else}
+					<ul>
+						{#each found.parts as p (p.partNum + '/' + (p.color?.id ?? ''))}
+							<li class="flex gap-3 border-b border-line px-4 py-3 sm:px-5">
+								<PartImage src={p.imageUrl} class="size-14 shrink-0" />
+								<div class="min-w-0 flex-1">
+									<div class="flex items-start justify-between gap-3">
+										<div class="min-w-0">
+											<p class="text-sm leading-snug font-medium">{p.name}</p>
+											<p class="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-ink-muted">
+												<ColorChip name={p.color?.name} rgb={p.color?.rgb} />
+												<span class="font-mono">{p.bricklinkId || p.partNum}</span>
+											</p>
+										</div>
+										<p class="shrink-0 text-lg leading-none font-semibold tabular-nums">
+											{count(p.count)}
+										</p>
+									</div>
+									<ul class="mt-2 flex flex-wrap gap-1.5" aria-label="Bins">
+										{#each p.bins as b (b.address)}
+											<li title={b.name}>
+												<Badge tone="primary"
+													><span class="font-mono font-semibold">{b.address}</span><span
+														class="tabular-nums">× {count(b.count)}</span
+													></Badge
+												>
+											</li>
+										{/each}
+									</ul>
+								</div>
+							</li>
+						{/each}
+					</ul>
+					{#if found.totalParts > found.parts.length}
+						<p class="px-4 py-4 text-center text-xs text-ink-faint">
+							The first {count(found.parts.length)} of {count(found.totalParts)}. Search or filter to
+							narrow them down.
+						</p>
+					{/if}
+				{/if}
+			{/snippet}
+		</Loaded>
 	</div>
 </dialog>

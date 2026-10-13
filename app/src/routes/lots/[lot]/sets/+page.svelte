@@ -32,8 +32,10 @@
 </script>
 
 <script lang="ts">
-	import { Kind, Order, type SetMatch, type ThemeCount } from '$lib/gen/pile/v1/pile_pb';
-	import { setsAnswers } from '$lib/api';
+	import { Kind, Order } from '$lib/gen/pile/v1/pile_pb';
+	import { sources } from '$lib/api';
+	import { query as ask } from '$lib/data/query.svelte';
+	import Loaded from '$lib/data/Loaded.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Panel from '$lib/components/Panel.svelte';
 	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
@@ -43,7 +45,6 @@
 	import Switch from '$lib/components/Switch.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
-	import Alert from '$lib/components/Alert.svelte';
 	import SetGrid from '$lib/pile/SetGrid.svelte';
 	import { count } from '$lib/format';
 	import { lotId, view } from '$lib/view.svelte';
@@ -58,7 +59,6 @@
 	let minPieces = $state(was.minPieces);
 	let query = $state(was.query);
 	let drawn = $state(was.drawn);
-	let error = $state<string | null>(null);
 
 	const request = $derived({
 		view: view.forLot(lot),
@@ -74,27 +74,13 @@
 		licensedOnly,
 		minPieces: +minPieces
 	});
-	const had = untrack(() => setsAnswers.peek(request));
-	let sets = $state<SetMatch[] | null>(had?.sets ?? null);
-	let themes = $state<ThemeCount[]>(had?.themes ?? []);
-
-	$effect(() => {
-		const req = request;
-		let stale = false;
-		setsAnswers.get(req).then(
-			(r) => {
-				if (stale) return;
-				sets = r.sets;
-				themes = r.themes;
-			},
-			(e) => (error = String(e))
-		);
-		return () => (stale = true);
-	});
+	const answer = ask(sources.sets, () => request, (r) => r.view?.lotId);
+	const themes = $derived(answer.data?.themes ?? []);
 
 	const shown = $derived.by(() => {
+		const sets = answer.data?.sets ?? [];
 		const q = query.trim().toLowerCase();
-		if (!sets || !q) return sets;
+		if (!q) return sets;
 		return sets.filter((s) =>
 			[s.name, s.setNum, s.theme, s.designer, String(s.year)].some((v) => v.toLowerCase().includes(q))
 		);
@@ -120,10 +106,6 @@
 	title="Every set"
 	description="Every set and custom model with a piece in this lot, each against what the sort-out queue leaves. Sets of loose bricks show only with Bulk sets on."
 />
-
-{#if error}
-	<Alert tone="danger" title="The sets did not load">{error}</Alert>
-{/if}
 
 <Panel flush>
 	<div class="flex flex-wrap items-center gap-3 border-b border-line px-(--pad-panel) py-3">
@@ -183,23 +165,28 @@
 			class="min-w-48 flex-1"
 		/>
 	</div>
-	{#if shown === null}
-		<div aria-busy="true" class="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-2 p-2">
-			{#each { length: 16 } as _}<Skeleton class="aspect-square w-full" />{/each}
-		</div>
-	{:else if shown.length === 0}
-		<div class="p-(--pad-panel)">
-			<EmptyState title={query ? 'Nothing matches that filter.' : 'Nothing matches the pile.'} />
-		</div>
-	{:else}
-		<p class="px-(--pad-panel) pt-3 text-sm text-ink-muted">{count(shown.length)} with a piece here.</p>
-		<SetGrid sets={shown.slice(0, drawn)} {lot} />
-		{#if shown.length > drawn}
-			<div class="border-t border-line px-(--pad-panel) py-3">
-				<Button onclick={() => (drawn += PAGE)}
-					>Show {Math.min(PAGE, shown.length - drawn)} more of {count(shown.length - drawn)}</Button
-				>
+	<Loaded query={answer} what="The sets">
+		{#snippet waiting()}
+			<div class="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-2 p-2">
+				{#each { length: 16 } as _}<Skeleton class="aspect-square w-full" />{/each}
 			</div>
-		{/if}
-	{/if}
+		{/snippet}
+		{#snippet children()}
+			{#if shown.length === 0}
+				<div class="p-(--pad-panel)">
+					<EmptyState title={query ? 'Nothing matches that filter.' : 'Nothing matches the pile.'} />
+				</div>
+			{:else}
+				<p class="px-(--pad-panel) pt-3 text-sm text-ink-muted">{count(shown.length)} with a piece here.</p>
+				<SetGrid sets={shown.slice(0, drawn)} {lot} />
+				{#if shown.length > drawn}
+					<div class="border-t border-line px-(--pad-panel) py-3">
+						<Button onclick={() => (drawn += PAGE)}
+							>Show {Math.min(PAGE, shown.length - drawn)} more of {count(shown.length - drawn)}</Button
+						>
+					</div>
+				{/if}
+			{/if}
+		{/snippet}
+	</Loaded>
 </Panel>

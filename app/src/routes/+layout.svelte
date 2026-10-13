@@ -7,7 +7,10 @@
 	narrow screen the lot's color mode and bulk switch give way to it. In a lot, the set open in
 	the URL (`?set=`) shows in a sheet beside whichever page it is on, which
 	narrows to make room. A
-	picture seen up close shows in the Lightbox over everything.
+	picture seen up close shows in the Lightbox over everything. While an
+	answer takes more than a moment, the bar says what is updating; coming
+	back to a page (Back, a reload) returns to where it was scrolled, even
+	when its answers are slow to come (docs/loading-data.md).
 -->
 <script lang="ts">
 	import '../app.css';
@@ -27,8 +30,16 @@
 	import Lightbox from '$lib/components/Lightbox.svelte';
 	import { unzoom, zoomed } from '$lib/pile/zoom.svelte';
 	import { view } from '$lib/view.svelte';
+	import Updating from '$lib/data/Updating.svelte';
+	import { resumeAt } from '$lib/data/place';
+	import type { Snapshot } from '@sveltejs/kit';
 
 	let { children } = $props();
+
+	export const snapshot: Snapshot<number> = {
+		capture: () => scrollY,
+		restore: (y) => resumeAt(y)
+	};
 	let finding = $state(false);
 
 	// The / key opens Find pieces, unless it is typed into a field.
@@ -59,6 +70,7 @@
 	<TopBar {items} collapse="sm">
 		{#snippet brand()}<Wordmark name="Pile" href="/" />{/snippet}
 		{#snippet end()}
+			<Updating />
 			{#if lot}
 				<div class="hidden items-center gap-2 md:flex">
 					<label class="flex items-center gap-2 text-sm whitespace-nowrap text-ink-muted">

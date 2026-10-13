@@ -3,19 +3,20 @@
 	or any color, and the sort-out queue): the queue, the sets that are all
 	there, the ones nearly there, the ones half there, the ones the pieces most likely came from,
 	the custom models it can build, and the minifigure and tiny sets last.
-	While a new view loads, the last one stays on screen; one already seen
-	this visit draws at once, so coming back lands where it was scrolled.
+	While a new view loads, the last one stays on screen and the reader's
+	place holds when it lands; one already seen this visit draws at once
+	(docs/loading-data.md).
 -->
 <script lang="ts">
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import type { GetLotResponse } from '$lib/gen/pile/v1/pile_pb';
-	import { lotAnswers } from '$lib/api';
+	import { sources } from '$lib/api';
+	import { query } from '$lib/data/query.svelte';
+	import Loaded from '$lib/data/Loaded.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Panel from '$lib/components/Panel.svelte';
 	import Stat from '$lib/components/Stat.svelte';
 	import Disclosure from '$lib/components/Disclosure.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
-	import Alert from '$lib/components/Alert.svelte';
 	import Distribution from '$lib/pile/Distribution.svelte';
 	import SetSection from '$lib/pile/SetSection.svelte';
 	import SetGrid from '$lib/pile/SetGrid.svelte';
@@ -24,60 +25,39 @@
 	import { count, dayOf } from '$lib/format';
 	import { lotId, view } from '$lib/view.svelte';
 
-	let data = $state<GetLotResponse | null>(lotAnswers.peek({ view: view.forLot(lotId()) }) ?? null);
-	let loading = $state(false);
-	let error = $state<string | null>(null);
 	const lot = $derived(lotId());
-
-	$effect(() => {
-		const req = { view: view.forLot(lot) };
-		const had = lotAnswers.peek(req);
-		if (had) {
-			data = had;
-			loading = false;
-			return;
-		}
-		loading = true;
-		let stale = false;
-		lotAnswers.get(req).then(
-			(r) => {
-				if (stale) return;
-				data = r;
-				loading = false;
-			},
-			(e) => (error = String(e))
-		);
-		return () => (stale = true);
-	});
-
-	const l = $derived(data?.lot);
+	const answer = query(
+		sources.lot,
+		() => ({ view: view.forLot(lot) }),
+		(r) => r.view?.lotId
+	);
 </script>
 
 <div class="flex items-center gap-1 text-sm text-ink-muted">
 	<a href="/" class="hover:text-ink">Collection</a>
 	<ChevronRight size={14} />
-	<LotMenu {lot} name={l?.name ?? lot} />
+	<LotMenu {lot} name={answer.data?.lot?.name ?? lot} />
 </div>
 
-{#if error}
-	<Alert tone="danger" title="The lot did not load">{error}</Alert>
-{:else if !data || !l}
-	<div aria-busy="true" class="flex flex-col gap-3">
-		<Skeleton class="h-10 w-80" /><Skeleton class="h-24 w-full" /><Skeleton class="h-96 w-full" />
-	</div>
-{:else}
-	<PageHeader title={l.name} description={l.description}>
-		<p class="text-xs text-ink-faint">
-			Sorted {dayOf(l.firstSeenUnix)} to {dayOf(l.lastSeenUnix)}{l.machineName
-				? ` on ${l.machineName}`
-				: ''}. {view.anyColor
-				? 'Any color: a piece of the right part in another color counts, and each set says how many would be a recolor.'
-				: 'Exact colors: a set counts only pieces of the right part in the right color.'} Printed parts,
-			stickers, minifigures and their parts are left out of every count.
-		</p>
-	</PageHeader>
+<Loaded query={answer} what="The lot" class="flex flex-col gap-(--gap-panels)">
+	{#snippet waiting()}
+		<div class="flex flex-col gap-3">
+			<Skeleton class="h-10 w-80" /><Skeleton class="h-24 w-full" /><Skeleton class="h-96 w-full" />
+		</div>
+	{/snippet}
+	{#snippet children(data)}
+		{@const l = data.lot!}
+		<PageHeader title={l.name} description={l.description}>
+			<p class="text-xs text-ink-faint">
+				Sorted {dayOf(l.firstSeenUnix)} to {dayOf(l.lastSeenUnix)}{l.machineName
+					? ` on ${l.machineName}`
+					: ''}. {view.anyColor
+					? 'Any color: a piece of the right part in another color counts, and each set says how many would be a recolor.'
+					: 'Exact colors: a set counts only pieces of the right part in the right color.'} Printed parts,
+				stickers, minifigures and their parts are left out of every count.
+			</p>
+		</PageHeader>
 
-	<div class="flex flex-col gap-(--gap-panels) transition-opacity {loading ? 'opacity-60' : ''}">
 		<Panel flush>
 			<div class="grid grid-cols-2 divide-line md:grid-cols-5 md:divide-x">
 				<Stat label="Pieces" value={count(l.pieces)} hint="{count(l.partColors)} parts in a color" />
@@ -144,5 +124,5 @@
 				</div>
 			</Panel>
 		{/if}
-	</div>
-{/if}
+	{/snippet}
+</Loaded>

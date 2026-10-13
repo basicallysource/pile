@@ -3,33 +3,29 @@
 	like this lot, takes to come across every piece of a set, in exact colors,
 	near colors (the old and new grays and browns as one) and any color. The
 	server works it out from the lot's data at start, a set at a time, so the
-	page asks again every few seconds while anything is on its way. A set
-	added here is timed too and remembered in this browser. The last answer
-	for each lot is kept for the visit, so coming back draws it at once.
+	page asks again every few seconds while anything is on its way (its
+	source is not settled until then: docs/loading-data.md). A set added here is
+	timed too and remembered in this browser.
 -->
-<script lang="ts" module>
-	import type { GetCollectTimesResponse } from '$lib/gen/pile/v1/pile_pb';
-	const last = new Map<string, GetCollectTimesResponse>();
-</script>
 
 <script lang="ts">
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Plus from '@lucide/svelte/icons/plus';
 	import type { CollectTime, SetCollectTimes } from '$lib/gen/pile/v1/pile_pb';
-	import { pile } from '$lib/api';
+	import { sources } from '$lib/api';
+	import { query } from '$lib/data/query.svelte';
+	import Loaded from '$lib/data/Loaded.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Panel from '$lib/components/Panel.svelte';
 	import Input from '$lib/components/Input.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
-	import Alert from '$lib/components/Alert.svelte';
 	import PartImage from '$lib/components/PartImage.svelte';
 	import { zoomsTo } from '$lib/pile/zoom.svelte';
 	import { count, dayOf, dayTimeOf } from '$lib/format';
 	import { span, hoursOf } from '$lib/pile/hours';
 	import { lotId } from '$lib/view.svelte';
-	import { untrack } from 'svelte';
 
 	const KEY = 'pile-collect-extra';
 	function loadExtra(): string[] {
@@ -43,35 +39,16 @@
 
 	const lot = $derived(lotId());
 	let extra = $state<string[]>(loadExtra());
-	const asked = (lot: string, extra: string[]) => JSON.stringify([lot, extra]);
-	let data = $state<GetCollectTimesResponse | null>(untrack(() => last.get(asked(lotId(), extra))) ?? null);
-	let error = $state<string | null>(null);
 	let adding = $state('');
 	let open = $state<string | null>(null);
 
-	const waiting = $derived(!data || data.fittedUnix === 0n || data.sets.some((s) => s.pending));
-
-	$effect(() => {
-		const ask = { lotId: lot, extra: [...extra] };
-		let stop = false;
-		let timer: ReturnType<typeof setTimeout>;
-		const load = () =>
-			pile.getCollectTimes(ask).then(
-				(r) => {
-					if (stop) return;
-					data = r;
-					last.set(asked(ask.lotId, ask.extra), r);
-					error = null;
-					if (r.fittedUnix === 0n || r.sets.some((s) => s.pending)) timer = setTimeout(load, 4000);
-				},
-				(e) => (error = String(e))
-			);
-		load();
-		return () => {
-			stop = true;
-			clearTimeout(timer);
-		};
-	});
+	const times = query(
+		sources.collectTimes,
+		() => ({ lotId: lot, extra: [...extra] }),
+		(r) => r.lotId
+	);
+	const data = $derived(times.data);
+	const working = $derived(!data || !sources.collectTimes.final(data));
 
 	function add(event: SubmitEvent) {
 		event.preventDefault();
@@ -178,66 +155,67 @@
 	{/if}
 </PageHeader>
 
-{#if error}
-	<Alert tone="danger" title="The times did not load">{error}</Alert>
-{:else if !data}
-	<Skeleton class="h-96 w-full" />
-{:else if data.fittedUnix === 0n}
-	<Panel>
-		<div class="flex items-center gap-3 text-sm text-ink-muted">
-			<Spinner /> Working out this lot's mix of pieces. The times follow in a minute or two.
-		</div>
-	</Panel>
-{:else}
-	<Panel flush>
-		<div class="overflow-x-auto">
-			<table class="data-table">
-				<thead>
-					<tr>
-						<th rowspan="2">Set</th>
-						<th rowspan="2" class="num">Pieces</th>
-						{#each modes as m (m.key)}<th colspan="2" class="text-center">{m.label}</th>{/each}
-					</tr>
-					<tr>
-						{#each modes as m (m.key)}<th class="num">90%</th><th class="num">Every piece</th>{/each}
-					</tr>
-				</thead>
-				<tbody>
-					{#each data.sets as s (s.setNum)}
-						<tr class="is-link" onclick={() => (open = open === s.setNum ? null : s.setNum)}>
-							<td>
-								<div class="flex items-center gap-3">
-									<ChevronRight size={14} class="shrink-0 text-ink-faint transition-transform {open === s.setNum ? 'rotate-90' : ''}" />
-									<PartImage src={s.imageUrl} onzoom={zoomsTo(`${s.name}, ${s.setNum}`)} class="size-10 shrink-0" />
-									<div class="min-w-0">
-										<div class="truncate">{s.name || s.setNum}</div>
-										<div class="text-xs text-ink-faint">{s.setNum}{s.year ? ` · ${s.year}` : ''}{s.theme ? ` · ${s.theme}` : ''}</div>
-									</div>
-								</div>
-							</td>
-							{#if s.unknown}
-								<td colspan="7" class="text-ink-muted">No such set with counted pieces in the catalog.</td>
-							{:else if s.pending}
-								<td class="num text-ink-faint">…</td>
-								<td colspan="6" class="text-ink-faint"><span class="inline-flex items-center gap-2"><Spinner size={14} /> On its way</span></td>
-							{:else}
-								<td class="num">{count(s.pieces)}</td>
-								{@render cell(s.exact)}
-								{@render cell(s.near)}
-								{@render cell(s.any)}
-							{/if}
-						</tr>
-						{#if open === s.setNum && !s.pending && !s.unknown}
-							<tr><td colspan="8" class="p-0">{@render detail(s)}</td></tr>
-						{/if}
-					{/each}
-				</tbody>
-			</table>
-		</div>
-	</Panel>
-	<p class="text-xs text-ink-faint">
-		90% is when nine in ten of the set's pieces are expected to have come through; every piece is the median time to
-		the last one, and hangs on its rarest pieces, often ones these records never had, whose share is estimated from
-		how much LEGO used them. Open a set for the ranges and the pieces that hold it up.{waiting ? ' Still working out the rest.' : ''}
-	</p>
-{/if}
+<Loaded query={times} what="The times" class="flex flex-col gap-(--gap-panels)">
+	{#snippet waiting()}<Skeleton class="h-96 w-full" />{/snippet}
+	{#snippet children(data)}
+		{#if data.fittedUnix === 0n}
+			<Panel>
+				<div class="flex items-center gap-3 text-sm text-ink-muted">
+					<Spinner /> Working out this lot's mix of pieces. The times follow in a minute or two.
+				</div>
+			</Panel>
+		{:else}
+			<Panel flush>
+				<div class="overflow-x-auto">
+					<table class="data-table">
+						<thead>
+							<tr>
+								<th rowspan="2">Set</th>
+								<th rowspan="2" class="num">Pieces</th>
+								{#each modes as m (m.key)}<th colspan="2" class="text-center">{m.label}</th>{/each}
+							</tr>
+							<tr>
+								{#each modes as m (m.key)}<th class="num">90%</th><th class="num">Every piece</th>{/each}
+							</tr>
+						</thead>
+						<tbody>
+							{#each data.sets as s (s.setNum)}
+								<tr class="is-link" onclick={() => (open = open === s.setNum ? null : s.setNum)}>
+									<td>
+										<div class="flex items-center gap-3">
+											<ChevronRight size={14} class="shrink-0 text-ink-faint transition-transform {open === s.setNum ? 'rotate-90' : ''}" />
+											<PartImage src={s.imageUrl} onzoom={zoomsTo(`${s.name}, ${s.setNum}`)} class="size-10 shrink-0" />
+											<div class="min-w-0">
+												<div class="truncate">{s.name || s.setNum}</div>
+												<div class="text-xs text-ink-faint">{s.setNum}{s.year ? ` · ${s.year}` : ''}{s.theme ? ` · ${s.theme}` : ''}</div>
+											</div>
+										</div>
+									</td>
+									{#if s.unknown}
+										<td colspan="7" class="text-ink-muted">No such set with counted pieces in the catalog.</td>
+									{:else if s.pending}
+										<td class="num text-ink-faint">…</td>
+										<td colspan="6" class="text-ink-faint"><span class="inline-flex items-center gap-2"><Spinner size={14} /> On its way</span></td>
+									{:else}
+										<td class="num">{count(s.pieces)}</td>
+										{@render cell(s.exact)}
+										{@render cell(s.near)}
+										{@render cell(s.any)}
+									{/if}
+								</tr>
+								{#if open === s.setNum && !s.pending && !s.unknown}
+									<tr><td colspan="8" class="p-0">{@render detail(s)}</td></tr>
+								{/if}
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			</Panel>
+			<p class="text-xs text-ink-faint">
+				90% is when nine in ten of the set's pieces are expected to have come through; every piece is the median time to
+				the last one, and hangs on its rarest pieces, often ones these records never had, whose share is estimated from
+				how much LEGO used them. Open a set for the ranges and the pieces that hold it up.{working ? ' Still working out the rest.' : ''}
+			</p>
+		{/if}
+	{/snippet}
+</Loaded>
