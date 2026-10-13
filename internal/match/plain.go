@@ -34,6 +34,9 @@ func (ix *Index) judgePlain() {
 		var plain int32
 		var ws []float64
 		for _, l := range e.Lines {
+			if !DefaultCounting.Counts(l.Class) {
+				continue
+			}
 			if p := ix.cat.Parts[ix.nums[l.Part]]; p != nil && plainCategories[p.Category] {
 				plain += l.Quantity
 			}

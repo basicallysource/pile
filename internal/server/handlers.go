@@ -153,14 +153,14 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 		out.Set = setMatch(w.queue[w.place[set.Num]-1])
 		found, drawn = f, w.drawn[set.Num]
 	} else {
-		m, f := s.index.Score(e, w.left.Sum, w.anyColor)
+		m, f := s.index.Score(e, w.left.Sum, w.anyColor, w.counting)
 		m.Pick = w.stack.picks[set.Num]
 		out.Set, found, drawn = setMatch(m), f, w.left.Sources(e, w.anyColor)
 		out.Place = w.placeOf(m)
-		o, _ := s.index.Score(e, w.left.Sum, !w.anyColor)
+		o, _ := s.index.Score(e, w.left.Sum, !w.anyColor, w.counting)
 		o.Pick = m.Pick
 		out.OtherColors = setMatch(o)
-		out.OtherPlace = (&view{anyColor: !w.anyColor, filter: w.filter, starred: w.starred, place: w.place}).placeOf(o)
+		out.OtherPlace = (&view{anyColor: !w.anyColor, counting: w.counting, filter: w.filter, starred: w.starred, place: w.place}).placeOf(o)
 		out.HiddenBy = w.hiddenBy(m)
 	}
 	if w.place[set.Num] > 0 {
@@ -175,17 +175,13 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 		exactLeft[i], otherLeft[i], lotsLeft[i] = found.Exact[i], found.Other[i], drawn[i]
 	}
 	for _, l := range set.Lines {
-		line := &pilev1.SetLine{PartNum: l.Part, Color: color(s.cat.Colors[l.Color]), Need: l.Quantity, ImageUrl: l.ImageURL, Counting: pilev1.Counting_COUNTING_COUNTED}
+		line := &pilev1.SetLine{PartNum: l.Part, Color: color(s.cat.Colors[l.Color]), Need: l.Quantity, ImageUrl: l.ImageURL}
+		var class catalog.Class
 		if part := s.cat.Parts[l.Part]; part != nil {
-			line.Name = part.Name
-			switch part.Counting {
-			case catalog.Printed:
-				line.Counting = pilev1.Counting_COUNTING_PRINTED
-			case catalog.FigurePart:
-				line.Counting = pilev1.Counting_COUNTING_MINIFIGURE
-			}
+			line.Name, class = part.Name, part.Class
 		}
-		if line.Counting == pilev1.Counting_COUNTING_COUNTED && e != nil {
+		line.Class, line.Counted = partClass[class], w.counting.Counts(class)
+		if e != nil {
 			if i := s.index.LineOf(e, l.Part, l.Color); i >= 0 {
 				x := min(exactLeft[i], l.Quantity)
 				o := min(otherLeft[i], l.Quantity-x)

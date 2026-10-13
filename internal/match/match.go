@@ -12,7 +12,11 @@
 // and the rest are counted as wrong-color). A part stands for its mold
 // variants and alternates, which look alike to a camera.
 //
-// Index holds every set's counted lines, built once from the catalog. Pile
+// Each line of a set has a class (plain, printed, minifigure part,
+// accessory); a view's Counting says which count toward completeness. One
+// that does not is still found, and taken with its set.
+//
+// Index holds every set's lines, built once from the catalog. Pile
 // holds a lot's pieces; Take takes a set's pieces out of it, so a sort-out
 // queue leaves a smaller pile for everything after it. Stack is several
 // lots' piles in priority order and their sum: sets are matched against the

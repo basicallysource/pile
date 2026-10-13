@@ -62,6 +62,10 @@ import (
 	"github.com/basicallysource/pile/internal/records"
 )
 
+// counted is what the times count: plain parts only. Printed parts,
+// stickers and every minifigure part, accessories too, are left out.
+var counted = match.Counting{}
+
 // Mode is how strictly a piece must match a set's line.
 type Mode int
 
@@ -174,6 +178,9 @@ func NewCatalog(cat *catalog.Catalog, ix *match.Index, sizes map[string]Size) *C
 		}
 		seen := map[int32]bool{}
 		for _, l := range e.Lines {
+			if !counted.Counts(l.Class) {
+				continue
+			}
 			if !seen[l.Part] {
 				seen[l.Part] = true
 				c.setsWith[l.Part]++
@@ -314,7 +321,7 @@ func (c *Catalog) prior() (map[Key]float64, map[Key]float64) {
 		}
 		in := map[Key]bool{}
 		for _, l := range e.Lines {
-			if c.Why(l.Part) != "" {
+			if !counted.Counts(l.Class) || c.Why(l.Part) != "" {
 				continue
 			}
 			k := Key{l.Part, l.Color}

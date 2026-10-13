@@ -39,9 +39,11 @@
 	const notes = $derived(
 		[
 			set.wrongColor && `${set.wrongColor} in another color`,
-			set.printedParts && `${set.printedParts} printed not counted`,
+			set.printedParts && `${set.printedParts} printed${view.counting.printed ? '' : ' not counted'}`,
 			set.minifigures && `${set.minifigures} minifigure${set.minifigures === 1 ? '' : 's'}`,
-			set.minifigureParts && `${set.minifigureParts} figure parts not counted`,
+			set.minifigureParts &&
+				`${set.minifigureParts} figure parts${view.counting.figureParts ? '' : ' not counted'}`,
+			set.accessories && `${set.accessories} accessories${view.counting.accessories ? '' : ' not counted'}`,
 			set.sameContents.length && `also sold as ${set.sameContents.join(', ')}`
 		]
 			.filter(Boolean)

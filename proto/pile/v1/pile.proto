@@ -50,6 +50,22 @@ message View {
   repeated string sort_out = 3;
   // Which sets and custom models are listed.
   Filter filter = 4;
+  // Which kinds of part count toward a set's completeness. Unset:
+  // accessories count, printed parts and minifigure parts do not.
+  Counting counting = 5;
+}
+
+// Which kinds of part count toward a set's completeness, a plain part
+// always. A part that does not count is still found, and sorted out with its
+// set.
+message Counting {
+  // Printed parts and stickers.
+  bool printed = 1;
+  // Minifigure body parts: heads, torsos and arms, legs, hair and hats.
+  bool figure_parts = 2;
+  // What Rebrickable files under minifig accessories and shields, weapons
+  // and tools: taps, cups, life rings, wrenches.
+  bool accessories = 3;
 }
 
 // Which sets and custom models a view lists; the rest are hidden, except
@@ -214,6 +230,8 @@ message SetMatch {
   bool mostly_basic = 25;
   bool few_parts = 26;
   bool nothing_unusual = 27;
+  // Minifigure accessories in it.
+  int32 accessories = 28;
 }
 
 // The first sets of a section, and how many it has.
@@ -323,14 +341,16 @@ message GetSetRequest {
   string set_num = 2;
 }
 
-// Whether a part counts toward completeness.
-enum Counting {
-  COUNTING_UNSPECIFIED = 0;
-  COUNTING_COUNTED = 1;
-  // A printed part or a sticker: shown, not counted.
-  COUNTING_PRINTED = 2;
-  // A minifigure part (head, torso, legs, hair, hat, a figure's tool): shown, not counted.
-  COUNTING_MINIFIGURE = 3;
+// What kind of part a set's line is, for what counts toward completeness.
+enum PartClass {
+  PART_CLASS_UNSPECIFIED = 0;
+  PART_CLASS_PLAIN = 1;
+  // A printed part or a sticker.
+  PART_CLASS_PRINTED = 2;
+  // A minifigure body part: a head, torso or arm, legs, hair or a hat.
+  PART_CLASS_FIGURE = 3;
+  // A minifigure accessory, shield, weapon or tool: a tap, a cup, a wrench.
+  PART_CLASS_ACCESSORY = 4;
 }
 
 message SetLine {
@@ -339,14 +359,16 @@ message SetLine {
   Color color = 3;
   int32 need = 4;
   // Pieces of this part (or a mold variant) found for this line, up to `need`:
-  // in its color, or in an any-color view in any color.
+  // in its color, or in an any-color view in any color. Counted or not.
   int32 found = 5;
   // Of `found`, the pieces in another color.
   int32 wrong_color = 6;
   string image_url = 7;
-  Counting counting = 8;
+  PartClass class = 8;
   // The lots `found` is drawn from, in the view's order.
   repeated LotCount lots = 9;
+  // Whether the view counts it toward the set's completeness.
+  bool counted = 10;
 }
 
 message Minifigure {

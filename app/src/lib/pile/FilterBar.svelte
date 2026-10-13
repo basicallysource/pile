@@ -4,13 +4,15 @@
 	preset first (Interesting, the default, hides loose bricks and basic
 	sets; Models hides only loose bricks; Everything hides nothing; none is
 	marked when the rules are the reader's own), then the rules it sets,
-	each its own switch with what it hides, then a theme, a
+	each its own switch with what it hides, what counts toward a set's
+	completeness (docs/views.md#counting), then a theme, a
 	size, the kind, licensed only and starred only, and whether sets are
 	grouped by theme.
 	It sits in a flush Panel's head, as a row that wraps.
 -->
 <script lang="ts">
 	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
+	import ListChecks from '@lucide/svelte/icons/list-checks';
 	import { Kind, type ThemeCount } from '$lib/gen/pile/v1/pile_pb';
 	import Button from '$lib/components/Button.svelte';
 	import Popover from '$lib/components/Popover.svelte';
@@ -20,6 +22,7 @@
 	import { count } from '$lib/format';
 	import { presets, view, type Filter, type Preset } from '$lib/view.svelte';
 	import { rules } from './rules';
+	import { classes, leftOut } from './counting';
 
 	let { themes }: { themes: ThemeCount[] } = $props();
 
@@ -64,6 +67,35 @@
 				</li>
 			{/each}
 		</ul>
+	</Popover>
+	<Popover label="What counts" width="26rem">
+		{#snippet trigger(props)}
+			<Button {...props} size="sm" variant="ghost" icon={ListChecks}
+				>{leftOut(view.counting) ? 'Not counting some parts' : 'Counting every part'}</Button
+			>
+		{/snippet}
+		<div class="flex flex-col gap-3">
+			<p class="text-xs text-ink-muted">
+				A plain part always counts toward how complete a set is. These count only when switched on;
+				when they do not, they are still found and sorted out with their set, and each set's panel shows
+				them apart. Whole minifigures are always apart.
+			</p>
+			<ul class="flex flex-col gap-3">
+				{#each classes as k (k.key)}
+					<li class="flex items-start justify-between gap-4">
+						<div class="min-w-0">
+							<p class="text-sm font-medium text-ink">{k.name}</p>
+							<p class="text-xs text-ink-muted">{k.is}</p>
+						</div>
+						<Switch
+							label="Count {k.short}"
+							checked={view.counting[k.key]}
+							onchange={(v) => view.setCounting({ [k.key]: v })}
+						/>
+					</li>
+				{/each}
+			</ul>
+		</div>
 	</Popover>
 	<Select
 		label="Theme"

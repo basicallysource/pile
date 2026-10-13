@@ -16,9 +16,10 @@ import (
 type view struct {
 	stack    *stack
 	anyColor bool
+	counting match.Counting
 	filter   *pilev1.Filter
 	starred  map[string]bool // with the filter's starred only
-	queue    []*match.Match // the sort-out queue, each against what came before it
+	queue    []*match.Match  // the sort-out queue, each against what came before it
 	found    map[string]match.Found
 	drawn    map[string]match.Drawn // where each queued set's pieces come from
 	place    map[string]int         // set number to its place in the queue, from 1
@@ -38,7 +39,11 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 	if filter == nil {
 		filter = &pilev1.Filter{}
 	}
-	w := &view{stack: st, anyColor: v.AnyColor, filter: filter, starred: map[string]bool{}, place: map[string]int{}, found: map[string]match.Found{}, drawn: map[string]match.Drawn{}, left: st.piles}
+	counting := match.DefaultCounting
+	if c := v.Counting; c != nil {
+		counting = match.Counting{Printed: c.Printed, Figure: c.FigureParts, Accessory: c.Accessories}
+	}
+	w := &view{stack: st, anyColor: v.AnyColor, counting: counting, filter: filter, starred: map[string]bool{}, place: map[string]int{}, found: map[string]match.Found{}, drawn: map[string]match.Drawn{}, left: st.piles}
 	if filter.StarredOnly {
 		w.starred = s.stars.Has()
 	}
@@ -50,13 +55,13 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 		if e == nil || w.place[num] > 0 {
 			continue
 		}
-		m, f := s.index.Score(e, w.left.Sum, w.anyColor)
+		m, f := s.index.Score(e, w.left.Sum, w.anyColor, w.counting)
 		w.found[num] = f
 		w.drawn[num] = w.left.Take(e, w.anyColor)
 		w.queue = append(w.queue, m)
 		w.place[num] = len(w.queue)
 	}
-	w.scores = s.index.ScoreAll(w.left.Sum, w.anyColor)
+	w.scores = s.index.ScoreAll(w.left.Sum, w.anyColor, w.counting)
 	for _, m := range w.scores {
 		m.Pick = st.picks[m.Set.Num]
 	}

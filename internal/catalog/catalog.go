@@ -26,20 +26,39 @@ type Part struct {
 	Num      string
 	Name     string
 	Category string
-	Counting Counting
+	Class    Class
 }
 
-// Counting says whether a part counts toward a set's completeness.
-type Counting int
+// Class is the kind of part, for what counts toward a set's completeness
+// (match.Counting says which do).
+type Class int
 
 const (
-	Counted Counting = iota
-	// Printed parts and stickers: a sorter cannot be expected to find them.
+	Plain Class = iota
+	// Printed parts and stickers: a sorter rarely sees one as its own part.
 	Printed
-	// Minifigure parts (heads, torsos, legs, hair, hats, the figures' tools):
-	// a set is complete without its figures.
+	// Minifigure body parts: heads, torsos and arms, legs, hair and hats,
+	// what is worn at the hip or neck.
 	FigurePart
+	// What Rebrickable files under minifig accessories and their shields,
+	// weapons and tools: taps, cups, life rings, wrenches. Often part of the
+	// build.
+	Accessory
 )
+
+// The minifig categories of each class, by Rebrickable's names.
+var figureCategories = map[string]Class{
+	"Minifigs":                          FigurePart,
+	"Minifig Heads":                     FigurePart,
+	"Minifig Upper Body":                FigurePart,
+	"Minifig Lower Body":                FigurePart,
+	"Minifig Headwear":                  FigurePart,
+	"Minifig Headwear Accessories":      FigurePart,
+	"Minifig Hipwear":                   FigurePart,
+	"Minifig Neckwear":                  FigurePart,
+	"Minifig Accessories":               Accessory,
+	"Minifig Shields, Weapons, & Tools": Accessory,
+}
 
 type Line struct {
 	Part     string
@@ -202,9 +221,12 @@ func (c *Catalog) loadParts(dir string) error {
 		p := &Part{Num: row("part_num"), Name: row("name"), Category: cat}
 		switch {
 		case cat == "Stickers":
-			p.Counting = Printed
+			p.Class = Printed
 		case strings.HasPrefix(cat, "Minifig"):
-			p.Counting = FigurePart
+			p.Class = FigurePart
+			if c, ok := figureCategories[cat]; ok {
+				p.Class = c
+			}
 		}
 		c.Parts[p.Num] = p
 		return nil
@@ -229,8 +251,8 @@ func (c *Catalog) loadRelationships(dir string) error {
 		child, par := row("child_part_num"), row("parent_part_num")
 		switch row("rel_type") {
 		case "P":
-			if p := c.Parts[child]; p != nil && p.Counting == Counted {
-				p.Counting = Printed
+			if p := c.Parts[child]; p != nil && p.Class == Plain {
+				p.Class = Printed
 			}
 		case "M", "A":
 			a, b := find(child), find(par)

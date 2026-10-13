@@ -11,19 +11,45 @@ import (
 	"github.com/basicallysource/pile/internal/catalog"
 )
 
-// Line is one counted line of a set: a part (by index id) in a color.
+// Line is one line of a set: a part (by index id) in a color, and its class.
 type Line struct {
 	Part, Color, Quantity int32
+	Class                 catalog.Class
+}
+
+// Counting is which classes of part count toward a set's completeness, a
+// plain part always. A part that does not count is still found, and sorted
+// out with its set.
+type Counting struct{ Printed, Figure, Accessory bool }
+
+// DefaultCounting counts accessories (often part of the build), not printed
+// parts, stickers or minifigure body parts.
+var DefaultCounting = Counting{Accessory: true}
+
+// Counts is whether c counts a part of class cl.
+func (c Counting) Counts(cl catalog.Class) bool {
+	switch cl {
+	case catalog.Printed:
+		return c.Printed
+	case catalog.FigurePart:
+		return c.Figure
+	case catalog.Accessory:
+		return c.Accessory
+	}
+	return true
 }
 
 // Entry is a set or custom model as matching sees it.
 type Entry struct {
 	Set *catalog.Set
-	// Counted lines, one per part and color.
+	// Every line, one per part and color.
 	Lines []Line
-	Need  int32
-	// Left out of Need.
-	Printed, FigureParts, Minifigures int32
+	// The pieces DefaultCounting counts, which what is judged once per set
+	// rests on (its rarity, whether it is basic or loose bricks); a Match
+	// counts by its view.
+	Need int32
+	// Pieces of each class but plain, and whole minifigures.
+	Printed, FigureParts, Accessories, Minifigures int32
 	// Basically a minifigure: its figures (about four pieces each) and loose
 	// figure parts outweigh its counted pieces.
 	MinifigureSet bool
@@ -65,28 +91,37 @@ func NewIndex(cat *catalog.Catalog) *Index {
 	for _, s := range cat.Sets {
 		e := &Entry{Set: s}
 		qty := map[uint64]int32{}
+		class := map[uint64]catalog.Class{}
 		for _, l := range s.Lines {
+			var cl catalog.Class
 			if p := cat.Parts[l.Part]; p != nil {
-				switch p.Counting {
-				case catalog.Printed:
-					e.Printed += l.Quantity
-					continue
-				case catalog.FigurePart:
-					e.FigureParts += l.Quantity
-					continue
-				}
+				cl = p.Class
 			}
-			qty[key(ix.Part(l.Part), l.Color)] += l.Quantity
+			switch cl {
+			case catalog.Printed:
+				e.Printed += l.Quantity
+			case catalog.FigurePart:
+				e.FigureParts += l.Quantity
+			case catalog.Accessory:
+				e.Accessories += l.Quantity
+			}
+			k := key(ix.Part(l.Part), l.Color)
+			if _, ok := class[k]; !ok {
+				class[k] = cl
+			}
+			qty[k] += l.Quantity
 		}
 		for _, f := range s.Minifigures {
 			e.Minifigures += f.Quantity
 		}
-		if len(qty) == 0 {
-			continue
-		}
 		for k, q := range qty {
-			e.Lines = append(e.Lines, Line{Part: int32(k >> 32), Color: int32(uint32(k)), Quantity: q})
-			e.Need += q
+			e.Lines = append(e.Lines, Line{Part: int32(k >> 32), Color: int32(uint32(k)), Quantity: q, Class: class[k]})
+			if DefaultCounting.Counts(class[k]) {
+				e.Need += q
+			}
+		}
+		if e.Need == 0 {
+			continue
 		}
 		slices.SortFunc(e.Lines, func(a, b Line) int {
 			if a.Part != b.Part {
@@ -101,7 +136,8 @@ func NewIndex(cat *catalog.Catalog) *Index {
 	}
 	ix.dedupe()
 
-	// Weights come from the sets LEGO sold, each distinct contents once.
+	// Weights come from the sets LEGO sold, each distinct contents once,
+	// every line of them, so a part counted only by some views has one too.
 	dfExact := map[uint64]int{}
 	dfAny := map[int32]int{}
 	n := 0
@@ -131,6 +167,9 @@ func NewIndex(cat *catalog.Catalog) *Index {
 		parts := map[int32]bool{}
 		var w float64
 		for _, l := range e.Lines {
+			if !DefaultCounting.Counts(l.Class) {
+				continue
+			}
 			parts[l.Part] = true
 			w += float64(l.Quantity) * ix.weight(l, false)
 		}

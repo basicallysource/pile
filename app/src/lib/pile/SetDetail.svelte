@@ -1,22 +1,27 @@
 <!--
-	One set or custom model against the lots, as its sheet's body: how
-	complete it is, and every line with what was found for it (in an
-	any-color view, how many of those are another color; with several lots,
-	which lots they are in, first first). In the sort-out queue it is counted
-	against what the sets before it left; otherwise against what the whole
-	queue leaves.
+	One set or custom model against the lots, as its sheet's body. First what
+	it is and where the overview shows it (or why not), then how complete it
+	is. Then its lines as small tiles, filled by how much of each was found,
+	in stacked groups: what is missing first, then what was found, then what
+	the view does not count toward completeness (still found, and sorted out
+	with it), then its whole minifigures. Each group shows its first rows and
+	opens to all of them. In the sort-out queue it is counted against what the
+	sets before it left; otherwise against what the whole queue leaves.
 -->
 <script lang="ts">
-	import { Counting, Kind, Place, type GetSetResponse, type SetLine } from '$lib/gen/pile/v1/pile_pb';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronUp from '@lucide/svelte/icons/chevron-up';
+	import { Kind, Place, type GetSetResponse, type SetLine } from '$lib/gen/pile/v1/pile_pb';
 	import Stat from '$lib/components/Stat.svelte';
-	import PartTile from '$lib/components/PartTile.svelte';
 	import PartImage from '$lib/components/PartImage.svelte';
-	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import Badge from '$lib/components/Badge.svelte';
+	import Button from '$lib/components/Button.svelte';
 	import { count, percent } from '$lib/format';
 	import { view } from '$lib/view.svelte';
 	import { zoomsTo } from './zoom.svelte';
 	import { hiddenAs } from './rules';
+	import { classes } from './counting';
+	import LineTile from './LineTile.svelte';
 
 	let {
 		detail,
@@ -27,18 +32,24 @@
 		names?: Record<string, string>;
 	} = $props();
 
-	type Show = 'all' | 'missing' | 'found';
-	let show = $state<Show>('all');
+	// How many tiles a group shows before it is opened: about two rows.
+	const FOLD = 20;
+	let opened = $state<Record<string, boolean>>({});
 
 	const set = $derived(detail.set!);
 	const custom = $derived(set.kind === Kind.CUSTOM);
-	const counted = $derived(detail.lines.filter((l) => l.counting === Counting.COUNTED));
-	const uncounted = $derived(detail.lines.filter((l) => l.counting !== Counting.COUNTED));
-	const lines = $derived(
-		counted
-			.filter((l) => (show === 'all' ? true : show === 'missing' ? l.found < l.need : l.found > 0))
-			.sort((a, b) => a.found / a.need - b.found / b.need)
+	const short = (l: SetLine) => l.need - l.found;
+	const counted = $derived(detail.lines.filter((l) => l.counted));
+	const missing = $derived(counted.filter((l) => l.found < l.need).sort((a, b) => short(b) - short(a)));
+	const found = $derived(counted.filter((l) => l.found >= l.need));
+	const uncounted = $derived(
+		detail.lines.filter((l) => !l.counted).sort((a, b) => short(b) - short(a))
 	);
+	const pieces = (ls: SetLine[], f: (l: SetLine) => number) => ls.reduce((n, l) => n + f(l), 0);
+	const kindsOut = $derived(
+		classes.filter((k) => !view.counting[k.key] && uncounted.some((l) => l.class === k.class))
+	);
+
 	const sectionName: Record<Place, string> = {
 		[Place.NONE]: '',
 		[Place.COMPLETE]: 'Complete',
@@ -65,15 +76,37 @@
 			s += ` In ${otherMode}, ${count(o.have)} are (${share(o.have, o.need)})${o.wrongColor ? `, ${count(o.wrongColor)} of them in another color` : ''}, and it shows under ${sectionName[detail.otherPlace]} with ${otherMode === 'any color' ? 'Any color' : 'Exact colors'} on.`;
 		return s;
 	});
-	const grid = 'grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-x-3 gap-y-4';
-	const caption = (l: SetLine) => `${l.name}${l.color ? `, ${l.color.name}` : ''}, ${l.partNum}`;
-	const tile = (l: SetLine) => ({
-		name: l.name,
-		partNum: l.partNum,
-		imgUrl: l.imageUrl,
-		color: l.color ? { name: l.color.name, rgb: l.color.rgb } : null
-	});
+	const tiles = 'grid grid-cols-[repeat(auto-fill,minmax(3.5rem,1fr))] gap-1';
 </script>
+
+{#snippet group(key: string, title: string, sentence: string, lines: SetLine[])}
+	{#if lines.length}
+		{@const open = opened[key] ?? false}
+		<section class="flex flex-col gap-2 border-b border-line px-5 py-4">
+			<div class="flex items-start justify-between gap-4">
+				<div class="min-w-0">
+					<h3 class="text-sm font-semibold">{title}</h3>
+					<p class="text-xs text-ink-muted">{sentence}</p>
+				</div>
+				{#if lines.length > FOLD}
+					<Button
+						size="sm"
+						variant="ghost"
+						icon={open ? ChevronUp : ChevronDown}
+						aria-expanded={open}
+						onclick={() => (opened = { ...opened, [key]: !open })}
+						>{open ? 'Fewer' : `All ${count(lines.length)}`}</Button
+					>
+				{/if}
+			</div>
+			<div class={tiles}>
+				{#each open ? lines : lines.slice(0, FOLD) as l (l.partNum + ':' + l.color?.id)}
+					<LineTile line={l} {names} />
+				{/each}
+			</div>
+		</section>
+	{/if}
+{/snippet}
 
 <section class="flex gap-4 border-b border-line p-5">
 	<PartImage src={set.imageUrl} onzoom={zoomsTo(`${set.name}, ${set.setNum}`)} class="size-28 shrink-0" />
@@ -94,72 +127,52 @@
 	<Stat
 		label="Complete"
 		value={percent(set.have / Math.max(1, set.need))}
-		hint="{count(set.have)} of {count(set.need)} pieces"
+		hint="{count(set.have)} of {count(set.need)} counted pieces"
 	/>
 	<Stat
 		label={view.anyColor ? 'In another color' : 'Of its rarer pieces'}
 		value={view.anyColor ? count(set.wrongColor) : percent(set.weightedCompleteness)}
 		hint={view.anyColor ? 'found, to recolor' : undefined}
 	/>
-	<Stat label="Printed parts and stickers" value={set.printedParts} hint="not counted" />
 	<Stat
-		label="Minifigures"
-		value={set.minifigures}
-		hint={set.minifigureParts ? `and ${set.minifigureParts} figure parts, not counted` : 'not counted'}
+		label="Not counted"
+		value={count(pieces(uncounted, (l) => l.need))}
+		hint="{count(pieces(uncounted, (l) => l.found))} of them found"
 	/>
+	<Stat label="Minifigures" value={set.minifigures} hint="whole, apart" />
 </section>
 
-<section class="flex flex-col gap-3 border-b border-line p-5">
-	<div class="flex items-center justify-between gap-4">
-		<h3 class="text-sm font-semibold">Inventory</h3>
-		<SegmentedControl
-			label="Show"
-			size="sm"
-			bind:value={show}
-			options={[
-				{ value: 'all', label: 'All' },
-				{ value: 'missing', label: 'Missing' },
-				{ value: 'found', label: 'Found' }
-			]}
-		/>
-	</div>
-	<div class={grid}>
-		{#each lines as l (l.partNum + ':' + l.color?.id)}
-			<PartTile layout="tile" {...tile(l)} onzoom={zoomsTo(caption(l))} quantity={l.need} found={l.found}>
-				{#if l.wrongColor}<span class="text-xs text-warning-ink">{l.wrongColor} in another color</span>{/if}
-				{#if names && l.lots.length}
-					<span class="text-xs text-ink-muted"
-						>{l.lots.map((c) => `${c.pieces} in ${names[c.lotId] ?? c.lotId}`).join(' · ')}</span
-					>
-				{/if}
-			</PartTile>
-		{:else}
-			<p class="col-span-full text-sm text-ink-muted">No lines to show.</p>
-		{/each}
-	</div>
-</section>
+{@render group(
+	'missing',
+	'Missing',
+	`${count(pieces(missing, short))} pieces in ${count(missing.length)} lines, the most missing first.`,
+	missing
+)}
+{@render group(
+	'found',
+	'Found',
+	`${count(pieces(found, (l) => l.need))} pieces in ${count(found.length)} lines, every piece of each.`,
+	found
+)}
+{@render group(
+	'uncounted',
+	'Not counted',
+	`${kindsOut.length ? kindsOut.map((k) => k.name.toLowerCase()).join(', ').replace(/^./, (c) => c.toUpperCase()) : 'Parts'}: left out of how complete it is (What counts, above the sets), and found or missing like the rest; what was found is sorted out with it.`,
+	uncounted
+)}
 
-{#if uncounted.length || detail.minifigures.length}
-	<section class="flex flex-col gap-3 p-5">
+{#if detail.minifigures.length}
+	<section class="flex flex-col gap-2 px-5 py-4">
 		<div>
-			<h3 class="text-sm font-semibold">Not counted</h3>
-			<p class="text-sm text-ink-muted">
-				Printed parts, stickers, minifigures and their parts: a set is complete without them.
-			</p>
+			<h3 class="text-sm font-semibold">Minifigures</h3>
+			<p class="text-xs text-ink-muted">Whole figures, apart from the count.</p>
 		</div>
-		<div class={grid}>
+		<div class={tiles}>
 			{#each detail.minifigures as f (f.figNum)}
-				<PartTile
-					layout="tile"
-					name={f.name}
-					partNum={f.figNum}
-					imgUrl={f.imageUrl}
-					onzoom={zoomsTo(f.name)}
-					quantity={f.quantity}
-				/>
-			{/each}
-			{#each uncounted as l (l.partNum + ':' + l.color?.id)}
-				<PartTile layout="tile" {...tile(l)} onzoom={zoomsTo(caption(l))} quantity={l.need} />
+				<div class="flex min-w-0 flex-col items-center gap-0.5 rounded-control bg-well p-1" title="{f.name}, {f.figNum}">
+					<PartImage src={f.imageUrl} onzoom={zoomsTo(f.name)} class="size-11" />
+					<span class="num text-xs leading-none text-ink">×{f.quantity}</span>
+				</div>
 			{/each}
 		</div>
 	</section>

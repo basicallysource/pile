@@ -1,14 +1,15 @@
 // How lots are being looked at (docs/views.md). The lots are the route's:
 // `/lots/big-box,goodwill-box` is a stack of two, in priority order, so a
 // link carries them. The rest is kept in the browser, so it lasts across
-// pages and reloads: any-color matching, the filter (which sets are listed,
+// pages and reloads: any-color matching, what counts toward a set's
+// completeness (docs/views.md#counting), the filter (which sets are listed,
 // docs/views.md#the-filter), whether sets are grouped by theme, and each
 // stack's sort-out queue (most wanted first). Every page reads it and the
 // server works from it.
 import { page } from '$app/state';
 import { Kind, type View } from './gen/pile/v1/pile_pb';
 import type { MessageInitShape } from '@bufbuild/protobuf';
-import type { FilterSchema, ViewSchema } from './gen/pile/v1/pile_pb';
+import type { CountingSchema, FilterSchema, ViewSchema } from './gen/pile/v1/pile_pb';
 
 const KEY = 'pile-view';
 
@@ -37,7 +38,18 @@ type Rules = (typeof presets)[Preset];
 // The filter a page opens with, until one is chosen.
 const fresh: Filter = { ...presets.interesting, kind: Kind.UNSPECIFIED, themeGroup: '', licensedOnly: false, minPieces: 0, starredOnly: false };
 
-type Saved = { anyColor: boolean; byTheme: boolean; filter: Filter; sortOut: Record<string, string[]> };
+// Which kinds of part count toward a set's completeness, a plain part
+// always; the rest are still found, and sorted out with their set.
+export type Counting = { printed: boolean; figureParts: boolean; accessories: boolean };
+export const defaultCounting: Counting = { printed: false, figureParts: false, accessories: true };
+
+type Saved = {
+	anyColor: boolean;
+	byTheme: boolean;
+	counting: Counting;
+	filter: Filter;
+	sortOut: Record<string, string[]>;
+};
 
 function load(): Saved {
 	try {
@@ -46,19 +58,21 @@ function load(): Saved {
 			return {
 				anyColor: !!s.anyColor,
 				byTheme: !!s.byTheme,
+				counting: { ...defaultCounting, ...(s.counting ?? {}) },
 				filter: { ...fresh, ...(s.filter ?? {}) },
 				sortOut: s.sortOut ?? {}
 			};
 	} catch {
 		// Nothing saved, or storage is off.
 	}
-	return { anyColor: false, byTheme: false, filter: fresh, sortOut: {} };
+	return { anyColor: false, byTheme: false, counting: defaultCounting, filter: fresh, sortOut: {} };
 }
 
 class ViewState {
 	anyColor = $state(false);
 	// Sets grouped by theme, in each section and list.
 	byTheme = $state(false);
+	counting = $state<Counting>(defaultCounting);
 	filter = $state<Filter>(fresh);
 	// Each stack's queue, by the stack as the route has it.
 	sortOut = $state<Record<string, string[]>>({});
@@ -67,6 +81,7 @@ class ViewState {
 		const s = load();
 		this.anyColor = s.anyColor;
 		this.byTheme = s.byTheme;
+		this.counting = s.counting;
 		this.filter = s.filter;
 		this.sortOut = s.sortOut;
 	}
@@ -78,6 +93,7 @@ class ViewState {
 				JSON.stringify({
 					anyColor: this.anyColor,
 					byTheme: this.byTheme,
+					counting: this.counting,
 					filter: this.filter,
 					sortOut: this.sortOut
 				})
@@ -94,6 +110,11 @@ class ViewState {
 
 	setByTheme(byTheme: boolean) {
 		this.byTheme = byTheme;
+		this.save();
+	}
+
+	setCounting(change: Partial<Counting>) {
+		this.counting = { ...this.counting, ...change };
 		this.save();
 	}
 
@@ -142,6 +163,7 @@ class ViewState {
 		return {
 			lots: lotsOf(stack),
 			anyColor: this.anyColor,
+			counting: { ...this.counting } as MessageInitShape<typeof CountingSchema>,
 			filter: { ...this.filter } as MessageInitShape<typeof FilterSchema>,
 			sortOut: this.queue(stack)
 		};

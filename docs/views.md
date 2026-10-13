@@ -21,13 +21,21 @@ licensed only narrow it further, and "Group by theme" puts each theme's sets
 together. A set the filter hides says why in its panel. Each section of sets
 folds from the button in its head, and stays folded after a reload.
 
+What counts toward how complete a set is is yours to say too ("What counts",
+beside the filter): a plain part always counts; printed parts and stickers,
+minifigure body parts (heads, torsos, legs, hair) and minifigure accessories
+(taps, cups, tools, often part of the build) each count only when switched
+on. It opens counting the accessories and not the other two. A part that does
+not count is still found: a set's panel shows it apart, as found or missing,
+and sorting the set out takes it too. Whole minifigures are always apart.
+
 A star on a set (on its tile, or at the top of its panel) keeps it to come
 back to: stars are saved in pile itself, so they last and show on every
 device, and "Starred only" lists nothing else.
 <!-- /human -->
 
 A view is how lots are looked at: which lots, in what order, exact or any
-color, the filter, and the sort-out queue. Every
+color, what counts, the filter, and the sort-out queue. Every
 request about lots carries one (`View` in `proto/pile/v1/pile.proto`).
 
 ## The lots: a stack
@@ -62,6 +70,31 @@ request about lots carries one (`View` in `proto/pile/v1/pile.proto`).
   another is picked.
 - **Find pieces** searches the bins, each holding one lot's pieces; its lot
   filter is its own.
+
+## Counting
+
+Every line of a set has a class (`catalog.Class`, from Rebrickable's part
+categories in `internal/catalog/catalog.go`): *printed* (the Stickers
+category, and any part that is the printed child of another in
+part_relationships), *figure part* (Minifigs, Minifig Heads, Upper Body,
+Lower Body, Headwear, Headwear Accessories, Hipwear, Neckwear),
+*accessory* (Minifig Accessories, and Minifig Shields, Weapons, & Tools) or
+*plain*. The View's `Counting` says which of the first three count toward a
+set's completeness (`match.Counting`; unset, `match.DefaultCounting`:
+accessories only). The index keeps every line (`Entry.Lines`), and
+`Score` counts only the counted ones: a Match's `Need`, `Have`, rarity and
+evidence follow the view, so the sections and the order do too. `find` and
+`Take` work on every line, so a set's panel shows what was found of the
+lines not counted (`SetLine.counted`) and the sort-out queue takes them
+with their set. What is judged once per set (rarity, basic or loose bricks,
+a minifigure set, the likely order) rests on the default counting; collect
+times count plain parts only, as they always did.
+
+The app keeps the counting with the view (`view.counting`), shows it in
+"What counts" in `FilterBar.svelte`, and says it in the overview's header
+(`counting.ts`). A set's panel (`SetDetail.svelte`) stacks its lines as
+small tiles filled by how much was found (`LineTile.svelte`): missing, then
+found, then not counted, then its whole minifigures.
 
 ## The filter
 

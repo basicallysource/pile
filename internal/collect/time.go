@@ -33,8 +33,14 @@ func (c *Catalog) Needs(num string, m Mode) *Need {
 	if e.FigureParts > 0 {
 		nd.Left["minifigure part"] = e.FigureParts
 	}
+	if e.Accessories > 0 {
+		nd.Left["minifigure accessory"] = e.Accessories
+	}
 	at := map[Key]int{}
 	for _, l := range e.Lines {
+		if !counted.Counts(l.Class) {
+			continue
+		}
 		if why := c.Why(l.Part); why != "" {
 			nd.Left[why] += l.Quantity
 			continue

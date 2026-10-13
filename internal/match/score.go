@@ -2,12 +2,14 @@ package match
 
 import "sort"
 
-// Match is a set or custom model against a pile.
+// Match is a set or custom model against a pile, counting what a view
+// counts.
 type Match struct {
 	*Entry
-	// Pieces found, each line capped at what it needs, and of those the ones
-	// in another color (any-color matching only).
-	Have, WrongColor int32
+	// The pieces counted (this Need, not the entry's), those of them found,
+	// each line capped at what it needs, and of those the ones in another
+	// color (any-color matching only).
+	Need, Have, WrongColor int32
 	// Have weighted by rarity, over Need weighted the same way.
 	Weighted float64
 	// The rarity-weighted pieces found: the evidence it is there.
@@ -30,12 +32,17 @@ func (m *Match) Interest() float64 { return m.Evidence * m.Weighted * m.Weighted
 // rank is the evidence a set is in the pile, which orders the likely sets.
 func (m *Match) rank() float64 { return m.Evidence * m.Weighted }
 
-// Score matches one entry against the pile.
-func (ix *Index) Score(e *Entry, p *Pile, anyColor bool) (*Match, Found) {
+// Score matches one entry against the pile, counting the lines c counts;
+// Found is for every line.
+func (ix *Index) Score(e *Entry, p *Pile, anyColor bool, c Counting) (*Match, Found) {
 	f := p.find(e, anyColor)
 	m := &Match{Entry: e}
 	var wNeed float64
 	for i, l := range e.Lines {
+		if !c.Counts(l.Class) {
+			continue
+		}
+		m.Need += l.Quantity
 		h := f.Exact[i] + f.Other[i]
 		w := ix.weight(l, anyColor)
 		m.Have += h
@@ -49,15 +56,15 @@ func (ix *Index) Score(e *Entry, p *Pile, anyColor bool) (*Match, Found) {
 	return m, f
 }
 
-// ScoreAll matches every shown entry with a piece in the pile, most
+// ScoreAll matches every shown entry with a counted piece in the pile, most
 // interesting first.
-func (ix *Index) ScoreAll(p *Pile, anyColor bool) []*Match {
+func (ix *Index) ScoreAll(p *Pile, anyColor bool, c Counting) []*Match {
 	var out []*Match
 	for _, e := range ix.Entries {
 		if e.Hidden {
 			continue
 		}
-		if m, _ := ix.Score(e, p, anyColor); m.Have > 0 {
+		if m, _ := ix.Score(e, p, anyColor, c); m.Have > 0 && m.Need > 0 {
 			out = append(out, m)
 		}
 	}

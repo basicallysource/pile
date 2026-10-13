@@ -10,7 +10,8 @@ const (
 	minPickEvidence = 10
 )
 
-// Explain orders the sets LEGO sold that the pile most likely came from:
+// Explain orders the sets LEGO sold that the pile most likely came from,
+// counting what DefaultCounting counts:
 // it picks one at a time, best evidence first, taking each pick's pieces
 // out of a copy of the pile before the next, so a bucket of basic bricks is
 // picked once and the themed sets underneath it surface on their own. Which
@@ -28,7 +29,7 @@ func (ix *Index) Explain(p *Pile, anyColor bool) []*Entry {
 		if e.Hidden || e.Set.Custom {
 			continue
 		}
-		if m, _ := ix.Score(e, left, anyColor); m.qualifies() {
+		if m, _ := ix.Score(e, left, anyColor, DefaultCounting); m.qualifies() {
 			h = append(h, candidate{e, m.rank(), i})
 		}
 	}
@@ -36,7 +37,7 @@ func (ix *Index) Explain(p *Pile, anyColor bool) []*Entry {
 	var order []*Entry
 	for h.Len() > 0 {
 		c := heap.Pop(&h).(candidate)
-		m, _ := ix.Score(c.entry, left, anyColor)
+		m, _ := ix.Score(c.entry, left, anyColor, DefaultCounting)
 		if !m.qualifies() {
 			continue
 		}

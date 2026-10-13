@@ -21,6 +21,7 @@
 	import SetSection from '$lib/pile/SetSection.svelte';
 	import SortOutQueue from '$lib/pile/SortOutQueue.svelte';
 	import FilterBar from '$lib/pile/FilterBar.svelte';
+	import { leftOut } from '$lib/pile/counting';
 	import { count, dayOf } from '$lib/format';
 	import { routeStack, view } from '$lib/view.svelte';
 
@@ -49,8 +50,10 @@
 					? ` on ${t.machineName}`
 					: ''}. {view.anyColor
 					? 'Any color: a piece of the right part in another color counts, and each set says how many would be a recolor.'
-					: 'Exact colors: a set counts only pieces of the right part in the right color.'} Printed parts,
-				stickers, minifigures and their parts are left out of every count.
+					: 'Exact colors: a set counts only pieces of the right part in the right color.'}
+				{leftOut(view.counting)
+					? `Left out of how complete a set is: whole minifigures, ${leftOut(view.counting)} (What counts, above the sets); they are still found, and sorted out with their set.`
+					: 'Every part counts toward how complete a set is; whole minifigures are apart.'}
 			</p>
 		</PageHeader>
 

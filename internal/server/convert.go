@@ -73,7 +73,15 @@ func setMatch(m *match.Match) *pilev1.SetMatch {
 		MostlyBasic:          m.MostlyBasic,
 		FewParts:             m.FewParts,
 		NothingUnusual:       m.NothingUnusual,
+		Accessories:          m.Accessories,
 	}
+}
+
+var partClass = map[catalog.Class]pilev1.PartClass{
+	catalog.Plain:      pilev1.PartClass_PART_CLASS_PLAIN,
+	catalog.Printed:    pilev1.PartClass_PART_CLASS_PRINTED,
+	catalog.FigurePart: pilev1.PartClass_PART_CLASS_FIGURE,
+	catalog.Accessory:  pilev1.PartClass_PART_CLASS_ACCESSORY,
 }
 
 func color(c *catalog.Color) *pilev1.Color {
