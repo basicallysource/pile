@@ -16,11 +16,12 @@ import (
 	"github.com/basicallysource/pile/internal/collect"
 	"github.com/basicallysource/pile/internal/lots"
 	"github.com/basicallysource/pile/internal/server"
+	"github.com/basicallysource/pile/internal/stars"
 	"github.com/basicallysource/pile/internal/storage"
 )
 
 func main() {
-	data := flag.String("data", "data", "folder holding rebrickable/ (the catalog CSVs), parts.db (a sorter Hive's parts database), custom-models.json, lots.json, machines/<name>/local_state.sqlite (each sorter's records), and storage.json (the bins pieces are kept in; kept there when it changes)")
+	data := flag.String("data", "data", "folder holding rebrickable/ (the catalog CSVs), parts.db (a sorter Hive's parts database), custom-models.json, lots.json, machines/<name>/local_state.sqlite (each sorter's records), storage.json (the bins pieces are kept in) and stars.json (the starred sets); the last two are kept there when they change")
 	addr := flag.String("addr", ":8790", "where to listen")
 	flag.Parse()
 
@@ -37,11 +38,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	sr, err := stars.Read(*data)
+	if err != nil {
+		log.Fatal(err)
+	}
 	sizes, err := collect.LoadSizes(filepath.Join(*data, "parts.db"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	s, err := server.New(cat, ls, st, sizes, *data)
+	s, err := server.New(cat, ls, st, sr, sizes, *data)
 	if err != nil {
 		log.Fatal(err)
 	}

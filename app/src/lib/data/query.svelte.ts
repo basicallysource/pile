@@ -21,7 +21,7 @@ const POLL = 4000;
 
 const keyOf = (v: unknown) => JSON.stringify(v, (_, x) => (typeof x === 'bigint' ? String(x) : x));
 
-export type SourceOptions<Res> = {
+export type SourceOptions<Req, Res> = {
 	// What the top bar says while an answer takes more than a moment, as
 	// "Matching the sets".
 	doing: string;
@@ -31,22 +31,31 @@ export type SourceOptions<Res> = {
 	// Answers that can change while pile runs (what the bins hold): one had
 	// is shown at once, and asked for again each time.
 	changes?: boolean;
+	// What else on the server an answer to req depends on that req does not
+	// carry (the stars, when only starred sets are asked for): part of the
+	// answer's key, and read where a page would notice it change, so a
+	// change asks again.
+	version?: (req: Req) => unknown;
 };
 
 export class Source<Req, Res> {
 	#answers = new Map<string, Res>();
 	#asking = new Map<string, Promise<Res>>();
 	#call: (req: Req) => Promise<Res>;
-	options: SourceOptions<Res>;
+	options: SourceOptions<Req, Res>;
 
-	constructor(call: (req: Req) => Promise<Res>, options: SourceOptions<Res>) {
+	constructor(call: (req: Req) => Promise<Res>, options: SourceOptions<Req, Res>) {
 		this.#call = call;
 		this.options = options;
 	}
 
+	#key(req: Req): string {
+		return keyOf([req, this.options.version?.(req)]);
+	}
+
 	// The answer this visit has for the request, if any.
 	peek(req: Req): Res | undefined {
-		return this.#answers.get(keyOf(req));
+		return this.#answers.get(this.#key(req));
 	}
 
 	// Whether an answer had is good as it is, with nothing to ask again.
@@ -56,7 +65,7 @@ export class Source<Req, Res> {
 
 	// Asks the server; one question at a time for the same request.
 	ask(req: Req): Promise<Res> {
-		const key = keyOf(req);
+		const key = this.#key(req);
 		let asking = this.#asking.get(key);
 		if (!asking) {
 			asking = this.#call(req)
@@ -103,6 +112,7 @@ export class Query<Req, Res> {
 		}
 		$effect(() => {
 			const req = request();
+			if (req !== undefined) source.options.version?.(req);
 			return untrack(() => this.#follow(req, about));
 		});
 		$effect(() => () => {

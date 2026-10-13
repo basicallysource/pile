@@ -43,5 +43,6 @@ export const hiddenAs: Record<Rule, string> = {
 	[Rule.KIND]: 'not the kind chosen',
 	[Rule.THEME]: 'not the theme chosen',
 	[Rule.LICENSED]: 'not licensed',
-	[Rule.SIZE]: 'smaller than the size chosen'
+	[Rule.SIZE]: 'smaller than the size chosen',
+	[Rule.NOT_STARRED]: 'not starred'
 };

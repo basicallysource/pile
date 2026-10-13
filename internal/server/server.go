@@ -15,12 +15,13 @@ import (
 	"github.com/basicallysource/pile/internal/collect"
 	"github.com/basicallysource/pile/internal/lots"
 	"github.com/basicallysource/pile/internal/match"
+	"github.com/basicallysource/pile/internal/stars"
 	"github.com/basicallysource/pile/internal/storage"
 )
 
 // Service holds the catalog, its index, every lot, the stacks of lots views
-// look at, the lots' collect times as they are worked out, and what the
-// storage's bins hold.
+// look at, the lots' collect times as they are worked out, what the
+// storage's bins hold, and the stars.
 type Service struct {
 	cat        *catalog.Catalog
 	index      *match.Index
@@ -32,14 +33,15 @@ type Service struct {
 	dataDir string
 	stock   atomic.Pointer[stock]
 	storing sync.Mutex
+	stars   *stars.Stars
 }
 
-// New readies every lot and each lot's stack, puts their pieces in the storage's bins and starts
-// working out the lots' collect times; dataDir is the data folder (its
-// hive.sqlite, and where a new storage is kept), sizes each part's size
-// (collect.LoadSizes).
-func New(cat *catalog.Catalog, ls []*lots.Lot, st *storage.Storage, sizes map[string]collect.Size, dataDir string) (*Service, error) {
-	s := &Service{cat: cat, index: match.NewIndex(cat), lots: map[string]*lot{}, dataDir: dataDir}
+// New readies every lot and each lot's stack, puts their pieces in the
+// storage's bins and starts working out the lots' collect times; dataDir is
+// the data folder (its hive.sqlite, and where a new storage is kept), sizes
+// each part's size (collect.LoadSizes).
+func New(cat *catalog.Catalog, ls []*lots.Lot, st *storage.Storage, sr *stars.Stars, sizes map[string]collect.Size, dataDir string) (*Service, error) {
+	s := &Service{cat: cat, index: match.NewIndex(cat), lots: map[string]*lot{}, dataDir: dataDir, stars: sr}
 	for _, l := range ls {
 		t := newLot(l, cat, s.index)
 		s.order = append(s.order, t)

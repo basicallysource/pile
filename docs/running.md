@@ -52,6 +52,7 @@ changes it shows in `git status`.
 | `hive.sqlite` | one of these two | Records pulled from a Hive with `bin/pull-hive`: [hive.md](hive.md). |
 | `custom-models.json` | no | Free custom models, [custom-models.md](custom-models.md). Skipped when absent. |
 | `storage.json` | no | The bins the pieces are kept in, each at an address: [storage.md](storage.md). Empty when absent; pile writes it when the storage is set while it runs. |
+| `stars.json` | no | The starred sets and custom models: [views.md](views.md#stars). Empty when absent; pile writes it when a star changes. |
 
 `lots.json` is a list of lots. Each has an `id`, a `name`, a `description`,
 and exactly one source: `"machine": "NAME"` (a folder under `machines/`) or

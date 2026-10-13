@@ -52,6 +52,10 @@ const (
 	PileServiceSetStorageProcedure = "/pile.v1.PileService/SetStorage"
 	// PileServiceFindPiecesProcedure is the fully-qualified name of the PileService's FindPieces RPC.
 	PileServiceFindPiecesProcedure = "/pile.v1.PileService/FindPieces"
+	// PileServiceListStarsProcedure is the fully-qualified name of the PileService's ListStars RPC.
+	PileServiceListStarsProcedure = "/pile.v1.PileService/ListStars"
+	// PileServiceSetStarProcedure is the fully-qualified name of the PileService's SetStar RPC.
+	PileServiceSetStarProcedure = "/pile.v1.PileService/SetStar"
 )
 
 // PileServiceClient is a client for the pile.v1.PileService service.
@@ -78,6 +82,10 @@ type PileServiceClient interface {
 	// What the bins hold that a search and its filters ask for: each part in
 	// each color, how many, and which bins they are in.
 	FindPieces(context.Context, *connect.Request[v1.FindPiecesRequest]) (*connect.Response[v1.FindPiecesResponse], error)
+	// The starred sets and custom models.
+	ListStars(context.Context, *connect.Request[v1.ListStarsRequest]) (*connect.Response[v1.ListStarsResponse], error)
+	// Stars or unstars one, and keeps it.
+	SetStar(context.Context, *connect.Request[v1.SetStarRequest]) (*connect.Response[v1.SetStarResponse], error)
 }
 
 // NewPileServiceClient constructs a client for the pile.v1.PileService service. By default, it uses
@@ -145,6 +153,18 @@ func NewPileServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(pileServiceMethods.ByName("FindPieces")),
 			connect.WithClientOptions(opts...),
 		),
+		listStars: connect.NewClient[v1.ListStarsRequest, v1.ListStarsResponse](
+			httpClient,
+			baseURL+PileServiceListStarsProcedure,
+			connect.WithSchema(pileServiceMethods.ByName("ListStars")),
+			connect.WithClientOptions(opts...),
+		),
+		setStar: connect.NewClient[v1.SetStarRequest, v1.SetStarResponse](
+			httpClient,
+			baseURL+PileServiceSetStarProcedure,
+			connect.WithSchema(pileServiceMethods.ByName("SetStar")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -159,6 +179,8 @@ type pileServiceClient struct {
 	getStorage      *connect.Client[v1.GetStorageRequest, v1.GetStorageResponse]
 	setStorage      *connect.Client[v1.SetStorageRequest, v1.SetStorageResponse]
 	findPieces      *connect.Client[v1.FindPiecesRequest, v1.FindPiecesResponse]
+	listStars       *connect.Client[v1.ListStarsRequest, v1.ListStarsResponse]
+	setStar         *connect.Client[v1.SetStarRequest, v1.SetStarResponse]
 }
 
 // ListLots calls pile.v1.PileService.ListLots.
@@ -206,6 +228,16 @@ func (c *pileServiceClient) FindPieces(ctx context.Context, req *connect.Request
 	return c.findPieces.CallUnary(ctx, req)
 }
 
+// ListStars calls pile.v1.PileService.ListStars.
+func (c *pileServiceClient) ListStars(ctx context.Context, req *connect.Request[v1.ListStarsRequest]) (*connect.Response[v1.ListStarsResponse], error) {
+	return c.listStars.CallUnary(ctx, req)
+}
+
+// SetStar calls pile.v1.PileService.SetStar.
+func (c *pileServiceClient) SetStar(ctx context.Context, req *connect.Request[v1.SetStarRequest]) (*connect.Response[v1.SetStarResponse], error) {
+	return c.setStar.CallUnary(ctx, req)
+}
+
 // PileServiceHandler is an implementation of the pile.v1.PileService service.
 type PileServiceHandler interface {
 	// The collection: every lot, with its totals.
@@ -230,6 +262,10 @@ type PileServiceHandler interface {
 	// What the bins hold that a search and its filters ask for: each part in
 	// each color, how many, and which bins they are in.
 	FindPieces(context.Context, *connect.Request[v1.FindPiecesRequest]) (*connect.Response[v1.FindPiecesResponse], error)
+	// The starred sets and custom models.
+	ListStars(context.Context, *connect.Request[v1.ListStarsRequest]) (*connect.Response[v1.ListStarsResponse], error)
+	// Stars or unstars one, and keeps it.
+	SetStar(context.Context, *connect.Request[v1.SetStarRequest]) (*connect.Response[v1.SetStarResponse], error)
 }
 
 // NewPileServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -293,6 +329,18 @@ func NewPileServiceHandler(svc PileServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(pileServiceMethods.ByName("FindPieces")),
 		connect.WithHandlerOptions(opts...),
 	)
+	pileServiceListStarsHandler := connect.NewUnaryHandler(
+		PileServiceListStarsProcedure,
+		svc.ListStars,
+		connect.WithSchema(pileServiceMethods.ByName("ListStars")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pileServiceSetStarHandler := connect.NewUnaryHandler(
+		PileServiceSetStarProcedure,
+		svc.SetStar,
+		connect.WithSchema(pileServiceMethods.ByName("SetStar")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/pile.v1.PileService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PileServiceListLotsProcedure:
@@ -313,6 +361,10 @@ func NewPileServiceHandler(svc PileServiceHandler, opts ...connect.HandlerOption
 			pileServiceSetStorageHandler.ServeHTTP(w, r)
 		case PileServiceFindPiecesProcedure:
 			pileServiceFindPiecesHandler.ServeHTTP(w, r)
+		case PileServiceListStarsProcedure:
+			pileServiceListStarsHandler.ServeHTTP(w, r)
+		case PileServiceSetStarProcedure:
+			pileServiceSetStarHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -356,4 +408,12 @@ func (UnimplementedPileServiceHandler) SetStorage(context.Context, *connect.Requ
 
 func (UnimplementedPileServiceHandler) FindPieces(context.Context, *connect.Request[v1.FindPiecesRequest]) (*connect.Response[v1.FindPiecesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.FindPieces is not implemented"))
+}
+
+func (UnimplementedPileServiceHandler) ListStars(context.Context, *connect.Request[v1.ListStarsRequest]) (*connect.Response[v1.ListStarsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.ListStars is not implemented"))
+}
+
+func (UnimplementedPileServiceHandler) SetStar(context.Context, *connect.Request[v1.SetStarRequest]) (*connect.Response[v1.SetStarResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.SetStar is not implemented"))
 }

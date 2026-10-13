@@ -34,6 +34,7 @@ const (
 	Rule_RULE_THEME           Rule = 6
 	Rule_RULE_LICENSED        Rule = 7
 	Rule_RULE_SIZE            Rule = 8
+	Rule_RULE_NOT_STARRED     Rule = 9
 )
 
 // Enum value maps for Rule.
@@ -48,6 +49,7 @@ var (
 		6: "RULE_THEME",
 		7: "RULE_LICENSED",
 		8: "RULE_SIZE",
+		9: "RULE_NOT_STARRED",
 	}
 	Rule_value = map[string]int32{
 		"RULE_UNSPECIFIED":     0,
@@ -59,6 +61,7 @@ var (
 		"RULE_THEME":           6,
 		"RULE_LICENSED":        7,
 		"RULE_SIZE":            8,
+		"RULE_NOT_STARRED":     9,
 	}
 )
 
@@ -430,7 +433,9 @@ type Filter struct {
 	ThemeGroup   string `protobuf:"bytes,6,opt,name=theme_group,json=themeGroup,proto3" json:"theme_group,omitempty"`
 	LicensedOnly bool   `protobuf:"varint,7,opt,name=licensed_only,json=licensedOnly,proto3" json:"licensed_only,omitempty"`
 	// Only those of at least this many counted pieces.
-	MinPieces     int32 `protobuf:"varint,8,opt,name=min_pieces,json=minPieces,proto3" json:"min_pieces,omitempty"`
+	MinPieces int32 `protobuf:"varint,8,opt,name=min_pieces,json=minPieces,proto3" json:"min_pieces,omitempty"`
+	// Only the starred ones.
+	StarredOnly   bool `protobuf:"varint,9,opt,name=starred_only,json=starredOnly,proto3" json:"starred_only,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -519,6 +524,13 @@ func (x *Filter) GetMinPieces() int32 {
 		return x.MinPieces
 	}
 	return 0
+}
+
+func (x *Filter) GetStarredOnly() bool {
+	if x != nil {
+		return x.StarredOnly
+	}
+	return false
 }
 
 type Color struct {
@@ -1504,7 +1516,10 @@ type GetOverviewResponse struct {
 	Tiny *Section `protobuf:"bytes,12,opt,name=tiny,proto3" json:"tiny,omitempty"`
 	// The theme groups of the sets the rest of the filter lets through, most
 	// first.
-	Themes        []*ThemeCount `protobuf:"bytes,13,rep,name=themes,proto3" json:"themes,omitempty"`
+	Themes []*ThemeCount `protobuf:"bytes,13,rep,name=themes,proto3" json:"themes,omitempty"`
+	// Every starred set and custom model with a piece left in the lots,
+	// whatever the filter, most recently starred first.
+	Starred       *Section `protobuf:"bytes,14,opt,name=starred,proto3" json:"starred,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1626,6 +1641,13 @@ func (x *GetOverviewResponse) GetTiny() *Section {
 func (x *GetOverviewResponse) GetThemes() []*ThemeCount {
 	if x != nil {
 		return x.Themes
+	}
+	return nil
+}
+
+func (x *GetOverviewResponse) GetStarred() *Section {
+	if x != nil {
+		return x.Starred
 	}
 	return nil
 }
@@ -3715,6 +3737,184 @@ func (x *FindPiecesResponse) GetLots() []*FilterOption {
 	return nil
 }
 
+type ListStarsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListStarsRequest) Reset() {
+	*x = ListStarsRequest{}
+	mi := &file_pile_v1_pile_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListStarsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListStarsRequest) ProtoMessage() {}
+
+func (x *ListStarsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListStarsRequest.ProtoReflect.Descriptor instead.
+func (*ListStarsRequest) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{42}
+}
+
+type ListStarsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Most recently starred first.
+	SetNums       []string `protobuf:"bytes,1,rep,name=set_nums,json=setNums,proto3" json:"set_nums,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListStarsResponse) Reset() {
+	*x = ListStarsResponse{}
+	mi := &file_pile_v1_pile_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListStarsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListStarsResponse) ProtoMessage() {}
+
+func (x *ListStarsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListStarsResponse.ProtoReflect.Descriptor instead.
+func (*ListStarsResponse) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *ListStarsResponse) GetSetNums() []string {
+	if x != nil {
+		return x.SetNums
+	}
+	return nil
+}
+
+type SetStarRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SetNum        string                 `protobuf:"bytes,1,opt,name=set_num,json=setNum,proto3" json:"set_num,omitempty"`
+	Starred       bool                   `protobuf:"varint,2,opt,name=starred,proto3" json:"starred,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetStarRequest) Reset() {
+	*x = SetStarRequest{}
+	mi := &file_pile_v1_pile_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetStarRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetStarRequest) ProtoMessage() {}
+
+func (x *SetStarRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetStarRequest.ProtoReflect.Descriptor instead.
+func (*SetStarRequest) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *SetStarRequest) GetSetNum() string {
+	if x != nil {
+		return x.SetNum
+	}
+	return ""
+}
+
+func (x *SetStarRequest) GetStarred() bool {
+	if x != nil {
+		return x.Starred
+	}
+	return false
+}
+
+type SetStarResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Every star after the change, most recent first.
+	SetNums       []string `protobuf:"bytes,1,rep,name=set_nums,json=setNums,proto3" json:"set_nums,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetStarResponse) Reset() {
+	*x = SetStarResponse{}
+	mi := &file_pile_v1_pile_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetStarResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetStarResponse) ProtoMessage() {}
+
+func (x *SetStarResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetStarResponse.ProtoReflect.Descriptor instead.
+func (*SetStarResponse) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *SetStarResponse) GetSetNums() []string {
+	if x != nil {
+		return x.SetNums
+	}
+	return nil
+}
+
 var File_pile_v1_pile_proto protoreflect.FileDescriptor
 
 const file_pile_v1_pile_proto_rawDesc = "" +
@@ -3724,7 +3924,7 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x04lots\x18\x01 \x03(\tR\x04lots\x12\x1b\n" +
 	"\tany_color\x18\x02 \x01(\bR\banyColor\x12\x19\n" +
 	"\bsort_out\x18\x03 \x03(\tR\asortOut\x12'\n" +
-	"\x06filter\x18\x04 \x01(\v2\x0f.pile.v1.FilterR\x06filter\"\xc0\x02\n" +
+	"\x06filter\x18\x04 \x01(\v2\x0f.pile.v1.FilterR\x06filter\"\xe3\x02\n" +
 	"\x06Filter\x12*\n" +
 	"\x11hide_loose_bricks\x18\x01 \x01(\bR\x0fhideLooseBricks\x12*\n" +
 	"\x11hide_mostly_basic\x18\x02 \x01(\bR\x0fhideMostlyBasic\x12$\n" +
@@ -3735,7 +3935,8 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"themeGroup\x12#\n" +
 	"\rlicensed_only\x18\a \x01(\bR\flicensedOnly\x12\x1d\n" +
 	"\n" +
-	"min_pieces\x18\b \x01(\x05R\tminPieces\"\x82\x01\n" +
+	"min_pieces\x18\b \x01(\x05R\tminPieces\x12!\n" +
+	"\fstarred_only\x18\t \x01(\bR\vstarredOnly\"\x82\x01\n" +
 	"\x05Color\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
@@ -3812,7 +4013,7 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x04view\x18\x01 \x01(\v2\r.pile.v1.ViewR\x04view\"W\n" +
 	"\tQueuedSet\x12#\n" +
 	"\x03set\x18\x01 \x01(\v2\x11.pile.v1.SetMatchR\x03set\x12%\n" +
-	"\x04lots\x18\x02 \x03(\v2\x11.pile.v1.LotCountR\x04lots\"\xbf\x04\n" +
+	"\x04lots\x18\x02 \x03(\v2\x11.pile.v1.LotCountR\x04lots\"\xeb\x04\n" +
 	"\x13GetOverviewResponse\x12 \n" +
 	"\x04lots\x18\x01 \x03(\v2\f.pile.v1.LotR\x04lots\x12'\n" +
 	"\x06totals\x18\x02 \x01(\v2\x0f.pile.v1.TotalsR\x06totals\x126\n" +
@@ -3832,7 +4033,8 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"minifigure\x18\v \x01(\v2\x10.pile.v1.SectionR\n" +
 	"minifigure\x12$\n" +
 	"\x04tiny\x18\f \x01(\v2\x10.pile.v1.SectionR\x04tiny\x12+\n" +
-	"\x06themes\x18\r \x03(\v2\x13.pile.v1.ThemeCountR\x06themes\"Z\n" +
+	"\x06themes\x18\r \x03(\v2\x13.pile.v1.ThemeCountR\x06themes\x12*\n" +
+	"\astarred\x18\x0e \x01(\v2\x10.pile.v1.SectionR\astarred\"Z\n" +
 	"\x0fListSetsRequest\x12!\n" +
 	"\x04view\x18\x01 \x01(\v2\r.pile.v1.ViewR\x04view\x12$\n" +
 	"\x05order\x18\x02 \x01(\x0e2\x0e.pile.v1.OrderR\x05order\"4\n" +
@@ -4007,7 +4209,15 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x06colors\x18\x05 \x03(\v2\x15.pile.v1.FilterOptionR\x06colors\x12+\n" +
 	"\x05types\x18\x06 \x03(\v2\x15.pile.v1.FilterOptionR\x05types\x12)\n" +
 	"\x04bins\x18\a \x03(\v2\x15.pile.v1.FilterOptionR\x04bins\x12)\n" +
-	"\x04lots\x18\b \x03(\v2\x15.pile.v1.FilterOptionR\x04lots*\xb9\x01\n" +
+	"\x04lots\x18\b \x03(\v2\x15.pile.v1.FilterOptionR\x04lots\"\x12\n" +
+	"\x10ListStarsRequest\".\n" +
+	"\x11ListStarsResponse\x12\x19\n" +
+	"\bset_nums\x18\x01 \x03(\tR\asetNums\"C\n" +
+	"\x0eSetStarRequest\x12\x17\n" +
+	"\aset_num\x18\x01 \x01(\tR\x06setNum\x12\x18\n" +
+	"\astarred\x18\x02 \x01(\bR\astarred\",\n" +
+	"\x0fSetStarResponse\x12\x19\n" +
+	"\bset_nums\x18\x01 \x03(\tR\asetNums*\xcf\x01\n" +
 	"\x04Rule\x12\x14\n" +
 	"\x10RULE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11RULE_LOOSE_BRICKS\x10\x01\x12\x15\n" +
@@ -4018,7 +4228,8 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\n" +
 	"RULE_THEME\x10\x06\x12\x11\n" +
 	"\rRULE_LICENSED\x10\a\x12\r\n" +
-	"\tRULE_SIZE\x10\b*;\n" +
+	"\tRULE_SIZE\x10\b\x12\x14\n" +
+	"\x10RULE_NOT_STARRED\x10\t*;\n" +
 	"\x04Kind\x12\x14\n" +
 	"\x10KIND_UNSPECIFIED\x10\x00\x12\f\n" +
 	"\bKIND_SET\x10\x01\x12\x0f\n" +
@@ -4048,7 +4259,7 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x14COUNTING_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10COUNTING_COUNTED\x10\x01\x12\x14\n" +
 	"\x10COUNTING_PRINTED\x10\x02\x12\x17\n" +
-	"\x13COUNTING_MINIFIGURE\x10\x032\x83\x05\n" +
+	"\x13COUNTING_MINIFIGURE\x10\x032\x85\x06\n" +
 	"\vPileService\x12?\n" +
 	"\bListLots\x12\x18.pile.v1.ListLotsRequest\x1a\x19.pile.v1.ListLotsResponse\x12H\n" +
 	"\vGetOverview\x12\x1b.pile.v1.GetOverviewRequest\x1a\x1c.pile.v1.GetOverviewResponse\x12?\n" +
@@ -4061,7 +4272,9 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\n" +
 	"SetStorage\x12\x1a.pile.v1.SetStorageRequest\x1a\x1b.pile.v1.SetStorageResponse\x12E\n" +
 	"\n" +
-	"FindPieces\x12\x1a.pile.v1.FindPiecesRequest\x1a\x1b.pile.v1.FindPiecesResponseB4Z2github.com/basicallysource/pile/gen/pile/v1;pilev1b\x06proto3"
+	"FindPieces\x12\x1a.pile.v1.FindPiecesRequest\x1a\x1b.pile.v1.FindPiecesResponse\x12B\n" +
+	"\tListStars\x12\x19.pile.v1.ListStarsRequest\x1a\x1a.pile.v1.ListStarsResponse\x12<\n" +
+	"\aSetStar\x12\x17.pile.v1.SetStarRequest\x1a\x18.pile.v1.SetStarResponseB4Z2github.com/basicallysource/pile/gen/pile/v1;pilev1b\x06proto3"
 
 var (
 	file_pile_v1_pile_proto_rawDescOnce sync.Once
@@ -4076,7 +4289,7 @@ func file_pile_v1_pile_proto_rawDescGZIP() []byte {
 }
 
 var file_pile_v1_pile_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_pile_v1_pile_proto_msgTypes = make([]protoimpl.MessageInfo, 43)
+var file_pile_v1_pile_proto_msgTypes = make([]protoimpl.MessageInfo, 47)
 var file_pile_v1_pile_proto_goTypes = []any{
 	(Rule)(0),                       // 0: pile.v1.Rule
 	(Kind)(0),                       // 1: pile.v1.Kind
@@ -4125,7 +4338,11 @@ var file_pile_v1_pile_proto_goTypes = []any{
 	(*StoredPart)(nil),              // 44: pile.v1.StoredPart
 	(*FilterOption)(nil),            // 45: pile.v1.FilterOption
 	(*FindPiecesResponse)(nil),      // 46: pile.v1.FindPiecesResponse
-	nil,                             // 47: pile.v1.SetCollectTimes.LeftOutEntry
+	(*ListStarsRequest)(nil),        // 47: pile.v1.ListStarsRequest
+	(*ListStarsResponse)(nil),       // 48: pile.v1.ListStarsResponse
+	(*SetStarRequest)(nil),          // 49: pile.v1.SetStarRequest
+	(*SetStarResponse)(nil),         // 50: pile.v1.SetStarResponse
+	nil,                             // 51: pile.v1.SetCollectTimes.LeftOutEntry
 }
 var file_pile_v1_pile_proto_depIdxs = []int32{
 	6,  // 0: pile.v1.View.filter:type_name -> pile.v1.Filter
@@ -4151,67 +4368,72 @@ var file_pile_v1_pile_proto_depIdxs = []int32{
 	16, // 20: pile.v1.GetOverviewResponse.minifigure:type_name -> pile.v1.Section
 	16, // 21: pile.v1.GetOverviewResponse.tiny:type_name -> pile.v1.Section
 	21, // 22: pile.v1.GetOverviewResponse.themes:type_name -> pile.v1.ThemeCount
-	5,  // 23: pile.v1.ListSetsRequest.view:type_name -> pile.v1.View
-	3,  // 24: pile.v1.ListSetsRequest.order:type_name -> pile.v1.Order
-	15, // 25: pile.v1.ListSetsResponse.sets:type_name -> pile.v1.SetMatch
-	21, // 26: pile.v1.ListSetsResponse.themes:type_name -> pile.v1.ThemeCount
-	5,  // 27: pile.v1.GetSetRequest.view:type_name -> pile.v1.View
-	7,  // 28: pile.v1.SetLine.color:type_name -> pile.v1.Color
-	4,  // 29: pile.v1.SetLine.counting:type_name -> pile.v1.Counting
-	10, // 30: pile.v1.SetLine.lots:type_name -> pile.v1.LotCount
-	15, // 31: pile.v1.GetSetResponse.set:type_name -> pile.v1.SetMatch
-	24, // 32: pile.v1.GetSetResponse.lines:type_name -> pile.v1.SetLine
-	25, // 33: pile.v1.GetSetResponse.minifigures:type_name -> pile.v1.Minifigure
-	2,  // 34: pile.v1.GetSetResponse.place:type_name -> pile.v1.Place
-	15, // 35: pile.v1.GetSetResponse.other_colors:type_name -> pile.v1.SetMatch
-	2,  // 36: pile.v1.GetSetResponse.other_place:type_name -> pile.v1.Place
-	0,  // 37: pile.v1.GetSetResponse.hidden_by:type_name -> pile.v1.Rule
-	7,  // 38: pile.v1.PartCount.color:type_name -> pile.v1.Color
-	10, // 39: pile.v1.PartCount.lots:type_name -> pile.v1.LotCount
-	28, // 40: pile.v1.ListPartsResponse.parts:type_name -> pile.v1.PartCount
-	29, // 41: pile.v1.ListPartsResponse.unmatched:type_name -> pile.v1.UnmatchedPart
-	7,  // 42: pile.v1.SlowPiece.color:type_name -> pile.v1.Color
-	33, // 43: pile.v1.CollectTime.slowest:type_name -> pile.v1.SlowPiece
-	47, // 44: pile.v1.SetCollectTimes.left_out:type_name -> pile.v1.SetCollectTimes.LeftOutEntry
-	34, // 45: pile.v1.SetCollectTimes.exact:type_name -> pile.v1.CollectTime
-	34, // 46: pile.v1.SetCollectTimes.near:type_name -> pile.v1.CollectTime
-	34, // 47: pile.v1.SetCollectTimes.any:type_name -> pile.v1.CollectTime
-	32, // 48: pile.v1.GetCollectTimesResponse.basis:type_name -> pile.v1.CollectBasis
-	35, // 49: pile.v1.GetCollectTimesResponse.sets:type_name -> pile.v1.SetCollectTimes
-	37, // 50: pile.v1.GetStorageResponse.bins:type_name -> pile.v1.StorageBin
-	37, // 51: pile.v1.SetStorageRequest.bins:type_name -> pile.v1.StorageBin
-	37, // 52: pile.v1.SetStorageResponse.bins:type_name -> pile.v1.StorageBin
-	7,  // 53: pile.v1.StoredPart.color:type_name -> pile.v1.Color
-	43, // 54: pile.v1.StoredPart.bins:type_name -> pile.v1.BinCount
-	7,  // 55: pile.v1.FilterOption.color:type_name -> pile.v1.Color
-	44, // 56: pile.v1.FindPiecesResponse.parts:type_name -> pile.v1.StoredPart
-	45, // 57: pile.v1.FindPiecesResponse.colors:type_name -> pile.v1.FilterOption
-	45, // 58: pile.v1.FindPiecesResponse.types:type_name -> pile.v1.FilterOption
-	45, // 59: pile.v1.FindPiecesResponse.bins:type_name -> pile.v1.FilterOption
-	45, // 60: pile.v1.FindPiecesResponse.lots:type_name -> pile.v1.FilterOption
-	13, // 61: pile.v1.PileService.ListLots:input_type -> pile.v1.ListLotsRequest
-	17, // 62: pile.v1.PileService.GetOverview:input_type -> pile.v1.GetOverviewRequest
-	20, // 63: pile.v1.PileService.ListSets:input_type -> pile.v1.ListSetsRequest
-	23, // 64: pile.v1.PileService.GetSet:input_type -> pile.v1.GetSetRequest
-	27, // 65: pile.v1.PileService.ListParts:input_type -> pile.v1.ListPartsRequest
-	31, // 66: pile.v1.PileService.GetCollectTimes:input_type -> pile.v1.GetCollectTimesRequest
-	38, // 67: pile.v1.PileService.GetStorage:input_type -> pile.v1.GetStorageRequest
-	40, // 68: pile.v1.PileService.SetStorage:input_type -> pile.v1.SetStorageRequest
-	42, // 69: pile.v1.PileService.FindPieces:input_type -> pile.v1.FindPiecesRequest
-	14, // 70: pile.v1.PileService.ListLots:output_type -> pile.v1.ListLotsResponse
-	19, // 71: pile.v1.PileService.GetOverview:output_type -> pile.v1.GetOverviewResponse
-	22, // 72: pile.v1.PileService.ListSets:output_type -> pile.v1.ListSetsResponse
-	26, // 73: pile.v1.PileService.GetSet:output_type -> pile.v1.GetSetResponse
-	30, // 74: pile.v1.PileService.ListParts:output_type -> pile.v1.ListPartsResponse
-	36, // 75: pile.v1.PileService.GetCollectTimes:output_type -> pile.v1.GetCollectTimesResponse
-	39, // 76: pile.v1.PileService.GetStorage:output_type -> pile.v1.GetStorageResponse
-	41, // 77: pile.v1.PileService.SetStorage:output_type -> pile.v1.SetStorageResponse
-	46, // 78: pile.v1.PileService.FindPieces:output_type -> pile.v1.FindPiecesResponse
-	70, // [70:79] is the sub-list for method output_type
-	61, // [61:70] is the sub-list for method input_type
-	61, // [61:61] is the sub-list for extension type_name
-	61, // [61:61] is the sub-list for extension extendee
-	0,  // [0:61] is the sub-list for field type_name
+	16, // 23: pile.v1.GetOverviewResponse.starred:type_name -> pile.v1.Section
+	5,  // 24: pile.v1.ListSetsRequest.view:type_name -> pile.v1.View
+	3,  // 25: pile.v1.ListSetsRequest.order:type_name -> pile.v1.Order
+	15, // 26: pile.v1.ListSetsResponse.sets:type_name -> pile.v1.SetMatch
+	21, // 27: pile.v1.ListSetsResponse.themes:type_name -> pile.v1.ThemeCount
+	5,  // 28: pile.v1.GetSetRequest.view:type_name -> pile.v1.View
+	7,  // 29: pile.v1.SetLine.color:type_name -> pile.v1.Color
+	4,  // 30: pile.v1.SetLine.counting:type_name -> pile.v1.Counting
+	10, // 31: pile.v1.SetLine.lots:type_name -> pile.v1.LotCount
+	15, // 32: pile.v1.GetSetResponse.set:type_name -> pile.v1.SetMatch
+	24, // 33: pile.v1.GetSetResponse.lines:type_name -> pile.v1.SetLine
+	25, // 34: pile.v1.GetSetResponse.minifigures:type_name -> pile.v1.Minifigure
+	2,  // 35: pile.v1.GetSetResponse.place:type_name -> pile.v1.Place
+	15, // 36: pile.v1.GetSetResponse.other_colors:type_name -> pile.v1.SetMatch
+	2,  // 37: pile.v1.GetSetResponse.other_place:type_name -> pile.v1.Place
+	0,  // 38: pile.v1.GetSetResponse.hidden_by:type_name -> pile.v1.Rule
+	7,  // 39: pile.v1.PartCount.color:type_name -> pile.v1.Color
+	10, // 40: pile.v1.PartCount.lots:type_name -> pile.v1.LotCount
+	28, // 41: pile.v1.ListPartsResponse.parts:type_name -> pile.v1.PartCount
+	29, // 42: pile.v1.ListPartsResponse.unmatched:type_name -> pile.v1.UnmatchedPart
+	7,  // 43: pile.v1.SlowPiece.color:type_name -> pile.v1.Color
+	33, // 44: pile.v1.CollectTime.slowest:type_name -> pile.v1.SlowPiece
+	51, // 45: pile.v1.SetCollectTimes.left_out:type_name -> pile.v1.SetCollectTimes.LeftOutEntry
+	34, // 46: pile.v1.SetCollectTimes.exact:type_name -> pile.v1.CollectTime
+	34, // 47: pile.v1.SetCollectTimes.near:type_name -> pile.v1.CollectTime
+	34, // 48: pile.v1.SetCollectTimes.any:type_name -> pile.v1.CollectTime
+	32, // 49: pile.v1.GetCollectTimesResponse.basis:type_name -> pile.v1.CollectBasis
+	35, // 50: pile.v1.GetCollectTimesResponse.sets:type_name -> pile.v1.SetCollectTimes
+	37, // 51: pile.v1.GetStorageResponse.bins:type_name -> pile.v1.StorageBin
+	37, // 52: pile.v1.SetStorageRequest.bins:type_name -> pile.v1.StorageBin
+	37, // 53: pile.v1.SetStorageResponse.bins:type_name -> pile.v1.StorageBin
+	7,  // 54: pile.v1.StoredPart.color:type_name -> pile.v1.Color
+	43, // 55: pile.v1.StoredPart.bins:type_name -> pile.v1.BinCount
+	7,  // 56: pile.v1.FilterOption.color:type_name -> pile.v1.Color
+	44, // 57: pile.v1.FindPiecesResponse.parts:type_name -> pile.v1.StoredPart
+	45, // 58: pile.v1.FindPiecesResponse.colors:type_name -> pile.v1.FilterOption
+	45, // 59: pile.v1.FindPiecesResponse.types:type_name -> pile.v1.FilterOption
+	45, // 60: pile.v1.FindPiecesResponse.bins:type_name -> pile.v1.FilterOption
+	45, // 61: pile.v1.FindPiecesResponse.lots:type_name -> pile.v1.FilterOption
+	13, // 62: pile.v1.PileService.ListLots:input_type -> pile.v1.ListLotsRequest
+	17, // 63: pile.v1.PileService.GetOverview:input_type -> pile.v1.GetOverviewRequest
+	20, // 64: pile.v1.PileService.ListSets:input_type -> pile.v1.ListSetsRequest
+	23, // 65: pile.v1.PileService.GetSet:input_type -> pile.v1.GetSetRequest
+	27, // 66: pile.v1.PileService.ListParts:input_type -> pile.v1.ListPartsRequest
+	31, // 67: pile.v1.PileService.GetCollectTimes:input_type -> pile.v1.GetCollectTimesRequest
+	38, // 68: pile.v1.PileService.GetStorage:input_type -> pile.v1.GetStorageRequest
+	40, // 69: pile.v1.PileService.SetStorage:input_type -> pile.v1.SetStorageRequest
+	42, // 70: pile.v1.PileService.FindPieces:input_type -> pile.v1.FindPiecesRequest
+	47, // 71: pile.v1.PileService.ListStars:input_type -> pile.v1.ListStarsRequest
+	49, // 72: pile.v1.PileService.SetStar:input_type -> pile.v1.SetStarRequest
+	14, // 73: pile.v1.PileService.ListLots:output_type -> pile.v1.ListLotsResponse
+	19, // 74: pile.v1.PileService.GetOverview:output_type -> pile.v1.GetOverviewResponse
+	22, // 75: pile.v1.PileService.ListSets:output_type -> pile.v1.ListSetsResponse
+	26, // 76: pile.v1.PileService.GetSet:output_type -> pile.v1.GetSetResponse
+	30, // 77: pile.v1.PileService.ListParts:output_type -> pile.v1.ListPartsResponse
+	36, // 78: pile.v1.PileService.GetCollectTimes:output_type -> pile.v1.GetCollectTimesResponse
+	39, // 79: pile.v1.PileService.GetStorage:output_type -> pile.v1.GetStorageResponse
+	41, // 80: pile.v1.PileService.SetStorage:output_type -> pile.v1.SetStorageResponse
+	46, // 81: pile.v1.PileService.FindPieces:output_type -> pile.v1.FindPiecesResponse
+	48, // 82: pile.v1.PileService.ListStars:output_type -> pile.v1.ListStarsResponse
+	50, // 83: pile.v1.PileService.SetStar:output_type -> pile.v1.SetStarResponse
+	73, // [73:84] is the sub-list for method output_type
+	62, // [62:73] is the sub-list for method input_type
+	62, // [62:62] is the sub-list for extension type_name
+	62, // [62:62] is the sub-list for extension extendee
+	0,  // [0:62] is the sub-list for field type_name
 }
 
 func init() { file_pile_v1_pile_proto_init() }
@@ -4225,7 +4447,7 @@ func file_pile_v1_pile_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pile_v1_pile_proto_rawDesc), len(file_pile_v1_pile_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   43,
+			NumMessages:   47,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

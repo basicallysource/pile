@@ -31,10 +31,16 @@
 	import { unzoom, zoomed } from '$lib/pile/zoom.svelte';
 	import { view } from '$lib/view.svelte';
 	import Updating from '$lib/data/Updating.svelte';
-	import { resumeAt } from '$lib/data/place';
+	import { clearRoom, resumeAt } from '$lib/data/place';
+	import { afterNavigate } from '$app/navigation';
 	import type { Snapshot } from '@sveltejs/kit';
 
 	let { children } = $props();
+
+	// Room kept at the end of a page for the reader's place is that page's.
+	afterNavigate(({ from, to }) => {
+		if (from?.url.pathname !== to?.url.pathname) clearRoom();
+	});
 
 	export const snapshot: Snapshot<number> = {
 		capture: () => scrollY,

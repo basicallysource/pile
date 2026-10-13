@@ -1,7 +1,8 @@
 <!--
 	The set open beside a page of lots (`?set=` in the URL), in a Sheet: its name
-	and number in the head with its Rebrickable link and the button that puts
-	it in or takes it out of the sort-out queue, and SetDetail under them.
+	and number in the head with its star, its Rebrickable link and the button
+	that puts it in or takes it out of the sort-out queue, and SetDetail under
+	them.
 	The page beside it narrows and keeps its place; another set opened swaps it,
 	and the same set in a new view keeps showing until its new numbers are in
 	(docs/loading-data.md).
@@ -9,6 +10,7 @@
 <script lang="ts">
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Star from '@lucide/svelte/icons/star';
 	import X from '@lucide/svelte/icons/x';
 	import { Kind } from '$lib/gen/pile/v1/pile_pb';
 	import { sources } from '$lib/api';
@@ -20,6 +22,7 @@
 	import { lotsOf, routeStack, view } from '$lib/view.svelte';
 	import { closeSet, openSet } from './open-set.svelte';
 	import SetDetail from './SetDetail.svelte';
+	import { stars } from './stars.svelte';
 
 	const stack = $derived(routeStack());
 	const num = $derived(openSet());
@@ -51,6 +54,16 @@
 >
 	{#snippet actions()}
 		{#if set}
+			{@const starred = stars.has(set.setNum)}
+			<Button
+				size="sm"
+				variant="ghost"
+				icon={Star}
+				label={starred ? `Unstar ${set.name}` : `Star ${set.name}`}
+				aria-pressed={starred}
+				class={starred ? 'text-warning [&_svg]:fill-current' : ''}
+				onclick={() => stars.toggle(set.setNum)}
+			/>
 			{#if set.url}<Button href={set.url} variant="ghost" size="sm" icon={ExternalLink} target="_blank" rel="noreferrer"
 					>Rebrickable</Button
 				>{/if}

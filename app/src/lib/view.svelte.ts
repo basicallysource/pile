@@ -21,10 +21,11 @@ export type Filter = {
 	themeGroup: string;
 	licensedOnly: boolean;
 	minPieces: number;
+	starredOnly: boolean;
 };
 
 // The filter's presets: which kinds of set they hide. Each leaves the
-// theme, kind, size and licensed filters as they are.
+// theme, kind, size, licensed and starred filters as they are.
 export const presets = {
 	interesting: { hideLooseBricks: true, hideMostlyBasic: true, hideFewParts: true, hideNothingUnusual: true },
 	models: { hideLooseBricks: true, hideMostlyBasic: false, hideFewParts: false, hideNothingUnusual: false },
@@ -34,7 +35,7 @@ export type Preset = keyof typeof presets;
 type Rules = (typeof presets)[Preset];
 
 // The filter a page opens with, until one is chosen.
-const fresh: Filter = { ...presets.interesting, kind: Kind.UNSPECIFIED, themeGroup: '', licensedOnly: false, minPieces: 0 };
+const fresh: Filter = { ...presets.interesting, kind: Kind.UNSPECIFIED, themeGroup: '', licensedOnly: false, minPieces: 0, starredOnly: false };
 
 type Saved = { anyColor: boolean; byTheme: boolean; filter: Filter; sortOut: Record<string, string[]> };
 

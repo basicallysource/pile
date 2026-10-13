@@ -5,7 +5,8 @@
 	sets; Models hides only loose bricks; Everything hides nothing; none is
 	marked when the rules are the reader's own), then the rules it sets,
 	each its own switch with what it hides, then a theme, a
-	size, the kind and licensed only, and whether sets are grouped by theme.
+	size, the kind, licensed only and starred only, and whether sets are
+	grouped by theme.
 	It sits in a flush Panel's head, as a row that wraps.
 -->
 <script lang="ts">
@@ -107,6 +108,10 @@
 	<label class="flex items-center gap-2 text-sm whitespace-nowrap text-ink">
 		<Switch checked={f.licensedOnly} onchange={(v) => view.setFilter({ licensedOnly: v })} />
 		Licensed only
+	</label>
+	<label class="flex items-center gap-2 text-sm whitespace-nowrap text-ink">
+		<Switch checked={f.starredOnly} onchange={(v) => view.setFilter({ starredOnly: v })} />
+		Starred only
 	</label>
 	<label class="flex items-center gap-2 text-sm whitespace-nowrap text-ink">
 		<Switch checked={view.byTheme} onchange={(v) => view.setByTheme(v)} />

@@ -9,6 +9,10 @@
 // each is from the area's top. Once the change is drawn, the area scrolls so
 // the first of them still on the page is back where it was.
 //
+// When the change leaves an area too short to scroll back to the place
+// (what was below it is gone), the area gets room at its end, which gives
+// way as the reader scrolls back up, and goes when the page changes.
+//
 // A place is an element marked `data-place`, and each element directly
 // inside one marked `data-place="blocks"` (a Loaded region: its panels and
 // grids). A place stays put while its insides change; it is never an item of
@@ -105,11 +109,54 @@ export function holdPlace(at?: Element): Held {
 			for (const { scroller, marks } of held) {
 				const mark = marks.find((m) => m.el.isConnected);
 				if (!mark) continue;
-				const now = mark.el.getBoundingClientRect().top - areaOf(scroller).top;
-				if (Math.abs(now - mark.top) >= 1) scroller.scrollTop += now - mark.top;
+				const top = () => mark.el.getBoundingClientRect().top - areaOf(scroller).top;
+				if (Math.abs(top() - mark.top) >= 1) scroller.scrollTop += top() - mark.top;
+				const short = top() - mark.top;
+				if (short >= 1) {
+					makeRoom(scroller, short);
+					scroller.scrollTop += short;
+				}
 			}
 		}
 	};
+}
+
+// Room at the end of a scrolling area, by the area.
+const rooms = new Map<Element, { spacer: HTMLElement; off: () => void }>();
+
+function makeRoom(scroller: Element, px: number) {
+	let room = rooms.get(scroller);
+	if (!room) {
+		const root = document.scrollingElement ?? document.documentElement;
+		const spacer = document.createElement('div');
+		spacer.setAttribute('aria-hidden', 'true');
+		spacer.style.height = '0px';
+		(scroller === root ? document.body : scroller).append(spacer);
+		const target: EventTarget = scroller === root ? window : scroller;
+		let last = scroller.scrollTop;
+		const onscroll = () => {
+			const up = last - scroller.scrollTop;
+			last = scroller.scrollTop;
+			if (up <= 0) return;
+			const h = parseFloat(spacer.style.height) - up;
+			if (h > 0) spacer.style.height = `${h}px`;
+			else off();
+		};
+		const off = () => {
+			target.removeEventListener('scroll', onscroll);
+			spacer.remove();
+			rooms.delete(scroller);
+		};
+		target.addEventListener('scroll', onscroll, { passive: true });
+		room = { spacer, off };
+		rooms.set(scroller, room);
+	}
+	room.spacer.style.height = `${parseFloat(room.spacer.style.height) + px}px`;
+}
+
+// Takes away the room made at the end of every area: another page.
+export function clearRoom() {
+	for (const room of [...rooms.values()]) room.off();
 }
 
 let batch: Held | null = null;

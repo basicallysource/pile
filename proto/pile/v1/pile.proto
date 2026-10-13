@@ -30,6 +30,10 @@ service PileService {
   // What the bins hold that a search and its filters ask for: each part in
   // each color, how many, and which bins they are in.
   rpc FindPieces(FindPiecesRequest) returns (FindPiecesResponse);
+  // The starred sets and custom models.
+  rpc ListStars(ListStarsRequest) returns (ListStarsResponse);
+  // Stars or unstars one, and keeps it.
+  rpc SetStar(SetStarRequest) returns (SetStarResponse);
 }
 
 // How lots are looked at.
@@ -67,6 +71,8 @@ message Filter {
   bool licensed_only = 7;
   // Only those of at least this many counted pieces.
   int32 min_pieces = 8;
+  // Only the starred ones.
+  bool starred_only = 9;
 }
 
 // Why a filter hides a set.
@@ -80,6 +86,7 @@ enum Rule {
   RULE_THEME = 6;
   RULE_LICENSED = 7;
   RULE_SIZE = 8;
+  RULE_NOT_STARRED = 9;
 }
 
 message Color {
@@ -256,6 +263,9 @@ message GetOverviewResponse {
   // The theme groups of the sets the rest of the filter lets through, most
   // first.
   repeated ThemeCount themes = 13;
+  // Every starred set and custom model with a piece left in the lots,
+  // whatever the filter, most recently starred first.
+  Section starred = 14;
 }
 
 // Which of the overview's sections a set is in.
@@ -582,4 +592,21 @@ message FindPiecesResponse {
   repeated FilterOption types = 6;
   repeated FilterOption bins = 7;
   repeated FilterOption lots = 8;
+}
+
+message ListStarsRequest {}
+
+message ListStarsResponse {
+  // Most recently starred first.
+  repeated string set_nums = 1;
+}
+
+message SetStarRequest {
+  string set_num = 1;
+  bool starred = 2;
+}
+
+message SetStarResponse {
+  // Every star after the change, most recent first.
+  repeated string set_nums = 1;
 }

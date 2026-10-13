@@ -18,7 +18,12 @@ Apple), those of ten or fewer different parts, and those with nothing unusual
 in them. Models hides only the loose bricks, Everything hides nothing, and
 each rule is a switch of its own. A theme, a size, sets or custom models, and
 licensed only narrow it further, and "Group by theme" puts each theme's sets
-together. A set the filter hides says why in its panel.
+together. A set the filter hides says why in its panel. Each section of sets
+folds from the button in its head, and stays folded after a reload.
+
+A star on a set (on its tile, or at the top of its panel) keeps it to come
+back to: stars are saved in pile itself, so they last and show on every
+device, and "Starred only" lists nothing else.
 <!-- /human -->
 
 A view is how lots are looked at: which lots, in what order, exact or any
@@ -77,13 +82,27 @@ in the sort-out queue is never hidden.
   presets' rules: Interesting hides all four (the default), Models only loose
   bricks, Everything none (`presets` in `view.svelte.ts`).
 - **Narrowing**: kind (sets, custom models), one theme group, licensed
-  only, and a least size in counted pieces. The overview and Every set send
+  only, a least size in counted pieces, and starred only (below). The overview and Every set send
   the theme groups the rest of the filter lets through, with their counts,
   for the theme menu.
 - **Grouping by theme** is the app's alone: `SetGrid` puts each theme's sets
-  under its name, themes by name, each in the order given.
+  under its name, themes by name, each in the order given. So is folding a
+  section (`folded.svelte.ts`, by section title, in the browser; the tiny
+  sets start folded).
 - `FilterBar.svelte` shows it all; `rules.ts` says the rules in words, for
   the switches and for a set's panel.
+
+## Stars
+
+The starred sets and custom models are the server's, in the data folder's
+`stars.json` (`internal/stars`: most recent first, written whole or not at
+all), read by `ListStars` and changed one at a time by `SetStar`. The app's
+`stars.svelte.ts` holds them: a star changes at once and is saved after,
+changing back if saving fails. A filter with starred only is filtered on
+the server by its stars at the moment, and the request does not carry them,
+so the overview, every set and a set's answers under it are keyed by the
+stars' revision too (`version` on a Source, `docs/loading-data.md`): a new
+star asks again.
 
 ## The rest of the view
 

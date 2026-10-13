@@ -17,6 +17,7 @@ type view struct {
 	stack    *stack
 	anyColor bool
 	filter   *pilev1.Filter
+	starred  map[string]bool // with the filter's starred only
 	queue    []*match.Match // the sort-out queue, each against what came before it
 	found    map[string]match.Found
 	drawn    map[string]match.Drawn // where each queued set's pieces come from
@@ -37,7 +38,10 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 	if filter == nil {
 		filter = &pilev1.Filter{}
 	}
-	w := &view{stack: st, anyColor: v.AnyColor, filter: filter, place: map[string]int{}, found: map[string]match.Found{}, drawn: map[string]match.Drawn{}, left: st.piles}
+	w := &view{stack: st, anyColor: v.AnyColor, filter: filter, starred: map[string]bool{}, place: map[string]int{}, found: map[string]match.Found{}, drawn: map[string]match.Drawn{}, left: st.piles}
+	if filter.StarredOnly {
+		w.starred = s.stars.Has()
+	}
 	if len(v.SortOut) > 0 {
 		w.left = st.piles.Clone()
 	}
@@ -79,6 +83,7 @@ func (w *view) hiddenBy(m *match.Match) []pilev1.Rule {
 		{(f.Kind == pilev1.Kind_KIND_SET && m.Set.Custom) || (f.Kind == pilev1.Kind_KIND_CUSTOM && !m.Set.Custom), pilev1.Rule_RULE_KIND},
 		{f.LicensedOnly && !m.Set.Licensed, pilev1.Rule_RULE_LICENSED},
 		{m.Need < f.MinPieces, pilev1.Rule_RULE_SIZE},
+		{f.StarredOnly && !w.starred[m.Set.Num], pilev1.Rule_RULE_NOT_STARRED},
 	} {
 		if r.hides {
 			out = append(out, r.rule)

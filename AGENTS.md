@@ -63,9 +63,11 @@ the public record).
   custom models: `docs/custom-models.md`), `lots.json` (the collection's lots:
   each a named stretch of sorted pieces), `machines/<name>/local_state.sqlite`
   (a sorter's own records, copied), `hive.sqlite` (records pulled from a
-  Hive by `cmd/pull-hive`: `docs/hive.md`) and `storage.json` (the bins
-  pieces are kept in: `docs/storage.md`). Fresh data means a restart, except
-  the storage, which `SetStorage` replaces while it runs and writes back.
+  Hive by `cmd/pull-hive`: `docs/hive.md`), `storage.json` (the bins
+  pieces are kept in: `docs/storage.md`) and `stars.json` (the starred
+  sets: `docs/views.md`). Fresh data means a restart, except the storage,
+  which `SetStorage` replaces while it runs and writes back, and the stars,
+  which `SetStar` changes one at a time.
 - **Other commands.** `cmd/pull-hive` (records from a Hive),
   `cmd/collect-time` (how long one sorter takes to come across a set's
   pieces: `docs/collect-time.md`), `cmd/export-pieces` (a lot as CSV),

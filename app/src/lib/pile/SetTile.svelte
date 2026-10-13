@@ -5,13 +5,15 @@
 	the pieces in another color are counted after it. The tile opens the set
 	in the sheet over the page, and is marked while it is open;
 	the button in its corner puts it in (or takes it out of) the lots'
-	sort-out queue, and shows its place there; the magnifier in the other
-	corner shows its picture up close. `numbered` shows its place in
+	sort-out queue, and shows its place there; the star under it stars it
+	(always shown once starred); the magnifier in the other corner shows its
+	picture up close. `numbered` shows its place in
 	the likely order.
 -->
 <script lang="ts">
 	import Check from '@lucide/svelte/icons/check';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Star from '@lucide/svelte/icons/star';
 	import ZoomIn from '@lucide/svelte/icons/zoom-in';
 	import { Kind, type SetMatch } from '$lib/gen/pile/v1/pile_pb';
 	import PartImage from '$lib/components/PartImage.svelte';
@@ -20,6 +22,7 @@
 	import { view } from '$lib/view.svelte';
 	import { openSet, opensSet, setHref } from './open-set.svelte';
 	import { zoomsTo } from './zoom.svelte';
+	import { stars } from './stars.svelte';
 
 	let {
 		set,
@@ -32,6 +35,7 @@
 	const custom = $derived(set.kind === Kind.CUSTOM);
 	const place = $derived(view.queue(stack).indexOf(set.setNum) + 1);
 	const open = $derived(openSet() === set.setNum);
+	const starred = $derived(stars.has(set.setNum));
 	const notes = $derived(
 		[
 			set.wrongColor && `${set.wrongColor} in another color`,
@@ -100,5 +104,17 @@
 			: 'bg-surface text-ink opacity-0 ring-1 ring-line group-hover:opacity-100 hover:bg-raised focus-visible:opacity-100'}"
 	>
 		{#if place}{place}{:else}<Plus size={14} />{/if}
+	</button>
+	<button
+		type="button"
+		onclick={() => stars.toggle(set.setNum)}
+		aria-pressed={starred}
+		title={starred ? 'Starred: take the star off' : 'Star it'}
+		aria-label={starred ? `Unstar ${set.name}` : `Star ${set.name}`}
+		class="absolute top-10.5 right-2.5 flex size-7 items-center justify-center rounded-button bg-surface ring-1 ring-line transition-opacity hover:bg-raised focus-visible:opacity-100 {starred
+			? 'text-warning opacity-100'
+			: 'text-ink opacity-0 group-hover:opacity-100'}"
+	>
+		<Star size={14} fill={starred ? 'currentColor' : 'none'} />
 	</button>
 </div>

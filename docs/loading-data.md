@@ -12,7 +12,8 @@ where you were scrolled, even when the server is slow to answer.
 <!-- /human -->
 
 Every page loads through one layer, `app/src/lib/data/`. No page calls the
-client (`pile` in `app/src/lib/api.ts`) itself.
+client (`pile` in `app/src/lib/client.ts`) itself; only the stars, which
+the reader changes on the server, do (`docs/views.md#stars`).
 
 ## Sources and queries
 
@@ -27,6 +28,10 @@ client (`pile` in `app/src/lib/api.ts`) itself.
     seconds while it is shown.
   - `changes`: answers that can change while pile runs (what the bins hold,
     replaced by `SetStorage`): one had is shown at once and asked for again.
+  - `version`: what else on the server an answer depends on that the
+    request does not carry (the stars, when only starred sets are asked
+    for). It is part of the answer's key and read where the query notices
+    it change, so a change asks again.
   Everything else in pile changes only when it restarts, so an answer lasts
   the visit and a reload picks up a restart.
 - **A Query** is a component asking a source:
@@ -74,6 +79,11 @@ screen. Changes in one turn share one hold.
   never a place: the browser keeps its element across a reorder, and
   following it would carry the page away to wherever the item went. So a
   `Loaded` region draws blocks, never a list's items directly.
+- **Room at the end.** When the change leaves an area too short to scroll
+  back to the place (a filter emptied what was below it), the browser would
+  pull the page down; instead the area gets an empty spacer at its end, as
+  tall as it was short, which shrinks as the reader scrolls back up and goes
+  when the page changes (`clearRoom`, from the root layout).
 - **Which one is held**: in the area under the pointer, the smallest place
   under it; elsewhere, the place at the top of the area. The places nearest
   it are held as well, to fall back on when it is gone after the change (a

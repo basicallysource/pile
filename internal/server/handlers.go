@@ -63,6 +63,17 @@ func (s *Service) GetOverview(_ context.Context, req *connect.Request[pilev1.Get
 	}
 	listed, themes := w.listed()
 	out.Themes = themes
+	byNum := map[string]*match.Match{}
+	for _, m := range w.scores {
+		byNum[m.Set.Num] = m
+	}
+	var starred []*match.Match
+	for _, num := range s.stars.Sets() {
+		if m := byNum[num]; m != nil && w.place[num] == 0 {
+			starred = append(starred, m)
+		}
+	}
+	out.Starred = section(starred)
 	in := map[pilev1.Place][]*match.Match{}
 	for _, m := range listed {
 		if p := w.placeOf(m); p != pilev1.Place_PLACE_NONE {
@@ -149,7 +160,7 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 		o, _ := s.index.Score(e, w.left.Sum, !w.anyColor)
 		o.Pick = m.Pick
 		out.OtherColors = setMatch(o)
-		out.OtherPlace = (&view{anyColor: !w.anyColor, filter: w.filter, place: w.place}).placeOf(o)
+		out.OtherPlace = (&view{anyColor: !w.anyColor, filter: w.filter, starred: w.starred, place: w.place}).placeOf(o)
 		out.HiddenBy = w.hiddenBy(m)
 	}
 	if w.place[set.Num] > 0 {
