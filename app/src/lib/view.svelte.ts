@@ -3,9 +3,11 @@
 // link carries them. The rest is kept in the browser, so it lasts across
 // pages and reloads: any-color matching, what counts toward a set's
 // completeness (docs/views.md#counting), the filter (which sets are listed,
-// docs/views.md#the-filter), whether sets are grouped by theme, and each
-// stack's sort-out queue (most wanted first). Every page reads it and the
-// server works from it.
+// docs/views.md#the-filter), whether sets are grouped by theme, and the
+// sort-out queue (most wanted first), which is the view's whatever lots it
+// looks at: adding, taking out or moving a lot keeps it, and the server
+// counts it against the new ones. Every page reads it and the server works
+// from it.
 import { page } from '$app/state';
 import { Kind, type View } from './gen/pile/v1/pile_pb';
 import type { MessageInitShape } from '@bufbuild/protobuf';
@@ -48,8 +50,16 @@ type Saved = {
 	byTheme: boolean;
 	counting: Counting;
 	filter: Filter;
-	sortOut: Record<string, string[]>;
+	queue: string[];
 };
+
+// The queue as it was kept before it was the view's: one per stack of lots.
+// The last one kept that has sets in it becomes the view's.
+function lastStackQueue(sortOut: unknown): string[] {
+	if (!sortOut || typeof sortOut !== 'object') return [];
+	const queues = Object.values(sortOut).filter((q) => Array.isArray(q) && q.length);
+	return (queues.at(-1) as string[] | undefined) ?? [];
+}
 
 function load(): Saved {
 	try {
@@ -60,12 +70,12 @@ function load(): Saved {
 				byTheme: !!s.byTheme,
 				counting: { ...defaultCounting, ...(s.counting ?? {}) },
 				filter: { ...fresh, ...(s.filter ?? {}) },
-				sortOut: s.sortOut ?? {}
+				queue: Array.isArray(s.queue) ? s.queue : lastStackQueue(s.sortOut)
 			};
 	} catch {
 		// Nothing saved, or storage is off.
 	}
-	return { anyColor: false, byTheme: false, counting: defaultCounting, filter: fresh, sortOut: {} };
+	return { anyColor: false, byTheme: false, counting: defaultCounting, filter: fresh, queue: [] };
 }
 
 class ViewState {
@@ -74,8 +84,8 @@ class ViewState {
 	byTheme = $state(false);
 	counting = $state<Counting>(defaultCounting);
 	filter = $state<Filter>(fresh);
-	// Each stack's queue, by the stack as the route has it.
-	sortOut = $state<Record<string, string[]>>({});
+	// Set numbers, most wanted first.
+	queue = $state<string[]>([]);
 
 	constructor() {
 		const s = load();
@@ -83,7 +93,7 @@ class ViewState {
 		this.byTheme = s.byTheme;
 		this.counting = s.counting;
 		this.filter = s.filter;
-		this.sortOut = s.sortOut;
+		this.queue = s.queue;
 	}
 
 	private save() {
@@ -95,7 +105,7 @@ class ViewState {
 					byTheme: this.byTheme,
 					counting: this.counting,
 					filter: this.filter,
-					sortOut: this.sortOut
+					queue: this.queue
 				})
 			);
 		} catch {
@@ -131,31 +141,32 @@ class ViewState {
 		);
 	}
 
-	queue(stack: string): string[] {
-		return this.sortOut[stack] ?? [];
+	// A set's place in the queue, from 1; 0 when it is not in it.
+	placeOf(num: string): number {
+		return this.queue.indexOf(num) + 1;
 	}
 
-	private setQueue(stack: string, q: string[]) {
-		this.sortOut = { ...this.sortOut, [stack]: q };
+	private setQueue(q: string[]) {
+		this.queue = q;
 		this.save();
 	}
 
-	toggle(stack: string, num: string) {
-		const q = this.queue(stack);
-		this.setQueue(stack, q.includes(num) ? q.filter((n) => n !== num) : [...q, num]);
+	toggle(num: string) {
+		const q = this.queue;
+		this.setQueue(q.includes(num) ? q.filter((n) => n !== num) : [...q, num]);
 	}
 
-	move(stack: string, num: string, step: -1 | 1) {
-		const q = [...this.queue(stack)];
+	move(num: string, step: -1 | 1) {
+		const q = [...this.queue];
 		const i = q.indexOf(num);
 		const j = i + step;
 		if (i < 0 || j < 0 || j >= q.length) return;
 		[q[i], q[j]] = [q[j], q[i]];
-		this.setQueue(stack, q);
+		this.setQueue(q);
 	}
 
-	clear(stack: string) {
-		this.setQueue(stack, []);
+	clear() {
+		this.setQueue([]);
 	}
 
 	// The View the server works from, for a stack.
@@ -165,7 +176,7 @@ class ViewState {
 			anyColor: this.anyColor,
 			counting: { ...this.counting } as MessageInitShape<typeof CountingSchema>,
 			filter: { ...this.filter } as MessageInitShape<typeof FilterSchema>,
-			sortOut: this.queue(stack)
+			sortOut: this.queue
 		};
 	}
 }

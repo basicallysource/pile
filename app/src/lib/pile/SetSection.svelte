@@ -66,7 +66,7 @@
 			/>
 		{/snippet}
 		{#if !shut}
-			<SetGrid sets={sets.slice(0, drawn)} {stack} {numbered} {small} />
+			<SetGrid sets={sets.slice(0, drawn)} {numbered} {small} />
 			{#if sets.length > drawn}
 				<div class="border-t border-line px-(--pad-panel) py-3">
 					<Button size="sm" icon={ChevronDown} onclick={() => (drawn += PAGE)}

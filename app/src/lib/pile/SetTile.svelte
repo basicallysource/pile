@@ -4,8 +4,8 @@
 	the pieces hold, with the count. Green when complete; in an any-color view
 	the pieces in another color are counted after it. The tile opens the set
 	in the sheet over the page, and is marked while it is open;
-	the button in its corner puts it in (or takes it out of) the lots'
-	sort-out queue, and shows its place there; the star under it stars it
+	the button in its corner puts it in (or takes it out of) the sort-out
+	queue, and shows its place there; the star under it stars it
 	(always shown once starred); the magnifier in the other corner shows its
 	picture up close. `numbered` shows its place in
 	the likely order.
@@ -26,14 +26,13 @@
 
 	let {
 		set,
-		stack,
 		numbered = false
-	}: { set: SetMatch; stack: string; numbered?: boolean } = $props();
+	}: { set: SetMatch; numbered?: boolean } = $props();
 
 	const done = $derived(set.have >= set.need);
 	const share = $derived(set.have / Math.max(1, set.need));
 	const custom = $derived(set.kind === Kind.CUSTOM);
-	const place = $derived(view.queue(stack).indexOf(set.setNum) + 1);
+	const place = $derived(view.placeOf(set.setNum));
 	const open = $derived(openSet() === set.setNum);
 	const starred = $derived(stars.has(set.setNum));
 	const notes = $derived(
@@ -97,7 +96,7 @@
 	{/if}
 	<button
 		type="button"
-		onclick={() => view.toggle(stack, set.setNum)}
+		onclick={() => view.toggle(set.setNum)}
 		aria-pressed={place > 0}
 		title={place ? `Sorting out ${place}: take out of the queue` : 'Sort this out'}
 		aria-label={place ? `Take ${set.name} out of the sort-out queue` : `Sort out ${set.name}`}

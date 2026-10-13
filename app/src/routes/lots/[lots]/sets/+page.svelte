@@ -117,7 +117,7 @@
 				</div>
 			{:else}
 				<p class="px-(--pad-panel) pt-3 text-sm text-ink-muted">{count(shown.length)} with a piece here.</p>
-				<SetGrid sets={shown.slice(0, drawn)} {stack} />
+				<SetGrid sets={shown.slice(0, drawn)} />
 				{#if shown.length > drawn}
 					<div class="border-t border-line px-(--pad-panel) py-3">
 						<Button onclick={() => (drawn += PAGE)}

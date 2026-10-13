@@ -7,7 +7,8 @@ order is a priority: when a set is sorted out, its pieces are pulled from the
 first lot that has them, then the next, so put the lot you would rather pull
 from first. The sets, the parts and the totals are of all the lots together;
 the sort-out queue and a set's panel say how many of its pieces are in each
-lot. The address carries the lots and their order, so a link opens the same
+lot. The queue stays as you add, take out or move lots, and each set in it
+is counted again against them. The address carries the lots and their order, so a link opens the same
 view. How long a sorter takes to collect a set is worked out for one lot at a
 time; with several, pick which.
 
@@ -140,8 +141,12 @@ star asks again.
 ## The rest of the view
 
 Kept in the browser (`view.svelte.ts`), so it lasts across pages and
-reloads: any-color matching, the filter, grouping by theme, and each
-stack's sort-out queue, keyed by the stack as the route has it (a stack of
-one by the lot's id). The queue's sets take their pieces in order, each
-against what the ones before it left; everything else is matched against
-what is left after all of them (`internal/server/view.go`).
+reloads: any-color matching, what counts, the filter, grouping by theme,
+and the sort-out queue. The queue is the view's, not a stack's: adding,
+taking out or moving a lot keeps its sets and their order, and the server
+counts them again against the new lots (a set they cannot help stays, with
+what they have of it). Before it was the view's, each stack kept one
+(`sortOut` by stack); the last of those with sets in it became the view's.
+The queue's sets take their pieces in order, each against what the ones
+before it left; everything else is matched against what is left after all
+of them (`internal/server/view.go`).

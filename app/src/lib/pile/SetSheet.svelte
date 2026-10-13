@@ -42,7 +42,7 @@
 	const set = $derived(detail?.set);
 	// Its place in the queue, from the view itself: the button changes on
 	// the click, before the new numbers are in.
-	const place = $derived(set ? view.queue(stack).indexOf(set.setNum) + 1 : 0);
+	const place = $derived(set ? view.placeOf(set.setNum) : 0);
 </script>
 
 {#if num}
@@ -71,7 +71,7 @@
 				size="sm"
 				variant={place ? 'secondary' : 'primary'}
 				icon={place ? X : Plus}
-				onclick={() => view.toggle(stack, set.setNum)}
+				onclick={() => view.toggle(set.setNum)}
 				>{place ? `Sorting out ${place}: take out` : 'Sort this out'}</Button
 			>
 		{/if}

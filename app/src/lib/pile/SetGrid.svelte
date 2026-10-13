@@ -12,10 +12,9 @@
 
 	let {
 		sets,
-		stack,
 		numbered = false,
 		small = false
-	}: { sets: SetMatch[]; stack: string; numbered?: boolean; small?: boolean } = $props();
+	}: { sets: SetMatch[]; numbered?: boolean; small?: boolean } = $props();
 
 	const groups = $derived.by(() => {
 		if (!view.byTheme) return [{ theme: '', sets }];
@@ -41,6 +40,6 @@
 				{g.theme} <span class="num text-ink-faint">· {g.sets.length}</span>
 			</p>
 		{/if}
-		{#each g.sets as set (set.setNum)}<SetTile {set} {stack} {numbered} />{/each}
+		{#each g.sets as set (set.setNum)}<SetTile {set} {numbered} />{/each}
 	{/each}
 </div>

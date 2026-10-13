@@ -70,7 +70,7 @@
 		<Distribution categories={data.categories} colors={t.colors} pieces={t.pieces} />
 
 		{#if data.sortOut.length}
-			<SortOutQueue queue={data.sortOut} {stack} {names} pieces={t.pieces} left={data.piecesLeft} />
+			<SortOutQueue queue={data.sortOut} {names} pieces={t.pieces} left={data.piecesLeft} />
 		{/if}
 
 		<SetSection

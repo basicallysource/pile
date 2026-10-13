@@ -4,6 +4,9 @@
 	Arrows reorder it; everything below on the page is matched against what
 	is left after all of them. With several lots, each says how many of its
 	pieces come from which lot (the first lot that has them, then the next).
+	It is the view's, so it stays as lots are added, taken out or moved, and
+	is counted again against them; a set they cannot help keeps its place
+	and shows what they have of it.
 -->
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
@@ -20,14 +23,12 @@
 
 	let {
 		queue,
-		stack,
 		names,
 		pieces,
 		left
 	}: {
 		queue: QueuedSet[];
-		// The lots, as the route has them, and their names.
-		stack: string;
+		// The lots' names.
 		names: Record<string, string>;
 		pieces: number;
 		left: number;
@@ -42,7 +43,7 @@
 	flush
 >
 	{#snippet actions()}
-		<Button size="sm" variant="ghost" icon={X} onclick={() => view.clear(stack)}>Clear</Button>
+		<Button size="sm" variant="ghost" icon={X} onclick={() => view.clear()}>Clear</Button>
 	{/snippet}
 	<div class="flex gap-2 overflow-x-auto p-2">
 		{#each queue as q, i (q.set?.setNum)}
@@ -58,7 +59,7 @@
 							icon={ArrowLeft}
 							label="Sort out sooner"
 							disabled={i === 0}
-							onclick={() => view.move(stack, set.setNum, -1)}
+							onclick={() => view.move(set.setNum, -1)}
 						/>
 						<Button
 							size="sm"
@@ -66,14 +67,14 @@
 							icon={ArrowRight}
 							label="Sort out later"
 							disabled={i === queue.length - 1}
-							onclick={() => view.move(stack, set.setNum, 1)}
+							onclick={() => view.move(set.setNum, 1)}
 						/>
 						<Button
 							size="sm"
 							variant="ghost"
 							icon={X}
 							label="Take out of the queue"
-							onclick={() => view.toggle(stack, set.setNum)}
+							onclick={() => view.toggle(set.setNum)}
 						/>
 					</div>
 				</div>
