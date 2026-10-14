@@ -6,8 +6,8 @@ fountain, a ship and its stand. A build is one of those things on its own,
 with its own parts list, matched against your pieces like a set: you can see
 that one building of a set is nearly all here while the whole set is not,
 and sort out just that building. Builds come from 3D models of the sets that the LDraw
-community made, so only sets someone modeled have them (about one in
-fifteen, most of them older sets). Each has a picture drawn from its model.
+community made, so only sets someone modeled have them (under a tenth of
+sets, most of them older ones). Each has a picture drawn from its model.
 <!-- /human -->
 
 ## Where they come from
