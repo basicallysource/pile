@@ -8,7 +8,7 @@ type Match struct {
 	*Entry
 	// The pieces counted (this Need, not the entry's), those of them found,
 	// each line capped at what it needs, and of those the ones in another
-	// color (any-color matching only).
+	// color (when the colors matched by take others).
 	Need, Have, WrongColor int32
 	// Have weighted by rarity, over Need weighted the same way.
 	Weighted float64
@@ -32,10 +32,10 @@ func (m *Match) Interest() float64 { return m.Evidence * m.Weighted * m.Weighted
 // rank is the evidence a set is in the pile, which orders the likely sets.
 func (m *Match) rank() float64 { return m.Evidence * m.Weighted }
 
-// Score matches one entry against the pile, counting the lines c counts;
-// Found is for every line.
-func (ix *Index) Score(e *Entry, p *Pile, anyColor bool, c Counting) (*Match, Found) {
-	f := p.find(e, anyColor)
+// Score matches one entry against the pile, in the colors cs takes,
+// counting the lines c counts; Found is for every line.
+func (ix *Index) Score(e *Entry, p *Pile, cs Colors, c Counting) (*Match, Found) {
+	f := p.find(e, cs)
 	m := &Match{Entry: e}
 	var wNeed float64
 	for i, l := range e.Lines {
@@ -44,7 +44,7 @@ func (ix *Index) Score(e *Entry, p *Pile, anyColor bool, c Counting) (*Match, Fo
 		}
 		m.Need += l.Quantity
 		h := f.Exact[i] + f.Other[i]
-		w := ix.weight(l, anyColor)
+		w := ix.weight(l, cs)
 		m.Have += h
 		m.WrongColor += f.Other[i]
 		wNeed += float64(l.Quantity) * w
@@ -58,13 +58,13 @@ func (ix *Index) Score(e *Entry, p *Pile, anyColor bool, c Counting) (*Match, Fo
 
 // ScoreAll matches every shown entry with a counted piece in the pile, most
 // interesting first.
-func (ix *Index) ScoreAll(p *Pile, anyColor bool, c Counting) []*Match {
+func (ix *Index) ScoreAll(p *Pile, cs Colors, c Counting) []*Match {
 	var out []*Match
 	for _, e := range ix.Entries {
 		if e.Hidden {
 			continue
 		}
-		if m, _ := ix.Score(e, p, anyColor, c); m.Have > 0 && m.Need > 0 {
+		if m, _ := ix.Score(e, p, cs, c); m.Have > 0 && m.Need > 0 {
 			out = append(out, m)
 		}
 	}

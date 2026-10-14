@@ -41,9 +41,8 @@ message View {
   // The lots, taken together, in priority order: whatever a set takes is
   // drawn from the first lot that has those pieces, then the next.
   repeated string lots = 1;
-  // Match parts in any color: a set counts a piece of the right part in
-  // another color as found, and says how many of its pieces are.
-  bool any_color = 2;
+  reserved 2;
+  reserved "any_color";
   // Sets and custom models to sort out, most wanted first. Each takes its
   // pieces from what the ones before it left; everything else is matched
   // against what is left after all of them.
@@ -53,6 +52,47 @@ message View {
   // Which kinds of part count toward a set's completeness. Unset:
   // accessories count, printed parts and minifigure parts do not.
   Counting counting = 5;
+  // Which colors a set's line takes once its own color runs out.
+  ColorMatch colors = 6;
+  // Changes to sets' colors: a set takes another color for one of its
+  // colors, or for one part.
+  repeated ColorChoice color_choices = 7;
+}
+
+// Which colors a set's line takes once its own color runs out. A piece in
+// another color counts as found, and each set says how many of its pieces
+// are.
+enum ColorMatch {
+  // Exact.
+  COLOR_MATCH_UNSPECIFIED = 0;
+  // None: a line needs its part in its color.
+  COLOR_MATCH_EXACT = 1;
+  // The colors near its own: shades of one color, old and new grays.
+  COLOR_MATCH_SIMILAR = 2;
+  // Any color of its part.
+  COLOR_MATCH_ANY = 3;
+}
+
+// A change to a set's colors: its lines in `color` (all of them, or only
+// `part_num`'s) take `use_color` instead, or any color of their part. A
+// part's choice is made after its color's.
+message ColorChoice {
+  string set_num = 1;
+  // The color as the set has it.
+  int32 color = 2;
+  // One part's line (Rebrickable's number); empty for every line in the
+  // color.
+  string part_num = 3;
+  oneof take {
+    int32 use_color = 4;
+    bool any_color = 5;
+  }
+}
+
+// A color, and how many pieces of something are in it.
+message ColorCount {
+  Color color = 1;
+  int32 pieces = 2;
 }
 
 // Which kinds of part count toward a set's completeness, a plain part
@@ -404,7 +444,8 @@ message SetLine {
   Color color = 3;
   int32 need = 4;
   // Pieces of this part (or a mold variant) found for this line, up to `need`:
-  // in its color, or in an any-color view in any color. Counted or not.
+  // in its color, or in the other colors it takes (View.colors, its
+  // ColorChoice). Counted or not.
   int32 found = 5;
   // Of `found`, the pieces in another color.
   int32 wrong_color = 6;
@@ -414,6 +455,28 @@ message SetLine {
   repeated LotCount lots = 9;
   // Whether the view counts it toward the set's completeness.
   bool counted = 10;
+  // The view's choice for it (ColorChoice): the color it takes instead of
+  // its own, or any color.
+  Color use_color = 11;
+  bool any_color = 12;
+  // Its part in every color the lots have, most first.
+  repeated ColorCount part_colors = 13;
+}
+
+// One of a set's colors, and what could stand in for it.
+message SetColor {
+  Color color = 1;
+  // Its pieces in the set, and of those, found (in the colors the view
+  // takes).
+  int32 need = 2;
+  int32 found = 3;
+  // The view's choice for the color: the color it takes instead, or any.
+  Color use_color = 4;
+  bool any_color = 5;
+  // Other colors, each with how many of this color's pieces the lots have
+  // in it, part by part (each line capped at what it needs): what taking it
+  // instead would find. The most first.
+  repeated ColorCount swaps = 6;
 }
 
 message Minifigure {
@@ -430,8 +493,8 @@ message GetSetResponse {
   // Where the overview shows it in this view.
   Place place = 4;
   // The same set in the other color matching (any color when the view is
-  // exact, exact when it is any), and where the overview shows it then: so
-  // a page can say why a set is or is not listed.
+  // exact or similar, exact when it is any), and where the overview shows
+  // it then: so a page can say why a set is or is not listed.
   SetMatch other_colors = 5;
   Place other_place = 6;
   // The filter's rules that hide it (with PLACE_HIDDEN).
@@ -445,6 +508,8 @@ message GetSetResponse {
   // left out.
   int32 source_placed = 9;
   repeated string source_unplaced = 10;
+  // Its colors, the most pieces first.
+  repeated SetColor colors = 11;
 }
 
 message ListPartsRequest {

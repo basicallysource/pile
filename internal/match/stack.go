@@ -44,8 +44,8 @@ func (d Drawn) Lots(lots int) []int32 {
 }
 
 // Take takes e's pieces out of the stack, and says which lots they came from.
-func (s *Stack) Take(e *Entry, anyColor bool) Drawn {
-	ds := s.Sum.draw(e, anyColor)
+func (s *Stack) Take(e *Entry, cs Colors) Drawn {
+	ds := s.Sum.draw(e, cs)
 	out := s.attribute(e, ds, true)
 	if len(s.Lots) > 1 {
 		for _, d := range ds {
@@ -56,8 +56,8 @@ func (s *Stack) Take(e *Entry, anyColor bool) Drawn {
 }
 
 // Sources is which lots e's pieces would come from, were it taken.
-func (s *Stack) Sources(e *Entry, anyColor bool) Drawn {
-	return s.attribute(e, s.Sum.draw(e, anyColor), false)
+func (s *Stack) Sources(e *Entry, cs Colors) Drawn {
+	return s.attribute(e, s.Sum.draw(e, cs), false)
 }
 
 // attribute draws each of ds from the lots, first first: taking it out of

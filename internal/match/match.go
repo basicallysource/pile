@@ -7,10 +7,13 @@
 // color) is weighted by how rare it is across all sets (its inverse document
 // frequency): a set's unusual pieces are the evidence that it is there.
 //
-// Matching is exact (a line needs its part in its color) or any-color (any
-// color of its part will do; the pieces of the right color are taken first,
-// and the rest are counted as wrong-color). A part stands for its mold
-// variants and alternates, which look alike to a camera.
+// Matching is exact (a line needs its part in its color), similar (the
+// colors near its own will do, colors.go), or any-color (any color of its
+// part will do); the pieces of the right color are taken first, and the
+// rest are counted as wrong-color. A view can also change a set's colors
+// (choices.go): every line of one color, or one part's, takes another
+// color, or any. A part stands for its mold variants and alternates, which
+// look alike to a camera.
 //
 // Each line of a set has a class (plain, printed, minifigure part,
 // accessory); a view's Counting says which count toward completeness. One

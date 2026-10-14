@@ -131,7 +131,7 @@ func newStack(ls []*lot, ix *match.Index) *stack {
 
 	st.piles = match.NewStack(piles)
 	st.picks = map[string]int{}
-	for n, e := range ix.Explain(st.piles.Sum, false) {
+	for n, e := range ix.Explain(st.piles.Sum, ix.Colors(match.Exact)) {
 		st.picks[e.Set.Num] = n + 1
 	}
 	return st

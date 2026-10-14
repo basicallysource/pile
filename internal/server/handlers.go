@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"sort"
 
 	"connectrpc.com/connect"
@@ -161,87 +160,6 @@ func (s *Service) ListSets(_ context.Context, req *connect.Request[pilev1.ListSe
 		sort.SliceStable(list, func(i, j int) bool { return less(list[i], list[j]) })
 	}
 	out.Sets = setMatches(list)
-	return connect.NewResponse(out), nil
-}
-
-func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRequest]) (*connect.Response[pilev1.GetSetResponse], error) {
-	w, err := s.view(req.Msg.View)
-	if err != nil {
-		return nil, err
-	}
-	set := s.cat.Sets[req.Msg.SetNum]
-	if set == nil {
-		return nil, connect.NewError(connect.CodeNotFound, errors.New("no set "+req.Msg.SetNum))
-	}
-	out := &pilev1.GetSetResponse{}
-	e := s.index.Entry(set.Num)
-	var found match.Found
-	var drawn match.Drawn
-	if e == nil {
-		out.Set = setMatch(&match.Match{Entry: &match.Entry{Set: set}})
-	} else if f, ok := w.found[set.Num]; ok {
-		// In the queue: against what the sets before it left.
-		out.Set = setMatch(w.queue[w.place[set.Num]-1])
-		found, drawn = f, w.drawn[set.Num]
-	} else {
-		m, f := s.index.Score(e, w.left.Sum, w.anyColor, w.counting)
-		m.Pick = w.stack.picks[set.Num]
-		out.Set, found, drawn = setMatch(m), f, w.left.Sources(e, w.anyColor)
-		out.Place = w.placeOf(m)
-		o, _ := s.index.Score(e, w.left.Sum, !w.anyColor, w.counting)
-		o.Pick = m.Pick
-		out.OtherColors = setMatch(o)
-		out.OtherPlace = (&view{anyColor: !w.anyColor, counting: w.counting, filter: w.filter, starred: w.starred, place: w.place}).placeOf(o)
-		out.HiddenBy = w.hiddenBy(m)
-	}
-	if w.place[set.Num] > 0 {
-		out.Place = pilev1.Place_PLACE_SORT_OUT
-	}
-	// Lines of one part (or its variants) and color share what was found for
-	// it, and the lots it is in, first come first served.
-	exactLeft := map[int]int32{}
-	otherLeft := map[int]int32{}
-	lotsLeft := map[int][]int32{}
-	for i := range found.Exact {
-		exactLeft[i], otherLeft[i], lotsLeft[i] = found.Exact[i], found.Other[i], drawn[i]
-	}
-	for _, l := range set.Lines {
-		line := &pilev1.SetLine{PartNum: l.Part, Color: color(s.cat.Colors[l.Color]), Need: l.Quantity, ImageUrl: l.ImageURL}
-		var class catalog.Class
-		if part := s.cat.Parts[l.Part]; part != nil {
-			line.Name, class = part.Name, part.Class
-		}
-		line.Class, line.Counted = partClass[class], w.counting.Counts(class)
-		if e != nil {
-			if i := s.index.LineOf(e, l.Part, l.Color); i >= 0 {
-				x := min(exactLeft[i], l.Quantity)
-				o := min(otherLeft[i], l.Quantity-x)
-				exactLeft[i] -= x
-				otherLeft[i] -= o
-				line.Found, line.WrongColor = x+o, o
-				from := make([]int32, len(w.stack.lots))
-				n := x + o
-				for j, have := range lotsLeft[i] {
-					t := min(have, n)
-					from[j], lotsLeft[i][j], n = t, have-t, n-t
-				}
-				line.Lots = w.stack.lotCounts(from)
-			}
-		}
-		out.Lines = append(out.Lines, line)
-	}
-	for _, f := range set.Minifigures {
-		out.Minifigures = append(out.Minifigures, &pilev1.Minifigure{FigNum: f.Num, Name: f.Name, Quantity: f.Quantity, ImageUrl: f.ImageURL})
-	}
-	for _, b := range set.Builds {
-		if be := s.index.Entry(b.Num); be != nil {
-			m, _ := s.index.Score(be, w.left.Sum, w.anyColor, w.counting)
-			out.Builds = append(out.Builds, setMatch(m))
-		}
-	}
-	if src := set.Source; src != nil {
-		out.SourcePlaced, out.SourceUnplaced = src.Placed, src.Unplaced
-	}
 	return connect.NewResponse(out), nil
 }
 

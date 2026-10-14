@@ -33,10 +33,23 @@ and sorting the set out takes it too. Whole minifigures are always apart.
 A star on a set (on its tile, or at the top of its panel) keeps it to come
 back to: stars are saved in pile itself, so they last and show on every
 device, and "Starred only" lists nothing else.
+
+Colors are yours to bend, to see how close a set gets. At the top, Exact
+colors counts only the right color; Similar colors lets a near color stand
+in once the right one runs out (dark red for red, an old gray for a new
+one); Any color lets any color of the part do. In a set's panel, Colors
+swaps one of its colors for another (all its red for dark red, or for
+white, to build it in other colors), each choice saying how many of those
+pieces the lots have; and each part's count opens the same for that part
+alone: its own color, any color, or another color the lots have it in.
+The changes last until you take them back ("Its own colors"), count in the
+sort-out queue (a set that takes dark red leaves the red for the sets after
+it), and the overview says how many sets you changed.
 <!-- /human -->
 
-A view is how lots are looked at: which lots, in what order, exact or any
-color, what counts, the filter, and the sort-out queue. Every
+A view is how lots are looked at: which lots, in what order, which colors a
+line takes, the changes to sets' colors, what counts, the filter, and the
+sort-out queue. Every
 request about lots carries one (`View` in `proto/pile/v1/pile.proto`).
 
 ## The lots: a stack
@@ -71,6 +84,31 @@ request about lots carries one (`View` in `proto/pile/v1/pile.proto`).
   another is picked.
 - **Find pieces** searches the bins, each holding one lot's pieces; its lot
   filter is its own.
+
+## Colors
+
+`View.colors` is which colors a set's line takes once its own runs out
+(`match.ColorMode`, `internal/match/colors.go`): exact, similar (the colors
+near its own: `nearColors`, pairs of colors a builder takes for one another,
+by Rebrickable's names, so nearness never chains), or any. A line takes its
+own color first; the pieces in other colors are drawn after every line has
+had its own (`Pile.allot`), near colors by nearness, any color the most
+plentiful first, and counted as `wrong_color`. Rarity weights are exact but
+for a line that takes any color.
+
+`View.color_choices` change sets' colors (`match.Choice`,
+`internal/match/choices.go`): a set's lines in one color, or one part's line
+in it, take another color instead, or any color (`Line.Any`). A part's
+choice is made after its color's. `WithChoices` rewrites the set's lines for
+the view (two lines that become one part in one color merge) and keeps which
+line each line of the set became, so `LineOf` and a set's panel still go by
+the set's own part and color. The server scores the changed sets in place of
+their own (`view.entry`, the queue, the overview, a set's panel and its
+builds). `GetSet` sends each line's choice and its part's colors in the lots
+(`SetLine.part_colors`), and each of the set's colors with what could stand
+in for it (`SetColor.swaps`: how many of the color's pieces the lots have in
+another color, line by line; the near colors always among them). A line that
+takes another color is pictured in it when Rebrickable has the picture.
 
 ## Counting
 
@@ -142,7 +180,8 @@ star asks again.
 ## The rest of the view
 
 Kept in the browser (`view.svelte.ts`), so it lasts across pages and
-reloads: any-color matching, what counts, the filter, grouping by theme,
+reloads: the colors a line takes and the changes to sets' colors, what
+counts, the filter, grouping by theme,
 and the sort-out queue. The queue is the view's, not a stack's: adding,
 taking out or moving a lot keeps its sets and their order, and the server
 counts them again against the new lots (a set they cannot help stays, with

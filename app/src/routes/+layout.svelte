@@ -29,7 +29,7 @@
 	import StackBar from '$lib/pile/StackBar.svelte';
 	import Lightbox from '$lib/components/Lightbox.svelte';
 	import { unzoom, zoomed } from '$lib/pile/zoom.svelte';
-	import { view } from '$lib/view.svelte';
+	import { view, type ColorMode } from '$lib/view.svelte';
 	import Updating from '$lib/data/Updating.svelte';
 	import { clearRoom, resumeAt } from '$lib/data/place';
 	import { afterNavigate } from '$app/navigation';
@@ -85,10 +85,11 @@
 					<SegmentedControl
 						label="Colors"
 						size="sm"
-						value={view.anyColor ? 'any' : 'exact'}
-						onchange={(v) => view.setAnyColor(v === 'any')}
+						value={view.colors}
+						onchange={(v) => view.setColors(v as ColorMode)}
 						options={[
 							{ value: 'exact', label: 'Exact colors' },
+							{ value: 'similar', label: 'Similar colors' },
 							{ value: 'any', label: 'Any color' }
 						]}
 					/>

@@ -14,7 +14,7 @@
 <script lang="ts">
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
-	import { Kind, Place, type GetSetResponse, type SetLine } from '$lib/gen/pile/v1/pile_pb';
+	import { Kind, Place, type GetSetResponse, type SetColor, type SetLine } from '$lib/gen/pile/v1/pile_pb';
 	import Stat from '$lib/components/Stat.svelte';
 	import PartImage from '$lib/components/PartImage.svelte';
 	import Badge from '$lib/components/Badge.svelte';
@@ -24,6 +24,9 @@
 	import { zoomsTo } from './zoom.svelte';
 	import { hiddenAs } from './rules';
 	import { classes } from './counting';
+	import Palette from '@lucide/svelte/icons/palette';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import Menu from '$lib/components/Menu.svelte';
 	import LineTile from './LineTile.svelte';
 	import SetGrid from './SetGrid.svelte';
 
@@ -86,8 +89,8 @@
 	const share = (have: number, need: number) => percent(have / Math.max(1, need));
 	// Where the overview shows it, and when it does not, why: in a few words.
 	const where = $derived.by(() => {
-		const mode = view.anyColor ? 'any color' : 'exact colors';
-		const otherMode = view.anyColor ? 'exact colors' : 'any color';
+		const mode = { exact: 'exact colors', similar: 'similar colors', any: 'any color' }[view.colors];
+		const otherMode = view.colors === 'any' ? 'exact colors' : 'any color';
 		if (detail.place === Place.HIDDEN)
 			return `The filter hides it: ${detail.hiddenBy.map((r) => hiddenAs[r]).join(', ')}.`;
 		if (detail.place !== Place.NONE) return `On the overview under ${sectionName[detail.place]}.`;
@@ -98,6 +101,32 @@
 		return s;
 	});
 	const tiles = 'grid grid-cols-[repeat(auto-fill,minmax(3.5rem,1fr))] gap-1';
+	// Pieces in other colors count: the view takes them, or a choice does.
+	const recolors = $derived(view.colors !== 'exact' || set.wrongColor > 0);
+	const changed = $derived(view.choices.some((c) => c.setNum === set.setNum));
+	// A color's menu: its own, any, or one of the colors its parts are in.
+	const colorItems = (c: SetColor) => {
+		const id = c.color!.id;
+		const own = !c.useColor && !c.anyColor;
+		return [
+			{ label: `${c.color!.name}, its own`, checked: own, onselect: () => view.choose(set.setNum, id, '', null) },
+			{ label: 'Any color', checked: c.anyColor, onselect: () => view.choose(set.setNum, id, '', { any: true }) },
+			...(c.swaps.length
+				? [
+						'separator' as const,
+						{
+							group: 'Take instead',
+							items: c.swaps.map((s) => ({
+								label: s.color!.name,
+								hint: `${count(Math.min(s.pieces, c.need))} of ${count(c.need)}`,
+								checked: c.useColor?.id === s.color!.id,
+								onselect: () => view.choose(set.setNum, id, '', { use: s.color!.id })
+							}))
+						}
+					]
+				: [])
+		];
+	};
 </script>
 
 {#snippet group(key: string, title: string, sentence: string, lines: SetLine[])}
@@ -122,7 +151,7 @@
 			</div>
 			<div class={tiles}>
 				{#each open ? lines : lines.slice(0, FOLD) as l (l.partNum + ':' + l.color?.id)}
-					<LineTile line={l} {names} />
+					<LineTile line={l} {names} setNum={set.setNum} />
 				{/each}
 			</div>
 		</section>
@@ -185,9 +214,9 @@
 		hint="{count(set.have)} of {count(set.need)} counted pieces"
 	/>
 	<Stat
-		label={view.anyColor ? 'In another color' : 'Of its rarer pieces'}
-		value={view.anyColor ? count(set.wrongColor) : percent(set.weightedCompleteness)}
-		hint={view.anyColor ? 'found, to recolor' : undefined}
+		label={recolors ? 'In another color' : 'Of its rarer pieces'}
+		value={recolors ? count(set.wrongColor) : percent(set.weightedCompleteness)}
+		hint={recolors ? 'found, to recolor' : undefined}
 	/>
 	<Stat
 		label="Not counted"
@@ -196,6 +225,53 @@
 	/>
 	<Stat label="Minifigures" value={set.minifigures} hint="whole, apart" />
 </section>
+
+{#if detail.colors.length}
+	<section class="flex flex-col gap-2 border-b border-line px-5 py-4">
+		<div class="flex items-start justify-between gap-4">
+			<div class="min-w-0">
+				<h3 class="text-sm font-semibold">Colors</h3>
+				<p class="text-xs text-ink-muted">
+					Swap one of its colors for another (red for dark red), or let any color do. Each says how many of its
+					pieces the lots have in the other color. A single part's color is in its menu below.
+				</p>
+			</div>
+			{#if changed}
+				<Button size="sm" variant="ghost" icon={RotateCcw} onclick={() => view.clearChoices(set.setNum)}
+					>Its own colors</Button
+				>
+			{/if}
+		</div>
+		<div class="flex flex-wrap gap-1.5">
+			{#each detail.colors as c (c.color?.id)}
+				<Menu label="{c.color?.name}: take instead" items={colorItems(c)} placement="bottom-start" width="17rem">
+					{#snippet trigger(props)}
+						<button
+							{...props}
+							type="button"
+							class="flex h-8 items-center gap-2 rounded-button border px-2.5 text-xs {c.useColor || c.anyColor
+								? 'border-primary bg-primary-soft text-primary-ink'
+								: 'border-line text-ink hover:bg-hover'}"
+						>
+							<span class="size-3 shrink-0 rounded-full ring-1 ring-line" style="background: #{c.color?.rgb}"></span>
+							<span class="whitespace-nowrap">{c.color?.name}</span>
+							<span class="num text-ink-muted">{count(c.found)}/{count(c.need)}</span>
+							{#if c.useColor}
+								<span class="whitespace-nowrap">→</span>
+								<span class="size-3 shrink-0 rounded-full ring-1 ring-line" style="background: #{c.useColor.rgb}"></span>
+								<span class="whitespace-nowrap">{c.useColor.name}</span>
+							{:else if c.anyColor}
+								<span class="whitespace-nowrap">→ any color</span>
+							{:else}
+								<Palette size={12} class="shrink-0 text-ink-faint" />
+							{/if}
+						</button>
+					{/snippet}
+				</Menu>
+			{/each}
+		</div>
+	</section>
+{/if}
 
 {@render group(
 	'missing',

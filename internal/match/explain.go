@@ -22,14 +22,14 @@ const (
 // and only the one on top is scored again (lazy greedy). That picks exactly
 // what scoring every candidate each round would, and keeps a pile of a
 // million pieces, where thousands of sets qualify, fast.
-func (ix *Index) Explain(p *Pile, anyColor bool) []*Entry {
+func (ix *Index) Explain(p *Pile, cs Colors) []*Entry {
 	left := p.Clone()
 	var h candidates
 	for i, e := range ix.Entries {
 		if e.Hidden || !e.Set.Sold() {
 			continue
 		}
-		if m, _ := ix.Score(e, left, anyColor, DefaultCounting); m.qualifies() {
+		if m, _ := ix.Score(e, left, cs, DefaultCounting); m.qualifies() {
 			h = append(h, candidate{e, m.rank(), i})
 		}
 	}
@@ -37,7 +37,7 @@ func (ix *Index) Explain(p *Pile, anyColor bool) []*Entry {
 	var order []*Entry
 	for h.Len() > 0 {
 		c := heap.Pop(&h).(candidate)
-		m, _ := ix.Score(c.entry, left, anyColor, DefaultCounting)
+		m, _ := ix.Score(c.entry, left, cs, DefaultCounting)
 		if !m.qualifies() {
 			continue
 		}
@@ -46,7 +46,7 @@ func (ix *Index) Explain(p *Pile, anyColor bool) []*Entry {
 			heap.Push(&h, c)
 			continue
 		}
-		left.Take(c.entry, anyColor)
+		left.Take(c.entry, cs)
 		order = append(order, c.entry)
 	}
 	return order

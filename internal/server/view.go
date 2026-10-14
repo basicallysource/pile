@@ -16,7 +16,7 @@ import (
 // and build matched against what is left.
 type view struct {
 	stack    *stack
-	anyColor bool
+	colors   match.Colors
 	counting match.Counting
 	filter   *pilev1.Filter
 	starred  map[string]bool // with the filter's starred only
@@ -27,6 +27,25 @@ type view struct {
 	left     *match.Stack
 	scores   []*match.Match // every shown entry with a piece left, most interesting first
 	byNum    map[string]*match.Match
+	// The view's color choices, by set, and the sets as they change them.
+	choices map[string][]match.Choice
+	changed map[string]*match.Entry
+}
+
+// entry is e as the view's color choices change it.
+func (w *view) entry(e *match.Entry) *match.Entry {
+	if c, ok := w.changed[e.Set.Num]; ok {
+		return c
+	}
+	return e
+}
+
+// colorModes are the contract's color matching as matching's.
+var colorModes = map[pilev1.ColorMatch]match.ColorMode{
+	pilev1.ColorMatch_COLOR_MATCH_UNSPECIFIED: match.Exact,
+	pilev1.ColorMatch_COLOR_MATCH_EXACT:       match.Exact,
+	pilev1.ColorMatch_COLOR_MATCH_SIMILAR:     match.Similar,
+	pilev1.ColorMatch_COLOR_MATCH_ANY:         match.Any,
 }
 
 func (s *Service) view(v *pilev1.View) (*view, error) {
@@ -45,7 +64,18 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 	if c := v.Counting; c != nil {
 		counting = match.Counting{Printed: c.Printed, Figure: c.FigureParts, Accessory: c.Accessories}
 	}
-	w := &view{stack: st, anyColor: v.AnyColor, counting: counting, filter: filter, starred: map[string]bool{}, place: map[string]int{}, found: map[string]match.Found{}, drawn: map[string]match.Drawn{}, left: st.piles}
+	w := &view{stack: st, colors: s.index.Colors(colorModes[v.Colors]), counting: counting, filter: filter, starred: map[string]bool{}, place: map[string]int{}, found: map[string]match.Found{}, drawn: map[string]match.Drawn{}, left: st.piles, choices: map[string][]match.Choice{}, changed: map[string]*match.Entry{}}
+	for _, c := range v.ColorChoices {
+		// One that takes nothing would read as color 0, black.
+		if c.Take != nil {
+			w.choices[c.SetNum] = append(w.choices[c.SetNum], match.Choice{Color: c.Color, Part: c.PartNum, Use: c.GetUseColor(), Any: c.GetAnyColor()})
+		}
+	}
+	for num, cs := range w.choices {
+		if e := s.index.Entry(num); e != nil {
+			w.changed[num] = s.index.WithChoices(e, cs)
+		}
+	}
 	if filter.StarredOnly {
 		w.starred = s.stars.Has()
 	}
@@ -57,13 +87,30 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 		if e == nil || w.place[num] > 0 {
 			continue
 		}
-		m, f := s.index.Score(e, w.left.Sum, w.anyColor, w.counting)
+		e = w.entry(e)
+		m, f := s.index.Score(e, w.left.Sum, w.colors, w.counting)
 		w.found[num] = f
-		w.drawn[num] = w.left.Take(e, w.anyColor)
+		w.drawn[num] = w.left.Take(e, w.colors)
 		w.queue = append(w.queue, m)
 		w.place[num] = len(w.queue)
 	}
-	w.scores = s.index.ScoreAll(w.left.Sum, w.anyColor, w.counting)
+	w.scores = s.index.ScoreAll(w.left.Sum, w.colors, w.counting)
+	if len(w.changed) > 0 {
+		// The sets the choices change, scored as changed.
+		kept := w.scores[:0]
+		for _, m := range w.scores {
+			if w.changed[m.Set.Num] == nil {
+				kept = append(kept, m)
+			}
+		}
+		for _, e := range w.changed {
+			if m, _ := s.index.Score(e, w.left.Sum, w.colors, w.counting); !e.Hidden && m.Have > 0 && m.Need > 0 {
+				kept = append(kept, m)
+			}
+		}
+		sort.SliceStable(kept, func(i, j int) bool { return kept[i].Interest() > kept[j].Interest() })
+		w.scores = kept
+	}
 	w.byNum = make(map[string]*match.Match, len(w.scores))
 	for _, m := range w.scores {
 		m.Pick = st.picks[m.Set.Num]

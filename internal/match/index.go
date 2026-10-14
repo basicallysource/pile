@@ -12,9 +12,11 @@ import (
 )
 
 // Line is one line of a set: a part (by index id) in a color, and its class.
+// Any is a view's choice that it takes any color of its part.
 type Line struct {
 	Part, Color, Quantity int32
 	Class                 catalog.Class
+	Any                   bool
 }
 
 // Counting is which classes of part count toward a set's completeness, a
@@ -70,6 +72,11 @@ type Entry struct {
 	// different parts; or nothing unusual (its rarest pieces as common as
 	// those of the most common tenth of sets). See plain.go.
 	MostlyBasic, FewParts, NothingUnusual bool
+	// Of an entry with a view's color choices (choices.go): which of its
+	// lines each line of the set as sold became, by part and color; and
+	// whether a line takes any color.
+	was      map[uint64]int
+	anyLines bool
 }
 
 // Index is every set, custom model and build with a counted line, and the weights
@@ -84,12 +91,14 @@ type Index struct {
 	wExact map[uint64]float64
 	wAny   map[int32]float64
 	wMax   float64
+	// Each color's near colors (colors.go).
+	near map[int32][]int32
 }
 
 func key(part, color int32) uint64 { return uint64(uint32(part))<<32 | uint64(uint32(color)) }
 
 func NewIndex(cat *catalog.Catalog) *Index {
-	ix := &Index{cat: cat, parts: map[string]int32{}, byNum: map[string]*Entry{}, wExact: map[uint64]float64{}, wAny: map[int32]float64{}}
+	ix := &Index{cat: cat, parts: map[string]int32{}, byNum: map[string]*Entry{}, wExact: map[uint64]float64{}, wAny: map[int32]float64{}, near: nearTable(cat)}
 	for _, s := range cat.Sets {
 		e := &Entry{Set: s}
 		qty := map[uint64]int32{}
@@ -173,7 +182,7 @@ func NewIndex(cat *catalog.Catalog) *Index {
 				continue
 			}
 			parts[l.Part] = true
-			w += float64(l.Quantity) * ix.weight(l, false)
+			w += float64(l.Quantity) * ix.weight(l, ix.Colors(Exact))
 		}
 		e.DistinctParts = int32(len(parts))
 		e.Rarity = w / float64(max(e.Need, 1))
@@ -207,16 +216,25 @@ func (ix *Index) Part(p string) int32 {
 	return id
 }
 
+// PartID is the id of the part standing for p, if the index has it. Unlike
+// Part it never adds one, so it is safe while views are served.
+func (ix *Index) PartID(p string) (int32, bool) {
+	id, ok := ix.parts[ix.cat.Canon(p)]
+	return id, ok
+}
+
 // PartNum is the canonical part number of a part id.
 func (ix *Index) PartNum(id int32) string { return ix.nums[id] }
 
 // Entry is the set or custom model with this number, if it has counted lines.
 func (ix *Index) Entry(num string) *Entry { return ix.byNum[num] }
 
-func (ix *Index) weight(l Line, anyColor bool) float64 {
+// weight is how rare l's part is: in its color, or in any color when the
+// line takes any.
+func (ix *Index) weight(l Line, cs Colors) float64 {
 	var w float64
 	var ok bool
-	if anyColor {
+	if cs.Mode == Any || l.Any {
 		w, ok = ix.wAny[l.Part]
 	} else {
 		w, ok = ix.wExact[key(l.Part, l.Color)]
@@ -266,9 +284,18 @@ func (ix *Index) dedupe() {
 }
 
 // LineOf is the index in e.Lines of this part (or a variant) in this color,
-// or -1.
+// as the set has it (before a view's color choices), or -1.
 func (ix *Index) LineOf(e *Entry, part string, color int32) int {
-	id := ix.Part(part)
+	id, ok := ix.PartID(part)
+	if !ok {
+		return -1
+	}
+	if e.was != nil {
+		if i, ok := e.was[key(id, color)]; ok {
+			return i
+		}
+		return -1
+	}
 	for i, l := range e.Lines {
 		if l.Part == id && l.Color == color {
 			return i

@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pile/v1/pile.proto.
  */
 export const file_pile_v1_pile: GenFile = /*@__PURE__*/
-  fileDesc("ChJwaWxlL3YxL3BpbGUucHJvdG8SB3BpbGUudjEifwoEVmlldxIMCgRsb3RzGAEgAygJEhEKCWFueV9jb2xvchgCIAEoCBIQCghzb3J0X291dBgDIAMoCRIfCgZmaWx0ZXIYBCABKAsyDy5waWxlLnYxLkZpbHRlchIjCghjb3VudGluZxgFIAEoCzIRLnBpbGUudjEuQ291bnRpbmciRgoIQ291bnRpbmcSDwoHcHJpbnRlZBgBIAEoCBIUCgxmaWd1cmVfcGFydHMYAiABKAgSEwoLYWNjZXNzb3JpZXMYAyABKAgi5wEKBkZpbHRlchIZChFoaWRlX2xvb3NlX2JyaWNrcxgBIAEoCBIZChFoaWRlX21vc3RseV9iYXNpYxgCIAEoCBIWCg5oaWRlX2Zld19wYXJ0cxgDIAEoCBIcChRoaWRlX25vdGhpbmdfdW51c3VhbBgEIAEoCBIbCgRraW5kGAUgASgOMg0ucGlsZS52MS5LaW5kEhMKC3RoZW1lX2dyb3VwGAYgASgJEhUKDWxpY2Vuc2VkX29ubHkYByABKAgSEgoKbWluX3BpZWNlcxgIIAEoBRIUCgxzdGFycmVkX29ubHkYCSABKAgiWQoFQ29sb3ISCgoCaWQYASABKAUSDAoEbmFtZRgCIAEoCRILCgNyZ2IYAyABKAkSEwoLdHJhbnNwYXJlbnQYBCABKAgSFAoMYnJpY2tsaW5rX2lkGAUgASgFIuABCgZUb3RhbHMSDgoGcGllY2VzGAEgASgFEhMKC3BhcnRfY29sb3JzGAIgASgFEhgKEHVubWF0Y2hlZF9waWVjZXMYAyABKAUSFwoPZmlyc3Rfc2Vlbl91bml4GAQgASgDEhYKDmxhc3Rfc2Vlbl91bml4GAUgASgDEhQKDG1hY2hpbmVfbmFtZRgGIAEoCRIjCgZjb2xvcnMYByADKAsyEy5waWxlLnYxLkNvbG9yU2hhcmUSKwoNY29sb3Jfc291cmNlcxgIIAMoCzIULnBpbGUudjEuQ29sb3JTb3VyY2UiKQoLQ29sb3JTb3VyY2USCgoCYnkYASABKAkSDgoGcGllY2VzGAIgASgFIn4KA0xvdBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEhUKDXNuYXBzaG90X3VuaXgYBCABKAMSEAoIdW5saXN0ZWQYBSABKAgSHwoGdG90YWxzGAYgASgLMg8ucGlsZS52MS5Ub3RhbHMiKgoITG90Q291bnQSDgoGbG90X2lkGAEgASgJEg4KBnBpZWNlcxgCIAEoBSI7CgpDb2xvclNoYXJlEh0KBWNvbG9yGAEgASgLMg4ucGlsZS52MS5Db2xvchIOCgZwaWVjZXMYAiABKAUiLQoNQ2F0ZWdvcnlTaGFyZRIMCgRuYW1lGAEgASgJEg4KBnBpZWNlcxgCIAEoBSIRCg9MaXN0TG90c1JlcXVlc3QikQEKEExpc3RMb3RzUmVzcG9uc2USGgoEbG90cxgBIAMoCzIMLnBpbGUudjEuTG90EhQKDGNhdGFsb2dfdW5peBgCIAEoAxIUCgxzZXRzX2NoZWNrZWQYAyABKAUSHQoVY3VzdG9tX21vZGVsc19jaGVja2VkGAQgASgFEhYKDmJ1aWxkc19jaGVja2VkGAUgASgFIrgFCghTZXRNYXRjaBIPCgdzZXRfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSDAoEeWVhchgDIAEoBRINCgV0aGVtZRgEIAEoCRIRCglpbWFnZV91cmwYBSABKAkSDAoEaGF2ZRgGIAEoBRIMCgRuZWVkGAcgASgFEh0KFXdlaWdodGVkX2NvbXBsZXRlbmVzcxgIIAEoARIQCghldmlkZW5jZRgJIAEoARIVCg1wcmludGVkX3BhcnRzGAogASgFEhMKC21pbmlmaWd1cmVzGAsgASgFEhUKDXNhbWVfY29udGVudHMYDCADKAkSDAoEcGljaxgNIAEoBRIYChBtaW5pZmlndXJlX3BhcnRzGA4gASgFEhYKDm1pbmlmaWd1cmVfc2V0GA8gASgIEhsKBGtpbmQYECABKA4yDS5waWxlLnYxLktpbmQSEAoIZGVzaWduZXIYESABKAkSCwoDdXJsGBIgASgJEhMKC3dyb25nX2NvbG9yGBMgASgFEhMKC3RoZW1lX2dyb3VwGBQgASgJEhAKCGxpY2Vuc2VkGBUgASgIEgwKBGJ1bGsYFiABKAgSFgoOZGlzdGluY3RfcGFydHMYFyABKAUSDgoGcmFyaXR5GBggASgBEhQKDG1vc3RseV9iYXNpYxgZIAEoCBIRCglmZXdfcGFydHMYGiABKAgSFwoPbm90aGluZ191bnVzdWFsGBsgASgIEhMKC2FjY2Vzc29yaWVzGBwgASgFEhIKCm9mX3NldF9udW0YHSABKAkSDwoHb2ZfbmFtZRgeIAEoCRIOCgZjb3BpZXMYHyABKAUSEgoKY29sbGVjdGlvbhggIAEoCRIVCg1zb3VyY2VfYXV0aG9yGCEgASgJEhIKCnNvdXJjZV91cmwYIiABKAkSFAoMc291cmNlX25vdGVzGCMgASgJIjkKB1NlY3Rpb24SHwoEc2V0cxgBIAMoCzIRLnBpbGUudjEuU2V0TWF0Y2gSDQoFdG90YWwYAiABKAUiMQoSR2V0T3ZlcnZpZXdSZXF1ZXN0EhsKBHZpZXcYASABKAsyDS5waWxlLnYxLlZpZXciTAoJUXVldWVkU2V0Eh4KA3NldBgBIAEoCzIRLnBpbGUudjEuU2V0TWF0Y2gSHwoEbG90cxgCIAMoCzIRLnBpbGUudjEuTG90Q291bnQixAQKE0dldE92ZXJ2aWV3UmVzcG9uc2USGgoEbG90cxgBIAMoCzIMLnBpbGUudjEuTG90Eh8KBnRvdGFscxgCIAEoCzIPLnBpbGUudjEuVG90YWxzEioKCmNhdGVnb3JpZXMYAyADKAsyFi5waWxlLnYxLkNhdGVnb3J5U2hhcmUSJAoIc29ydF9vdXQYBCADKAsyEi5waWxlLnYxLlF1ZXVlZFNldBITCgtwaWVjZXNfbGVmdBgFIAEoBRIiCghjb21wbGV0ZRgGIAEoCzIQLnBpbGUudjEuU2VjdGlvbhIgCgZhbG1vc3QYByABKAsyEC5waWxlLnYxLlNlY3Rpb24SHgoEaGFsZhgIIAEoCzIQLnBpbGUudjEuU2VjdGlvbhIgCgZsaWtlbHkYCSABKAsyEC5waWxlLnYxLlNlY3Rpb24SIAoGY3VzdG9tGAogASgLMhAucGlsZS52MS5TZWN0aW9uEiQKCm1pbmlmaWd1cmUYCyABKAsyEC5waWxlLnYxLlNlY3Rpb24SHgoEdGlueRgMIAEoCzIQLnBpbGUudjEuU2VjdGlvbhIjCgZ0aGVtZXMYDSADKAsyEy5waWxlLnYxLlRoZW1lQ291bnQSIQoHc3RhcnJlZBgOIAEoCzIQLnBpbGUudjEuU2VjdGlvbhIgCgZidWlsZHMYDyABKAsyEC5waWxlLnYxLlNlY3Rpb24SLwoLY29sbGVjdGlvbnMYECADKAsyGi5waWxlLnYxLkNvbGxlY3Rpb25TZWN0aW9uIlYKEUNvbGxlY3Rpb25TZWN0aW9uEgwKBG5hbWUYASABKAkSEAoIZGVzaWduZXIYAiABKAkSIQoHc2VjdGlvbhgDIAEoCzIQLnBpbGUudjEuU2VjdGlvbiJNCg9MaXN0U2V0c1JlcXVlc3QSGwoEdmlldxgBIAEoCzINLnBpbGUudjEuVmlldxIdCgVvcmRlchgCIAEoDjIOLnBpbGUudjEuT3JkZXIiKAoKVGhlbWVDb3VudBIMCgRuYW1lGAEgASgJEgwKBHNldHMYAiABKAUiWAoQTGlzdFNldHNSZXNwb25zZRIfCgRzZXRzGAEgAygLMhEucGlsZS52MS5TZXRNYXRjaBIjCgZ0aGVtZXMYAiADKAsyEy5waWxlLnYxLlRoZW1lQ291bnQiPQoNR2V0U2V0UmVxdWVzdBIbCgR2aWV3GAEgASgLMg0ucGlsZS52MS5WaWV3Eg8KB3NldF9udW0YAiABKAki4gEKB1NldExpbmUSEAoIcGFydF9udW0YASABKAkSDAoEbmFtZRgCIAEoCRIdCgVjb2xvchgDIAEoCzIOLnBpbGUudjEuQ29sb3ISDAoEbmVlZBgEIAEoBRINCgVmb3VuZBgFIAEoBRITCgt3cm9uZ19jb2xvchgGIAEoBRIRCglpbWFnZV91cmwYByABKAkSIQoFY2xhc3MYCCABKA4yEi5waWxlLnYxLlBhcnRDbGFzcxIfCgRsb3RzGAkgAygLMhEucGlsZS52MS5Mb3RDb3VudBIPCgdjb3VudGVkGAogASgIIlAKCk1pbmlmaWd1cmUSDwoHZmlnX251bRgBIAEoCRIMCgRuYW1lGAIgASgJEhAKCHF1YW50aXR5GAMgASgFEhEKCWltYWdlX3VybBgEIAEoCSLdAgoOR2V0U2V0UmVzcG9uc2USHgoDc2V0GAEgASgLMhEucGlsZS52MS5TZXRNYXRjaBIfCgVsaW5lcxgCIAMoCzIQLnBpbGUudjEuU2V0TGluZRIoCgttaW5pZmlndXJlcxgDIAMoCzITLnBpbGUudjEuTWluaWZpZ3VyZRIdCgVwbGFjZRgEIAEoDjIOLnBpbGUudjEuUGxhY2USJwoMb3RoZXJfY29sb3JzGAUgASgLMhEucGlsZS52MS5TZXRNYXRjaBIjCgtvdGhlcl9wbGFjZRgGIAEoDjIOLnBpbGUudjEuUGxhY2USIAoJaGlkZGVuX2J5GAcgAygOMg0ucGlsZS52MS5SdWxlEiEKBmJ1aWxkcxgIIAMoCzIRLnBpbGUudjEuU2V0TWF0Y2gSFQoNc291cmNlX3BsYWNlZBgJIAEoBRIXCg9zb3VyY2VfdW5wbGFjZWQYCiADKAkiIAoQTGlzdFBhcnRzUmVxdWVzdBIMCgRsb3RzGAEgAygJIs4BCglQYXJ0Q291bnQSEAoIcGFydF9udW0YASABKAkSFAoMYnJpY2tsaW5rX2lkGAIgASgJEgwKBG5hbWUYAyABKAkSHQoFY29sb3IYBCABKAsyDi5waWxlLnYxLkNvbG9yEg0KBWNvdW50GAUgASgFEhEKCWltYWdlX3VybBgGIAEoCRIQCghjYXRlZ29yeRgHIAEoCRIXCg9tZWFuX2NvbmZpZGVuY2UYCCABKAISHwoEbG90cxgJIAMoCzIRLnBpbGUudjEuTG90Q291bnQiVgoNVW5tYXRjaGVkUGFydBIUCgxicmlja2xpbmtfaWQYASABKAkSDAoEbmFtZRgCIAEoCRISCgpjb2xvcl9uYW1lGAMgASgJEg0KBWNvdW50GAQgASgFImEKEUxpc3RQYXJ0c1Jlc3BvbnNlEiEKBXBhcnRzGAEgAygLMhIucGlsZS52MS5QYXJ0Q291bnQSKQoJdW5tYXRjaGVkGAIgAygLMhYucGlsZS52MS5Vbm1hdGNoZWRQYXJ0IjcKFkdldENvbGxlY3RUaW1lc1JlcXVlc3QSDgoGbG90X2lkGAEgASgJEg0KBWV4dHJhGAIgAygJIqoBCgxDb2xsZWN0QmFzaXMSDgoGcGllY2VzGAEgASgFEhQKDG1hY2hpbmVfbmFtZRgCIAEoCRIVCg1zb3J0aW5nX2hvdXJzGAMgASgBEhUKDXJhdGVfcGVyX2hvdXIYBCABKAESFwoPZmlyc3Rfc2Vlbl91bml4GAUgASgDEhYKDmxhc3Rfc2Vlbl91bml4GAYgASgDEhUKDXNuYXBzaG90X3VuaXgYByABKAMijQEKCVNsb3dQaWVjZRIQCghwYXJ0X251bRgBIAEoCRIMCgRuYW1lGAIgASgJEh0KBWNvbG9yGAMgASgLMg4ucGlsZS52MS5Db2xvchIMCgRuZWVkGAQgASgFEgwKBHNlZW4YBSABKAUSEgoKd2FpdF9ob3VycxgGIAEoARIRCglpbWFnZV91cmwYByABKAkitgIKC0NvbGxlY3RUaW1lEgwKBGhhbGYYASABKAESDAoEbW9zdBgCIAEoARIOCgZuZWFybHkYAyABKAESCwoDYWxsGAQgASgBEhAKCGFsbF9mYXN0GAUgASgBEhAKCGFsbF9zbG93GAYgASgBEhAKCG1vc3RfbG93GAcgASgBEhEKCW1vc3RfaGlnaBgIIAEoARIPCgdhbGxfbG93GAkgASgBEhAKCGFsbF9oaWdoGAogASgBEhAKCGFsbF9zZWVuGAsgASgBEhEKCWFsbF9yYXJlchgMIAEoARIMCgRrZXlzGA0gASgFEhMKC3Vuc2Vlbl9rZXlzGA4gASgFEhUKDXVuc2Vlbl9waWVjZXMYDyABKAUSIwoHc2xvd2VzdBgQIAMoCzISLnBpbGUudjEuU2xvd1BpZWNlIvwCCg9TZXRDb2xsZWN0VGltZXMSDwoHc2V0X251bRgBIAEoCRIMCgRuYW1lGAIgASgJEgwKBHllYXIYAyABKAUSDQoFdGhlbWUYBCABKAkSEQoJaW1hZ2VfdXJsGAUgASgJEg4KBnBpZWNlcxgGIAEoBRI3CghsZWZ0X291dBgHIAMoCzIlLnBpbGUudjEuU2V0Q29sbGVjdFRpbWVzLkxlZnRPdXRFbnRyeRITCgttaW5pZmlndXJlcxgIIAEoBRIjCgVleGFjdBgJIAEoCzIULnBpbGUudjEuQ29sbGVjdFRpbWUSIgoEbmVhchgKIAEoCzIULnBpbGUudjEuQ29sbGVjdFRpbWUSIQoDYW55GAsgASgLMhQucGlsZS52MS5Db2xsZWN0VGltZRIPCgdwZW5kaW5nGAwgASgIEg8KB3Vua25vd24YDSABKAgaLgoMTGVmdE91dEVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoBToCOAEifAoXR2V0Q29sbGVjdFRpbWVzUmVzcG9uc2USJAoFYmFzaXMYASABKAsyFS5waWxlLnYxLkNvbGxlY3RCYXNpcxImCgRzZXRzGAIgAygLMhgucGlsZS52MS5TZXRDb2xsZWN0VGltZXMSEwoLZml0dGVkX3VuaXgYAyABKAMiXwoKU3RvcmFnZUJpbhIPCgdhZGRyZXNzGAEgASgJEgwKBG5hbWUYAiABKAkSDgoGbG90X2lkGAMgASgJEhIKCmNhdGVnb3JpZXMYBCADKAkSDgoGcGllY2VzGAUgASgFIhMKEUdldFN0b3JhZ2VSZXF1ZXN0IjcKEkdldFN0b3JhZ2VSZXNwb25zZRIhCgRiaW5zGAEgAygLMhMucGlsZS52MS5TdG9yYWdlQmluIjYKEVNldFN0b3JhZ2VSZXF1ZXN0EiEKBGJpbnMYASADKAsyEy5waWxlLnYxLlN0b3JhZ2VCaW4iNwoSU2V0U3RvcmFnZVJlc3BvbnNlEiEKBGJpbnMYASADKAsyEy5waWxlLnYxLlN0b3JhZ2VCaW4iawoRRmluZFBpZWNlc1JlcXVlc3QSDQoFcXVlcnkYASABKAkSDQoFY29sb3IYAiABKAkSDAoEdHlwZRgDIAEoCRILCgNiaW4YBCABKAkSDgoGbG90X2lkGAUgASgJEg0KBWxpbWl0GAYgASgFIkgKCEJpbkNvdW50Eg8KB2FkZHJlc3MYASABKAkSDAoEbmFtZRgCIAEoCRIOCgZsb3RfaWQYAyABKAkSDQoFY291bnQYBCABKAUisgEKClN0b3JlZFBhcnQSEAoIcGFydF9udW0YASABKAkSFAoMYnJpY2tsaW5rX2lkGAIgASgJEgwKBG5hbWUYAyABKAkSHQoFY29sb3IYBCABKAsyDi5waWxlLnYxLkNvbG9yEgwKBHR5cGUYBSABKAkSEQoJaW1hZ2VfdXJsGAYgASgJEg0KBWNvdW50GAcgASgFEh8KBGJpbnMYCCADKAsyES5waWxlLnYxLkJpbkNvdW50IlsKDEZpbHRlck9wdGlvbhINCgV2YWx1ZRgBIAEoCRINCgVsYWJlbBgCIAEoCRIOCgZwaWVjZXMYAyABKAUSHQoFY29sb3IYBCABKAsyDi5waWxlLnYxLkNvbG9yIpECChJGaW5kUGllY2VzUmVzcG9uc2USIgoFcGFydHMYASADKAsyEy5waWxlLnYxLlN0b3JlZFBhcnQSEwoLdG90YWxfcGFydHMYAiABKAUSFAoMdG90YWxfcGllY2VzGAMgASgFEhUKDXN0b3JlZF9waWVjZXMYBCABKAUSJQoGY29sb3JzGAUgAygLMhUucGlsZS52MS5GaWx0ZXJPcHRpb24SJAoFdHlwZXMYBiADKAsyFS5waWxlLnYxLkZpbHRlck9wdGlvbhIjCgRiaW5zGAcgAygLMhUucGlsZS52MS5GaWx0ZXJPcHRpb24SIwoEbG90cxgIIAMoCzIVLnBpbGUudjEuRmlsdGVyT3B0aW9uIhIKEExpc3RTdGFyc1JlcXVlc3QiJQoRTGlzdFN0YXJzUmVzcG9uc2USEAoIc2V0X251bXMYASADKAkiMgoOU2V0U3RhclJlcXVlc3QSDwoHc2V0X251bRgBIAEoCRIPCgdzdGFycmVkGAIgASgIIiMKD1NldFN0YXJSZXNwb25zZRIQCghzZXRfbnVtcxgBIAMoCSrPAQoEUnVsZRIUChBSVUxFX1VOU1BFQ0lGSUVEEAASFQoRUlVMRV9MT09TRV9CUklDS1MQARIVChFSVUxFX01PU1RMWV9CQVNJQxACEhIKDlJVTEVfRkVXX1BBUlRTEAMSGAoUUlVMRV9OT1RISU5HX1VOVVNVQUwQBBINCglSVUxFX0tJTkQQBRIOCgpSVUxFX1RIRU1FEAYSEQoNUlVMRV9MSUNFTlNFRBAHEg0KCVJVTEVfU0laRRAIEhQKEFJVTEVfTk9UX1NUQVJSRUQQCSpLCgRLaW5kEhQKEEtJTkRfVU5TUEVDSUZJRUQQABIMCghLSU5EX1NFVBABEg8KC0tJTkRfQ1VTVE9NEAISDgoKS0lORF9CVUlMRBADKuQBCgVQbGFjZRIOCgpQTEFDRV9OT05FEAASEgoOUExBQ0VfQ09NUExFVEUQARIQCgxQTEFDRV9BTE1PU1QQAhIOCgpQTEFDRV9IQUxGEAMSEAoMUExBQ0VfTElLRUxZEAQSEAoMUExBQ0VfQ1VTVE9NEAUSFAoQUExBQ0VfTUlOSUZJR1VSRRAGEg4KClBMQUNFX1RJTlkQBxISCg5QTEFDRV9TT1JUX09VVBAIEhAKDFBMQUNFX0hJRERFThAJEg8KC1BMQUNFX0JVSUxEEAoSFAoQUExBQ0VfQ09MTEVDVElPThALKoABCgVPcmRlchIVChFPUkRFUl9VTlNQRUNJRklFRBAAEhIKDk9SREVSX0NPTVBMRVRFEAESDwoLT1JERVJfRk9VTkQQAhIVChFPUkRFUl9JTlRFUkVTVElORxADEhEKDU9SREVSX0JJR0dFU1QQBBIRCg1PUkRFUl9DT01QTEVYEAUqhgEKCVBhcnRDbGFzcxIaChZQQVJUX0NMQVNTX1VOU1BFQ0lGSUVEEAASFAoQUEFSVF9DTEFTU19QTEFJThABEhYKElBBUlRfQ0xBU1NfUFJJTlRFRBACEhUKEVBBUlRfQ0xBU1NfRklHVVJFEAMSGAoUUEFSVF9DTEFTU19BQ0NFU1NPUlkQBDKFBgoLUGlsZVNlcnZpY2USPwoITGlzdExvdHMSGC5waWxlLnYxLkxpc3RMb3RzUmVxdWVzdBoZLnBpbGUudjEuTGlzdExvdHNSZXNwb25zZRJICgtHZXRPdmVydmlldxIbLnBpbGUudjEuR2V0T3ZlcnZpZXdSZXF1ZXN0GhwucGlsZS52MS5HZXRPdmVydmlld1Jlc3BvbnNlEj8KCExpc3RTZXRzEhgucGlsZS52MS5MaXN0U2V0c1JlcXVlc3QaGS5waWxlLnYxLkxpc3RTZXRzUmVzcG9uc2USOQoGR2V0U2V0EhYucGlsZS52MS5HZXRTZXRSZXF1ZXN0GhcucGlsZS52MS5HZXRTZXRSZXNwb25zZRJCCglMaXN0UGFydHMSGS5waWxlLnYxLkxpc3RQYXJ0c1JlcXVlc3QaGi5waWxlLnYxLkxpc3RQYXJ0c1Jlc3BvbnNlElQKD0dldENvbGxlY3RUaW1lcxIfLnBpbGUudjEuR2V0Q29sbGVjdFRpbWVzUmVxdWVzdBogLnBpbGUudjEuR2V0Q29sbGVjdFRpbWVzUmVzcG9uc2USRQoKR2V0U3RvcmFnZRIaLnBpbGUudjEuR2V0U3RvcmFnZVJlcXVlc3QaGy5waWxlLnYxLkdldFN0b3JhZ2VSZXNwb25zZRJFCgpTZXRTdG9yYWdlEhoucGlsZS52MS5TZXRTdG9yYWdlUmVxdWVzdBobLnBpbGUudjEuU2V0U3RvcmFnZVJlc3BvbnNlEkUKCkZpbmRQaWVjZXMSGi5waWxlLnYxLkZpbmRQaWVjZXNSZXF1ZXN0GhsucGlsZS52MS5GaW5kUGllY2VzUmVzcG9uc2USQgoJTGlzdFN0YXJzEhkucGlsZS52MS5MaXN0U3RhcnNSZXF1ZXN0GhoucGlsZS52MS5MaXN0U3RhcnNSZXNwb25zZRI8CgdTZXRTdGFyEhcucGlsZS52MS5TZXRTdGFyUmVxdWVzdBoYLnBpbGUudjEuU2V0U3RhclJlc3BvbnNlQjRaMmdpdGh1Yi5jb20vYmFzaWNhbGx5c291cmNlL3BpbGUvZ2VuL3BpbGUvdjE7cGlsZXYxYgZwcm90bzM");
+  fileDesc("ChJwaWxlL3YxL3BpbGUucHJvdG8SB3BpbGUudjEizwEKBFZpZXcSDAoEbG90cxgBIAMoCRIQCghzb3J0X291dBgDIAMoCRIfCgZmaWx0ZXIYBCABKAsyDy5waWxlLnYxLkZpbHRlchIjCghjb3VudGluZxgFIAEoCzIRLnBpbGUudjEuQ291bnRpbmcSIwoGY29sb3JzGAYgASgOMhMucGlsZS52MS5Db2xvck1hdGNoEisKDWNvbG9yX2Nob2ljZXMYByADKAsyFC5waWxlLnYxLkNvbG9yQ2hvaWNlSgQIAhADUglhbnlfY29sb3IicQoLQ29sb3JDaG9pY2USDwoHc2V0X251bRgBIAEoCRINCgVjb2xvchgCIAEoBRIQCghwYXJ0X251bRgDIAEoCRITCgl1c2VfY29sb3IYBCABKAVIABITCglhbnlfY29sb3IYBSABKAhIAEIGCgR0YWtlIjsKCkNvbG9yQ291bnQSHQoFY29sb3IYASABKAsyDi5waWxlLnYxLkNvbG9yEg4KBnBpZWNlcxgCIAEoBSJGCghDb3VudGluZxIPCgdwcmludGVkGAEgASgIEhQKDGZpZ3VyZV9wYXJ0cxgCIAEoCBITCgthY2Nlc3NvcmllcxgDIAEoCCLnAQoGRmlsdGVyEhkKEWhpZGVfbG9vc2VfYnJpY2tzGAEgASgIEhkKEWhpZGVfbW9zdGx5X2Jhc2ljGAIgASgIEhYKDmhpZGVfZmV3X3BhcnRzGAMgASgIEhwKFGhpZGVfbm90aGluZ191bnVzdWFsGAQgASgIEhsKBGtpbmQYBSABKA4yDS5waWxlLnYxLktpbmQSEwoLdGhlbWVfZ3JvdXAYBiABKAkSFQoNbGljZW5zZWRfb25seRgHIAEoCBISCgptaW5fcGllY2VzGAggASgFEhQKDHN0YXJyZWRfb25seRgJIAEoCCJZCgVDb2xvchIKCgJpZBgBIAEoBRIMCgRuYW1lGAIgASgJEgsKA3JnYhgDIAEoCRITCgt0cmFuc3BhcmVudBgEIAEoCBIUCgxicmlja2xpbmtfaWQYBSABKAUi4AEKBlRvdGFscxIOCgZwaWVjZXMYASABKAUSEwoLcGFydF9jb2xvcnMYAiABKAUSGAoQdW5tYXRjaGVkX3BpZWNlcxgDIAEoBRIXCg9maXJzdF9zZWVuX3VuaXgYBCABKAMSFgoObGFzdF9zZWVuX3VuaXgYBSABKAMSFAoMbWFjaGluZV9uYW1lGAYgASgJEiMKBmNvbG9ycxgHIAMoCzITLnBpbGUudjEuQ29sb3JTaGFyZRIrCg1jb2xvcl9zb3VyY2VzGAggAygLMhQucGlsZS52MS5Db2xvclNvdXJjZSIpCgtDb2xvclNvdXJjZRIKCgJieRgBIAEoCRIOCgZwaWVjZXMYAiABKAUifgoDTG90EgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSFQoNc25hcHNob3RfdW5peBgEIAEoAxIQCgh1bmxpc3RlZBgFIAEoCBIfCgZ0b3RhbHMYBiABKAsyDy5waWxlLnYxLlRvdGFscyIqCghMb3RDb3VudBIOCgZsb3RfaWQYASABKAkSDgoGcGllY2VzGAIgASgFIjsKCkNvbG9yU2hhcmUSHQoFY29sb3IYASABKAsyDi5waWxlLnYxLkNvbG9yEg4KBnBpZWNlcxgCIAEoBSItCg1DYXRlZ29yeVNoYXJlEgwKBG5hbWUYASABKAkSDgoGcGllY2VzGAIgASgFIhEKD0xpc3RMb3RzUmVxdWVzdCKRAQoQTGlzdExvdHNSZXNwb25zZRIaCgRsb3RzGAEgAygLMgwucGlsZS52MS5Mb3QSFAoMY2F0YWxvZ191bml4GAIgASgDEhQKDHNldHNfY2hlY2tlZBgDIAEoBRIdChVjdXN0b21fbW9kZWxzX2NoZWNrZWQYBCABKAUSFgoOYnVpbGRzX2NoZWNrZWQYBSABKAUiuAUKCFNldE1hdGNoEg8KB3NldF9udW0YASABKAkSDAoEbmFtZRgCIAEoCRIMCgR5ZWFyGAMgASgFEg0KBXRoZW1lGAQgASgJEhEKCWltYWdlX3VybBgFIAEoCRIMCgRoYXZlGAYgASgFEgwKBG5lZWQYByABKAUSHQoVd2VpZ2h0ZWRfY29tcGxldGVuZXNzGAggASgBEhAKCGV2aWRlbmNlGAkgASgBEhUKDXByaW50ZWRfcGFydHMYCiABKAUSEwoLbWluaWZpZ3VyZXMYCyABKAUSFQoNc2FtZV9jb250ZW50cxgMIAMoCRIMCgRwaWNrGA0gASgFEhgKEG1pbmlmaWd1cmVfcGFydHMYDiABKAUSFgoObWluaWZpZ3VyZV9zZXQYDyABKAgSGwoEa2luZBgQIAEoDjINLnBpbGUudjEuS2luZBIQCghkZXNpZ25lchgRIAEoCRILCgN1cmwYEiABKAkSEwoLd3JvbmdfY29sb3IYEyABKAUSEwoLdGhlbWVfZ3JvdXAYFCABKAkSEAoIbGljZW5zZWQYFSABKAgSDAoEYnVsaxgWIAEoCBIWCg5kaXN0aW5jdF9wYXJ0cxgXIAEoBRIOCgZyYXJpdHkYGCABKAESFAoMbW9zdGx5X2Jhc2ljGBkgASgIEhEKCWZld19wYXJ0cxgaIAEoCBIXCg9ub3RoaW5nX3VudXN1YWwYGyABKAgSEwoLYWNjZXNzb3JpZXMYHCABKAUSEgoKb2Zfc2V0X251bRgdIAEoCRIPCgdvZl9uYW1lGB4gASgJEg4KBmNvcGllcxgfIAEoBRISCgpjb2xsZWN0aW9uGCAgASgJEhUKDXNvdXJjZV9hdXRob3IYISABKAkSEgoKc291cmNlX3VybBgiIAEoCRIUCgxzb3VyY2Vfbm90ZXMYIyABKAkiOQoHU2VjdGlvbhIfCgRzZXRzGAEgAygLMhEucGlsZS52MS5TZXRNYXRjaBINCgV0b3RhbBgCIAEoBSIxChJHZXRPdmVydmlld1JlcXVlc3QSGwoEdmlldxgBIAEoCzINLnBpbGUudjEuVmlldyJMCglRdWV1ZWRTZXQSHgoDc2V0GAEgASgLMhEucGlsZS52MS5TZXRNYXRjaBIfCgRsb3RzGAIgAygLMhEucGlsZS52MS5Mb3RDb3VudCLEBAoTR2V0T3ZlcnZpZXdSZXNwb25zZRIaCgRsb3RzGAEgAygLMgwucGlsZS52MS5Mb3QSHwoGdG90YWxzGAIgASgLMg8ucGlsZS52MS5Ub3RhbHMSKgoKY2F0ZWdvcmllcxgDIAMoCzIWLnBpbGUudjEuQ2F0ZWdvcnlTaGFyZRIkCghzb3J0X291dBgEIAMoCzISLnBpbGUudjEuUXVldWVkU2V0EhMKC3BpZWNlc19sZWZ0GAUgASgFEiIKCGNvbXBsZXRlGAYgASgLMhAucGlsZS52MS5TZWN0aW9uEiAKBmFsbW9zdBgHIAEoCzIQLnBpbGUudjEuU2VjdGlvbhIeCgRoYWxmGAggASgLMhAucGlsZS52MS5TZWN0aW9uEiAKBmxpa2VseRgJIAEoCzIQLnBpbGUudjEuU2VjdGlvbhIgCgZjdXN0b20YCiABKAsyEC5waWxlLnYxLlNlY3Rpb24SJAoKbWluaWZpZ3VyZRgLIAEoCzIQLnBpbGUudjEuU2VjdGlvbhIeCgR0aW55GAwgASgLMhAucGlsZS52MS5TZWN0aW9uEiMKBnRoZW1lcxgNIAMoCzITLnBpbGUudjEuVGhlbWVDb3VudBIhCgdzdGFycmVkGA4gASgLMhAucGlsZS52MS5TZWN0aW9uEiAKBmJ1aWxkcxgPIAEoCzIQLnBpbGUudjEuU2VjdGlvbhIvCgtjb2xsZWN0aW9ucxgQIAMoCzIaLnBpbGUudjEuQ29sbGVjdGlvblNlY3Rpb24iVgoRQ29sbGVjdGlvblNlY3Rpb24SDAoEbmFtZRgBIAEoCRIQCghkZXNpZ25lchgCIAEoCRIhCgdzZWN0aW9uGAMgASgLMhAucGlsZS52MS5TZWN0aW9uIk0KD0xpc3RTZXRzUmVxdWVzdBIbCgR2aWV3GAEgASgLMg0ucGlsZS52MS5WaWV3Eh0KBW9yZGVyGAIgASgOMg4ucGlsZS52MS5PcmRlciIoCgpUaGVtZUNvdW50EgwKBG5hbWUYASABKAkSDAoEc2V0cxgCIAEoBSJYChBMaXN0U2V0c1Jlc3BvbnNlEh8KBHNldHMYASADKAsyES5waWxlLnYxLlNldE1hdGNoEiMKBnRoZW1lcxgCIAMoCzITLnBpbGUudjEuVGhlbWVDb3VudCI9Cg1HZXRTZXRSZXF1ZXN0EhsKBHZpZXcYASABKAsyDS5waWxlLnYxLlZpZXcSDwoHc2V0X251bRgCIAEoCSLCAgoHU2V0TGluZRIQCghwYXJ0X251bRgBIAEoCRIMCgRuYW1lGAIgASgJEh0KBWNvbG9yGAMgASgLMg4ucGlsZS52MS5Db2xvchIMCgRuZWVkGAQgASgFEg0KBWZvdW5kGAUgASgFEhMKC3dyb25nX2NvbG9yGAYgASgFEhEKCWltYWdlX3VybBgHIAEoCRIhCgVjbGFzcxgIIAEoDjISLnBpbGUudjEuUGFydENsYXNzEh8KBGxvdHMYCSADKAsyES5waWxlLnYxLkxvdENvdW50Eg8KB2NvdW50ZWQYCiABKAgSIQoJdXNlX2NvbG9yGAsgASgLMg4ucGlsZS52MS5Db2xvchIRCglhbnlfY29sb3IYDCABKAgSKAoLcGFydF9jb2xvcnMYDSADKAsyEy5waWxlLnYxLkNvbG9yQ291bnQioAEKCFNldENvbG9yEh0KBWNvbG9yGAEgASgLMg4ucGlsZS52MS5Db2xvchIMCgRuZWVkGAIgASgFEg0KBWZvdW5kGAMgASgFEiEKCXVzZV9jb2xvchgEIAEoCzIOLnBpbGUudjEuQ29sb3ISEQoJYW55X2NvbG9yGAUgASgIEiIKBXN3YXBzGAYgAygLMhMucGlsZS52MS5Db2xvckNvdW50IlAKCk1pbmlmaWd1cmUSDwoHZmlnX251bRgBIAEoCRIMCgRuYW1lGAIgASgJEhAKCHF1YW50aXR5GAMgASgFEhEKCWltYWdlX3VybBgEIAEoCSKAAwoOR2V0U2V0UmVzcG9uc2USHgoDc2V0GAEgASgLMhEucGlsZS52MS5TZXRNYXRjaBIfCgVsaW5lcxgCIAMoCzIQLnBpbGUudjEuU2V0TGluZRIoCgttaW5pZmlndXJlcxgDIAMoCzITLnBpbGUudjEuTWluaWZpZ3VyZRIdCgVwbGFjZRgEIAEoDjIOLnBpbGUudjEuUGxhY2USJwoMb3RoZXJfY29sb3JzGAUgASgLMhEucGlsZS52MS5TZXRNYXRjaBIjCgtvdGhlcl9wbGFjZRgGIAEoDjIOLnBpbGUudjEuUGxhY2USIAoJaGlkZGVuX2J5GAcgAygOMg0ucGlsZS52MS5SdWxlEiEKBmJ1aWxkcxgIIAMoCzIRLnBpbGUudjEuU2V0TWF0Y2gSFQoNc291cmNlX3BsYWNlZBgJIAEoBRIXCg9zb3VyY2VfdW5wbGFjZWQYCiADKAkSIQoGY29sb3JzGAsgAygLMhEucGlsZS52MS5TZXRDb2xvciIgChBMaXN0UGFydHNSZXF1ZXN0EgwKBGxvdHMYASADKAkizgEKCVBhcnRDb3VudBIQCghwYXJ0X251bRgBIAEoCRIUCgxicmlja2xpbmtfaWQYAiABKAkSDAoEbmFtZRgDIAEoCRIdCgVjb2xvchgEIAEoCzIOLnBpbGUudjEuQ29sb3ISDQoFY291bnQYBSABKAUSEQoJaW1hZ2VfdXJsGAYgASgJEhAKCGNhdGVnb3J5GAcgASgJEhcKD21lYW5fY29uZmlkZW5jZRgIIAEoAhIfCgRsb3RzGAkgAygLMhEucGlsZS52MS5Mb3RDb3VudCJWCg1Vbm1hdGNoZWRQYXJ0EhQKDGJyaWNrbGlua19pZBgBIAEoCRIMCgRuYW1lGAIgASgJEhIKCmNvbG9yX25hbWUYAyABKAkSDQoFY291bnQYBCABKAUiYQoRTGlzdFBhcnRzUmVzcG9uc2USIQoFcGFydHMYASADKAsyEi5waWxlLnYxLlBhcnRDb3VudBIpCgl1bm1hdGNoZWQYAiADKAsyFi5waWxlLnYxLlVubWF0Y2hlZFBhcnQiNwoWR2V0Q29sbGVjdFRpbWVzUmVxdWVzdBIOCgZsb3RfaWQYASABKAkSDQoFZXh0cmEYAiADKAkiqgEKDENvbGxlY3RCYXNpcxIOCgZwaWVjZXMYASABKAUSFAoMbWFjaGluZV9uYW1lGAIgASgJEhUKDXNvcnRpbmdfaG91cnMYAyABKAESFQoNcmF0ZV9wZXJfaG91chgEIAEoARIXCg9maXJzdF9zZWVuX3VuaXgYBSABKAMSFgoObGFzdF9zZWVuX3VuaXgYBiABKAMSFQoNc25hcHNob3RfdW5peBgHIAEoAyKNAQoJU2xvd1BpZWNlEhAKCHBhcnRfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSHQoFY29sb3IYAyABKAsyDi5waWxlLnYxLkNvbG9yEgwKBG5lZWQYBCABKAUSDAoEc2VlbhgFIAEoBRISCgp3YWl0X2hvdXJzGAYgASgBEhEKCWltYWdlX3VybBgHIAEoCSK2AgoLQ29sbGVjdFRpbWUSDAoEaGFsZhgBIAEoARIMCgRtb3N0GAIgASgBEg4KBm5lYXJseRgDIAEoARILCgNhbGwYBCABKAESEAoIYWxsX2Zhc3QYBSABKAESEAoIYWxsX3Nsb3cYBiABKAESEAoIbW9zdF9sb3cYByABKAESEQoJbW9zdF9oaWdoGAggASgBEg8KB2FsbF9sb3cYCSABKAESEAoIYWxsX2hpZ2gYCiABKAESEAoIYWxsX3NlZW4YCyABKAESEQoJYWxsX3JhcmVyGAwgASgBEgwKBGtleXMYDSABKAUSEwoLdW5zZWVuX2tleXMYDiABKAUSFQoNdW5zZWVuX3BpZWNlcxgPIAEoBRIjCgdzbG93ZXN0GBAgAygLMhIucGlsZS52MS5TbG93UGllY2Ui/AIKD1NldENvbGxlY3RUaW1lcxIPCgdzZXRfbnVtGAEgASgJEgwKBG5hbWUYAiABKAkSDAoEeWVhchgDIAEoBRINCgV0aGVtZRgEIAEoCRIRCglpbWFnZV91cmwYBSABKAkSDgoGcGllY2VzGAYgASgFEjcKCGxlZnRfb3V0GAcgAygLMiUucGlsZS52MS5TZXRDb2xsZWN0VGltZXMuTGVmdE91dEVudHJ5EhMKC21pbmlmaWd1cmVzGAggASgFEiMKBWV4YWN0GAkgASgLMhQucGlsZS52MS5Db2xsZWN0VGltZRIiCgRuZWFyGAogASgLMhQucGlsZS52MS5Db2xsZWN0VGltZRIhCgNhbnkYCyABKAsyFC5waWxlLnYxLkNvbGxlY3RUaW1lEg8KB3BlbmRpbmcYDCABKAgSDwoHdW5rbm93bhgNIAEoCBouCgxMZWZ0T3V0RW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgFOgI4ASJ8ChdHZXRDb2xsZWN0VGltZXNSZXNwb25zZRIkCgViYXNpcxgBIAEoCzIVLnBpbGUudjEuQ29sbGVjdEJhc2lzEiYKBHNldHMYAiADKAsyGC5waWxlLnYxLlNldENvbGxlY3RUaW1lcxITCgtmaXR0ZWRfdW5peBgDIAEoAyJfCgpTdG9yYWdlQmluEg8KB2FkZHJlc3MYASABKAkSDAoEbmFtZRgCIAEoCRIOCgZsb3RfaWQYAyABKAkSEgoKY2F0ZWdvcmllcxgEIAMoCRIOCgZwaWVjZXMYBSABKAUiEwoRR2V0U3RvcmFnZVJlcXVlc3QiNwoSR2V0U3RvcmFnZVJlc3BvbnNlEiEKBGJpbnMYASADKAsyEy5waWxlLnYxLlN0b3JhZ2VCaW4iNgoRU2V0U3RvcmFnZVJlcXVlc3QSIQoEYmlucxgBIAMoCzITLnBpbGUudjEuU3RvcmFnZUJpbiI3ChJTZXRTdG9yYWdlUmVzcG9uc2USIQoEYmlucxgBIAMoCzITLnBpbGUudjEuU3RvcmFnZUJpbiJrChFGaW5kUGllY2VzUmVxdWVzdBINCgVxdWVyeRgBIAEoCRINCgVjb2xvchgCIAEoCRIMCgR0eXBlGAMgASgJEgsKA2JpbhgEIAEoCRIOCgZsb3RfaWQYBSABKAkSDQoFbGltaXQYBiABKAUiSAoIQmluQ291bnQSDwoHYWRkcmVzcxgBIAEoCRIMCgRuYW1lGAIgASgJEg4KBmxvdF9pZBgDIAEoCRINCgVjb3VudBgEIAEoBSKyAQoKU3RvcmVkUGFydBIQCghwYXJ0X251bRgBIAEoCRIUCgxicmlja2xpbmtfaWQYAiABKAkSDAoEbmFtZRgDIAEoCRIdCgVjb2xvchgEIAEoCzIOLnBpbGUudjEuQ29sb3ISDAoEdHlwZRgFIAEoCRIRCglpbWFnZV91cmwYBiABKAkSDQoFY291bnQYByABKAUSHwoEYmlucxgIIAMoCzIRLnBpbGUudjEuQmluQ291bnQiWwoMRmlsdGVyT3B0aW9uEg0KBXZhbHVlGAEgASgJEg0KBWxhYmVsGAIgASgJEg4KBnBpZWNlcxgDIAEoBRIdCgVjb2xvchgEIAEoCzIOLnBpbGUudjEuQ29sb3IikQIKEkZpbmRQaWVjZXNSZXNwb25zZRIiCgVwYXJ0cxgBIAMoCzITLnBpbGUudjEuU3RvcmVkUGFydBITCgt0b3RhbF9wYXJ0cxgCIAEoBRIUCgx0b3RhbF9waWVjZXMYAyABKAUSFQoNc3RvcmVkX3BpZWNlcxgEIAEoBRIlCgZjb2xvcnMYBSADKAsyFS5waWxlLnYxLkZpbHRlck9wdGlvbhIkCgV0eXBlcxgGIAMoCzIVLnBpbGUudjEuRmlsdGVyT3B0aW9uEiMKBGJpbnMYByADKAsyFS5waWxlLnYxLkZpbHRlck9wdGlvbhIjCgRsb3RzGAggAygLMhUucGlsZS52MS5GaWx0ZXJPcHRpb24iEgoQTGlzdFN0YXJzUmVxdWVzdCIlChFMaXN0U3RhcnNSZXNwb25zZRIQCghzZXRfbnVtcxgBIAMoCSIyCg5TZXRTdGFyUmVxdWVzdBIPCgdzZXRfbnVtGAEgASgJEg8KB3N0YXJyZWQYAiABKAgiIwoPU2V0U3RhclJlc3BvbnNlEhAKCHNldF9udW1zGAEgAygJKm4KCkNvbG9yTWF0Y2gSGwoXQ09MT1JfTUFUQ0hfVU5TUEVDSUZJRUQQABIVChFDT0xPUl9NQVRDSF9FWEFDVBABEhcKE0NPTE9SX01BVENIX1NJTUlMQVIQAhITCg9DT0xPUl9NQVRDSF9BTlkQAyrPAQoEUnVsZRIUChBSVUxFX1VOU1BFQ0lGSUVEEAASFQoRUlVMRV9MT09TRV9CUklDS1MQARIVChFSVUxFX01PU1RMWV9CQVNJQxACEhIKDlJVTEVfRkVXX1BBUlRTEAMSGAoUUlVMRV9OT1RISU5HX1VOVVNVQUwQBBINCglSVUxFX0tJTkQQBRIOCgpSVUxFX1RIRU1FEAYSEQoNUlVMRV9MSUNFTlNFRBAHEg0KCVJVTEVfU0laRRAIEhQKEFJVTEVfTk9UX1NUQVJSRUQQCSpLCgRLaW5kEhQKEEtJTkRfVU5TUEVDSUZJRUQQABIMCghLSU5EX1NFVBABEg8KC0tJTkRfQ1VTVE9NEAISDgoKS0lORF9CVUlMRBADKuQBCgVQbGFjZRIOCgpQTEFDRV9OT05FEAASEgoOUExBQ0VfQ09NUExFVEUQARIQCgxQTEFDRV9BTE1PU1QQAhIOCgpQTEFDRV9IQUxGEAMSEAoMUExBQ0VfTElLRUxZEAQSEAoMUExBQ0VfQ1VTVE9NEAUSFAoQUExBQ0VfTUlOSUZJR1VSRRAGEg4KClBMQUNFX1RJTlkQBxISCg5QTEFDRV9TT1JUX09VVBAIEhAKDFBMQUNFX0hJRERFThAJEg8KC1BMQUNFX0JVSUxEEAoSFAoQUExBQ0VfQ09MTEVDVElPThALKoABCgVPcmRlchIVChFPUkRFUl9VTlNQRUNJRklFRBAAEhIKDk9SREVSX0NPTVBMRVRFEAESDwoLT1JERVJfRk9VTkQQAhIVChFPUkRFUl9JTlRFUkVTVElORxADEhEKDU9SREVSX0JJR0dFU1QQBBIRCg1PUkRFUl9DT01QTEVYEAUqhgEKCVBhcnRDbGFzcxIaChZQQVJUX0NMQVNTX1VOU1BFQ0lGSUVEEAASFAoQUEFSVF9DTEFTU19QTEFJThABEhYKElBBUlRfQ0xBU1NfUFJJTlRFRBACEhUKEVBBUlRfQ0xBU1NfRklHVVJFEAMSGAoUUEFSVF9DTEFTU19BQ0NFU1NPUlkQBDKFBgoLUGlsZVNlcnZpY2USPwoITGlzdExvdHMSGC5waWxlLnYxLkxpc3RMb3RzUmVxdWVzdBoZLnBpbGUudjEuTGlzdExvdHNSZXNwb25zZRJICgtHZXRPdmVydmlldxIbLnBpbGUudjEuR2V0T3ZlcnZpZXdSZXF1ZXN0GhwucGlsZS52MS5HZXRPdmVydmlld1Jlc3BvbnNlEj8KCExpc3RTZXRzEhgucGlsZS52MS5MaXN0U2V0c1JlcXVlc3QaGS5waWxlLnYxLkxpc3RTZXRzUmVzcG9uc2USOQoGR2V0U2V0EhYucGlsZS52MS5HZXRTZXRSZXF1ZXN0GhcucGlsZS52MS5HZXRTZXRSZXNwb25zZRJCCglMaXN0UGFydHMSGS5waWxlLnYxLkxpc3RQYXJ0c1JlcXVlc3QaGi5waWxlLnYxLkxpc3RQYXJ0c1Jlc3BvbnNlElQKD0dldENvbGxlY3RUaW1lcxIfLnBpbGUudjEuR2V0Q29sbGVjdFRpbWVzUmVxdWVzdBogLnBpbGUudjEuR2V0Q29sbGVjdFRpbWVzUmVzcG9uc2USRQoKR2V0U3RvcmFnZRIaLnBpbGUudjEuR2V0U3RvcmFnZVJlcXVlc3QaGy5waWxlLnYxLkdldFN0b3JhZ2VSZXNwb25zZRJFCgpTZXRTdG9yYWdlEhoucGlsZS52MS5TZXRTdG9yYWdlUmVxdWVzdBobLnBpbGUudjEuU2V0U3RvcmFnZVJlc3BvbnNlEkUKCkZpbmRQaWVjZXMSGi5waWxlLnYxLkZpbmRQaWVjZXNSZXF1ZXN0GhsucGlsZS52MS5GaW5kUGllY2VzUmVzcG9uc2USQgoJTGlzdFN0YXJzEhkucGlsZS52MS5MaXN0U3RhcnNSZXF1ZXN0GhoucGlsZS52MS5MaXN0U3RhcnNSZXNwb25zZRI8CgdTZXRTdGFyEhcucGlsZS52MS5TZXRTdGFyUmVxdWVzdBoYLnBpbGUudjEuU2V0U3RhclJlc3BvbnNlQjRaMmdpdGh1Yi5jb20vYmFzaWNhbGx5c291cmNlL3BpbGUvZ2VuL3BpbGUvdjE7cGlsZXYxYgZwcm90bzM");
 
 /**
  * How lots are looked at.
@@ -25,14 +25,6 @@ export type View = Message<"pile.v1.View"> & {
    * @generated from field: repeated string lots = 1;
    */
   lots: string[];
-
-  /**
-   * Match parts in any color: a set counts a piece of the right part in
-   * another color as found, and says how many of its pieces are.
-   *
-   * @generated from field: bool any_color = 2;
-   */
-  anyColor: boolean;
 
   /**
    * Sets and custom models to sort out, most wanted first. Each takes its
@@ -57,6 +49,21 @@ export type View = Message<"pile.v1.View"> & {
    * @generated from field: pile.v1.Counting counting = 5;
    */
   counting?: Counting | undefined;
+
+  /**
+   * Which colors a set's line takes once its own color runs out.
+   *
+   * @generated from field: pile.v1.ColorMatch colors = 6;
+   */
+  colors: ColorMatch;
+
+  /**
+   * Changes to sets' colors: a set takes another color for one of its
+   * colors, or for one part.
+   *
+   * @generated from field: repeated pile.v1.ColorChoice color_choices = 7;
+   */
+  colorChoices: ColorChoice[];
 };
 
 /**
@@ -65,6 +72,83 @@ export type View = Message<"pile.v1.View"> & {
  */
 export const ViewSchema: GenMessage<View> = /*@__PURE__*/
   messageDesc(file_pile_v1_pile, 0);
+
+/**
+ * A change to a set's colors: its lines in `color` (all of them, or only
+ * `part_num`'s) take `use_color` instead, or any color of their part. A
+ * part's choice is made after its color's.
+ *
+ * @generated from message pile.v1.ColorChoice
+ */
+export type ColorChoice = Message<"pile.v1.ColorChoice"> & {
+  /**
+   * @generated from field: string set_num = 1;
+   */
+  setNum: string;
+
+  /**
+   * The color as the set has it.
+   *
+   * @generated from field: int32 color = 2;
+   */
+  color: number;
+
+  /**
+   * One part's line (Rebrickable's number); empty for every line in the
+   * color.
+   *
+   * @generated from field: string part_num = 3;
+   */
+  partNum: string;
+
+  /**
+   * @generated from oneof pile.v1.ColorChoice.take
+   */
+  take: {
+    /**
+     * @generated from field: int32 use_color = 4;
+     */
+    value: number;
+    case: "useColor";
+  } | {
+    /**
+     * @generated from field: bool any_color = 5;
+     */
+    value: boolean;
+    case: "anyColor";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message pile.v1.ColorChoice.
+ * Use `create(ColorChoiceSchema)` to create a new message.
+ */
+export const ColorChoiceSchema: GenMessage<ColorChoice> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 1);
+
+/**
+ * A color, and how many pieces of something are in it.
+ *
+ * @generated from message pile.v1.ColorCount
+ */
+export type ColorCount = Message<"pile.v1.ColorCount"> & {
+  /**
+   * @generated from field: pile.v1.Color color = 1;
+   */
+  color?: Color | undefined;
+
+  /**
+   * @generated from field: int32 pieces = 2;
+   */
+  pieces: number;
+};
+
+/**
+ * Describes the message pile.v1.ColorCount.
+ * Use `create(ColorCountSchema)` to create a new message.
+ */
+export const ColorCountSchema: GenMessage<ColorCount> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 2);
 
 /**
  * Which kinds of part count toward a set's completeness, a plain part
@@ -102,7 +186,7 @@ export type Counting = Message<"pile.v1.Counting"> & {
  * Use `create(CountingSchema)` to create a new message.
  */
 export const CountingSchema: GenMessage<Counting> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 1);
+  messageDesc(file_pile_v1_pile, 3);
 
 /**
  * Which sets and custom models a view lists; the rest are hidden, except
@@ -179,7 +263,7 @@ export type Filter = Message<"pile.v1.Filter"> & {
  * Use `create(FilterSchema)` to create a new message.
  */
 export const FilterSchema: GenMessage<Filter> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 2);
+  messageDesc(file_pile_v1_pile, 4);
 
 /**
  * @generated from message pile.v1.Color
@@ -220,7 +304,7 @@ export type Color = Message<"pile.v1.Color"> & {
  * Use `create(ColorSchema)` to create a new message.
  */
 export const ColorSchema: GenMessage<Color> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 3);
+  messageDesc(file_pile_v1_pile, 5);
 
 /**
  * Pieces taken together: one lot's, or a view's lots'.
@@ -286,7 +370,7 @@ export type Totals = Message<"pile.v1.Totals"> & {
  * Use `create(TotalsSchema)` to create a new message.
  */
 export const TotalsSchema: GenMessage<Totals> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 4);
+  messageDesc(file_pile_v1_pile, 6);
 
 /**
  * Some pieces' colors, and who gave them.
@@ -314,7 +398,7 @@ export type ColorSource = Message<"pile.v1.ColorSource"> & {
  * Use `create(ColorSourceSchema)` to create a new message.
  */
 export const ColorSourceSchema: GenMessage<ColorSource> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 5);
+  messageDesc(file_pile_v1_pile, 7);
 
 /**
  * @generated from message pile.v1.Lot
@@ -362,7 +446,7 @@ export type Lot = Message<"pile.v1.Lot"> & {
  * Use `create(LotSchema)` to create a new message.
  */
 export const LotSchema: GenMessage<Lot> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 6);
+  messageDesc(file_pile_v1_pile, 8);
 
 /**
  * Some pieces of something, in one lot.
@@ -386,7 +470,7 @@ export type LotCount = Message<"pile.v1.LotCount"> & {
  * Use `create(LotCountSchema)` to create a new message.
  */
 export const LotCountSchema: GenMessage<LotCount> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 7);
+  messageDesc(file_pile_v1_pile, 9);
 
 /**
  * @generated from message pile.v1.ColorShare
@@ -408,7 +492,7 @@ export type ColorShare = Message<"pile.v1.ColorShare"> & {
  * Use `create(ColorShareSchema)` to create a new message.
  */
 export const ColorShareSchema: GenMessage<ColorShare> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 8);
+  messageDesc(file_pile_v1_pile, 10);
 
 /**
  * @generated from message pile.v1.CategoryShare
@@ -430,7 +514,7 @@ export type CategoryShare = Message<"pile.v1.CategoryShare"> & {
  * Use `create(CategoryShareSchema)` to create a new message.
  */
 export const CategoryShareSchema: GenMessage<CategoryShare> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 9);
+  messageDesc(file_pile_v1_pile, 11);
 
 /**
  * @generated from message pile.v1.ListLotsRequest
@@ -443,7 +527,7 @@ export type ListLotsRequest = Message<"pile.v1.ListLotsRequest"> & {
  * Use `create(ListLotsRequestSchema)` to create a new message.
  */
 export const ListLotsRequestSchema: GenMessage<ListLotsRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 10);
+  messageDesc(file_pile_v1_pile, 12);
 
 /**
  * @generated from message pile.v1.ListLotsResponse
@@ -485,7 +569,7 @@ export type ListLotsResponse = Message<"pile.v1.ListLotsResponse"> & {
  * Use `create(ListLotsResponseSchema)` to create a new message.
  */
 export const ListLotsResponseSchema: GenMessage<ListLotsResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 11);
+  messageDesc(file_pile_v1_pile, 13);
 
 /**
  * A set or custom model against the pieces a view leaves.
@@ -726,7 +810,7 @@ export type SetMatch = Message<"pile.v1.SetMatch"> & {
  * Use `create(SetMatchSchema)` to create a new message.
  */
 export const SetMatchSchema: GenMessage<SetMatch> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 12);
+  messageDesc(file_pile_v1_pile, 14);
 
 /**
  * The first sets of a section, and how many it has.
@@ -750,7 +834,7 @@ export type Section = Message<"pile.v1.Section"> & {
  * Use `create(SectionSchema)` to create a new message.
  */
 export const SectionSchema: GenMessage<Section> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 13);
+  messageDesc(file_pile_v1_pile, 15);
 
 /**
  * @generated from message pile.v1.GetOverviewRequest
@@ -767,7 +851,7 @@ export type GetOverviewRequest = Message<"pile.v1.GetOverviewRequest"> & {
  * Use `create(GetOverviewRequestSchema)` to create a new message.
  */
 export const GetOverviewRequestSchema: GenMessage<GetOverviewRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 14);
+  messageDesc(file_pile_v1_pile, 16);
 
 /**
  * A set in the sort-out queue, and the lots its pieces are drawn from.
@@ -793,7 +877,7 @@ export type QueuedSet = Message<"pile.v1.QueuedSet"> & {
  * Use `create(QueuedSetSchema)` to create a new message.
  */
 export const QueuedSetSchema: GenMessage<QueuedSet> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 15);
+  messageDesc(file_pile_v1_pile, 17);
 
 /**
  * @generated from message pile.v1.GetOverviewResponse
@@ -923,7 +1007,7 @@ export type GetOverviewResponse = Message<"pile.v1.GetOverviewResponse"> & {
  * Use `create(GetOverviewResponseSchema)` to create a new message.
  */
 export const GetOverviewResponseSchema: GenMessage<GetOverviewResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 16);
+  messageDesc(file_pile_v1_pile, 18);
 
 /**
  * @generated from message pile.v1.CollectionSection
@@ -950,7 +1034,7 @@ export type CollectionSection = Message<"pile.v1.CollectionSection"> & {
  * Use `create(CollectionSectionSchema)` to create a new message.
  */
 export const CollectionSectionSchema: GenMessage<CollectionSection> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 17);
+  messageDesc(file_pile_v1_pile, 19);
 
 /**
  * @generated from message pile.v1.ListSetsRequest
@@ -972,7 +1056,7 @@ export type ListSetsRequest = Message<"pile.v1.ListSetsRequest"> & {
  * Use `create(ListSetsRequestSchema)` to create a new message.
  */
 export const ListSetsRequestSchema: GenMessage<ListSetsRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 18);
+  messageDesc(file_pile_v1_pile, 20);
 
 /**
  * @generated from message pile.v1.ThemeCount
@@ -994,7 +1078,7 @@ export type ThemeCount = Message<"pile.v1.ThemeCount"> & {
  * Use `create(ThemeCountSchema)` to create a new message.
  */
 export const ThemeCountSchema: GenMessage<ThemeCount> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 19);
+  messageDesc(file_pile_v1_pile, 21);
 
 /**
  * @generated from message pile.v1.ListSetsResponse
@@ -1019,7 +1103,7 @@ export type ListSetsResponse = Message<"pile.v1.ListSetsResponse"> & {
  * Use `create(ListSetsResponseSchema)` to create a new message.
  */
 export const ListSetsResponseSchema: GenMessage<ListSetsResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 20);
+  messageDesc(file_pile_v1_pile, 22);
 
 /**
  * @generated from message pile.v1.GetSetRequest
@@ -1041,7 +1125,7 @@ export type GetSetRequest = Message<"pile.v1.GetSetRequest"> & {
  * Use `create(GetSetRequestSchema)` to create a new message.
  */
 export const GetSetRequestSchema: GenMessage<GetSetRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 21);
+  messageDesc(file_pile_v1_pile, 23);
 
 /**
  * @generated from message pile.v1.SetLine
@@ -1069,7 +1153,8 @@ export type SetLine = Message<"pile.v1.SetLine"> & {
 
   /**
    * Pieces of this part (or a mold variant) found for this line, up to `need`:
-   * in its color, or in an any-color view in any color. Counted or not.
+   * in its color, or in the other colors it takes (View.colors, its
+   * ColorChoice). Counted or not.
    *
    * @generated from field: int32 found = 5;
    */
@@ -1105,6 +1190,26 @@ export type SetLine = Message<"pile.v1.SetLine"> & {
    * @generated from field: bool counted = 10;
    */
   counted: boolean;
+
+  /**
+   * The view's choice for it (ColorChoice): the color it takes instead of
+   * its own, or any color.
+   *
+   * @generated from field: pile.v1.Color use_color = 11;
+   */
+  useColor?: Color | undefined;
+
+  /**
+   * @generated from field: bool any_color = 12;
+   */
+  anyColor: boolean;
+
+  /**
+   * Its part in every color the lots have, most first.
+   *
+   * @generated from field: repeated pile.v1.ColorCount part_colors = 13;
+   */
+  partColors: ColorCount[];
 };
 
 /**
@@ -1112,7 +1217,60 @@ export type SetLine = Message<"pile.v1.SetLine"> & {
  * Use `create(SetLineSchema)` to create a new message.
  */
 export const SetLineSchema: GenMessage<SetLine> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 22);
+  messageDesc(file_pile_v1_pile, 24);
+
+/**
+ * One of a set's colors, and what could stand in for it.
+ *
+ * @generated from message pile.v1.SetColor
+ */
+export type SetColor = Message<"pile.v1.SetColor"> & {
+  /**
+   * @generated from field: pile.v1.Color color = 1;
+   */
+  color?: Color | undefined;
+
+  /**
+   * Its pieces in the set, and of those, found (in the colors the view
+   * takes).
+   *
+   * @generated from field: int32 need = 2;
+   */
+  need: number;
+
+  /**
+   * @generated from field: int32 found = 3;
+   */
+  found: number;
+
+  /**
+   * The view's choice for the color: the color it takes instead, or any.
+   *
+   * @generated from field: pile.v1.Color use_color = 4;
+   */
+  useColor?: Color | undefined;
+
+  /**
+   * @generated from field: bool any_color = 5;
+   */
+  anyColor: boolean;
+
+  /**
+   * Other colors, each with how many of this color's pieces the lots have
+   * in it, part by part (each line capped at what it needs): what taking it
+   * instead would find. The most first.
+   *
+   * @generated from field: repeated pile.v1.ColorCount swaps = 6;
+   */
+  swaps: ColorCount[];
+};
+
+/**
+ * Describes the message pile.v1.SetColor.
+ * Use `create(SetColorSchema)` to create a new message.
+ */
+export const SetColorSchema: GenMessage<SetColor> = /*@__PURE__*/
+  messageDesc(file_pile_v1_pile, 25);
 
 /**
  * @generated from message pile.v1.Minifigure
@@ -1144,7 +1302,7 @@ export type Minifigure = Message<"pile.v1.Minifigure"> & {
  * Use `create(MinifigureSchema)` to create a new message.
  */
 export const MinifigureSchema: GenMessage<Minifigure> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 23);
+  messageDesc(file_pile_v1_pile, 26);
 
 /**
  * @generated from message pile.v1.GetSetResponse
@@ -1174,8 +1332,8 @@ export type GetSetResponse = Message<"pile.v1.GetSetResponse"> & {
 
   /**
    * The same set in the other color matching (any color when the view is
-   * exact, exact when it is any), and where the overview shows it then: so
-   * a page can say why a set is or is not listed.
+   * exact or similar, exact when it is any), and where the overview shows
+   * it then: so a page can say why a set is or is not listed.
    *
    * @generated from field: pile.v1.SetMatch other_colors = 5;
    */
@@ -1215,6 +1373,13 @@ export type GetSetResponse = Message<"pile.v1.GetSetResponse"> & {
    * @generated from field: repeated string source_unplaced = 10;
    */
   sourceUnplaced: string[];
+
+  /**
+   * Its colors, the most pieces first.
+   *
+   * @generated from field: repeated pile.v1.SetColor colors = 11;
+   */
+  colors: SetColor[];
 };
 
 /**
@@ -1222,7 +1387,7 @@ export type GetSetResponse = Message<"pile.v1.GetSetResponse"> & {
  * Use `create(GetSetResponseSchema)` to create a new message.
  */
 export const GetSetResponseSchema: GenMessage<GetSetResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 24);
+  messageDesc(file_pile_v1_pile, 27);
 
 /**
  * @generated from message pile.v1.ListPartsRequest
@@ -1241,7 +1406,7 @@ export type ListPartsRequest = Message<"pile.v1.ListPartsRequest"> & {
  * Use `create(ListPartsRequestSchema)` to create a new message.
  */
 export const ListPartsRequestSchema: GenMessage<ListPartsRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 25);
+  messageDesc(file_pile_v1_pile, 28);
 
 /**
  * A part in a color, and how many the lots have.
@@ -1304,7 +1469,7 @@ export type PartCount = Message<"pile.v1.PartCount"> & {
  * Use `create(PartCountSchema)` to create a new message.
  */
 export const PartCountSchema: GenMessage<PartCount> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 26);
+  messageDesc(file_pile_v1_pile, 29);
 
 /**
  * Pieces the catalog cannot place: the classifier's own names.
@@ -1338,7 +1503,7 @@ export type UnmatchedPart = Message<"pile.v1.UnmatchedPart"> & {
  * Use `create(UnmatchedPartSchema)` to create a new message.
  */
 export const UnmatchedPartSchema: GenMessage<UnmatchedPart> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 27);
+  messageDesc(file_pile_v1_pile, 30);
 
 /**
  * @generated from message pile.v1.ListPartsResponse
@@ -1360,7 +1525,7 @@ export type ListPartsResponse = Message<"pile.v1.ListPartsResponse"> & {
  * Use `create(ListPartsResponseSchema)` to create a new message.
  */
 export const ListPartsResponseSchema: GenMessage<ListPartsResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 28);
+  messageDesc(file_pile_v1_pile, 31);
 
 /**
  * @generated from message pile.v1.GetCollectTimesRequest
@@ -1384,7 +1549,7 @@ export type GetCollectTimesRequest = Message<"pile.v1.GetCollectTimesRequest"> &
  * Use `create(GetCollectTimesRequestSchema)` to create a new message.
  */
 export const GetCollectTimesRequestSchema: GenMessage<GetCollectTimesRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 29);
+  messageDesc(file_pile_v1_pile, 32);
 
 /**
  * What a lot's times rest on.
@@ -1442,7 +1607,7 @@ export type CollectBasis = Message<"pile.v1.CollectBasis"> & {
  * Use `create(CollectBasisSchema)` to create a new message.
  */
 export const CollectBasisSchema: GenMessage<CollectBasis> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 30);
+  messageDesc(file_pile_v1_pile, 33);
 
 /**
  * One piece that holds a set up.
@@ -1497,7 +1662,7 @@ export type SlowPiece = Message<"pile.v1.SlowPiece"> & {
  * Use `create(SlowPieceSchema)` to create a new message.
  */
 export const SlowPieceSchema: GenMessage<SlowPiece> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 31);
+  messageDesc(file_pile_v1_pile, 34);
 
 /**
  * A set's times in one color mode, in hours of sorting on one machine running
@@ -1607,7 +1772,7 @@ export type CollectTime = Message<"pile.v1.CollectTime"> & {
  * Use `create(CollectTimeSchema)` to create a new message.
  */
 export const CollectTimeSchema: GenMessage<CollectTime> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 32);
+  messageDesc(file_pile_v1_pile, 35);
 
 /**
  * @generated from message pile.v1.SetCollectTimes
@@ -1691,7 +1856,7 @@ export type SetCollectTimes = Message<"pile.v1.SetCollectTimes"> & {
  * Use `create(SetCollectTimesSchema)` to create a new message.
  */
 export const SetCollectTimesSchema: GenMessage<SetCollectTimes> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 33);
+  messageDesc(file_pile_v1_pile, 36);
 
 /**
  * @generated from message pile.v1.GetCollectTimesResponse
@@ -1721,7 +1886,7 @@ export type GetCollectTimesResponse = Message<"pile.v1.GetCollectTimesResponse">
  * Use `create(GetCollectTimesResponseSchema)` to create a new message.
  */
 export const GetCollectTimesResponseSchema: GenMessage<GetCollectTimesResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 34);
+  messageDesc(file_pile_v1_pile, 37);
 
 /**
  * A place pieces are kept, and what it holds: one lot's pieces of some of the
@@ -1771,7 +1936,7 @@ export type StorageBin = Message<"pile.v1.StorageBin"> & {
  * Use `create(StorageBinSchema)` to create a new message.
  */
 export const StorageBinSchema: GenMessage<StorageBin> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 35);
+  messageDesc(file_pile_v1_pile, 38);
 
 /**
  * @generated from message pile.v1.GetStorageRequest
@@ -1784,7 +1949,7 @@ export type GetStorageRequest = Message<"pile.v1.GetStorageRequest"> & {
  * Use `create(GetStorageRequestSchema)` to create a new message.
  */
 export const GetStorageRequestSchema: GenMessage<GetStorageRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 36);
+  messageDesc(file_pile_v1_pile, 39);
 
 /**
  * @generated from message pile.v1.GetStorageResponse
@@ -1801,7 +1966,7 @@ export type GetStorageResponse = Message<"pile.v1.GetStorageResponse"> & {
  * Use `create(GetStorageResponseSchema)` to create a new message.
  */
 export const GetStorageResponseSchema: GenMessage<GetStorageResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 37);
+  messageDesc(file_pile_v1_pile, 40);
 
 /**
  * @generated from message pile.v1.SetStorageRequest
@@ -1821,7 +1986,7 @@ export type SetStorageRequest = Message<"pile.v1.SetStorageRequest"> & {
  * Use `create(SetStorageRequestSchema)` to create a new message.
  */
 export const SetStorageRequestSchema: GenMessage<SetStorageRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 38);
+  messageDesc(file_pile_v1_pile, 41);
 
 /**
  * @generated from message pile.v1.SetStorageResponse
@@ -1838,7 +2003,7 @@ export type SetStorageResponse = Message<"pile.v1.SetStorageResponse"> & {
  * Use `create(SetStorageResponseSchema)` to create a new message.
  */
 export const SetStorageResponseSchema: GenMessage<SetStorageResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 39);
+  messageDesc(file_pile_v1_pile, 42);
 
 /**
  * @generated from message pile.v1.FindPiecesRequest
@@ -1894,7 +2059,7 @@ export type FindPiecesRequest = Message<"pile.v1.FindPiecesRequest"> & {
  * Use `create(FindPiecesRequestSchema)` to create a new message.
  */
 export const FindPiecesRequestSchema: GenMessage<FindPiecesRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 40);
+  messageDesc(file_pile_v1_pile, 43);
 
 /**
  * Some of a part in a color, in one bin.
@@ -1928,7 +2093,7 @@ export type BinCount = Message<"pile.v1.BinCount"> & {
  * Use `create(BinCountSchema)` to create a new message.
  */
 export const BinCountSchema: GenMessage<BinCount> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 41);
+  messageDesc(file_pile_v1_pile, 44);
 
 /**
  * A part in a color the bins hold.
@@ -1986,7 +2151,7 @@ export type StoredPart = Message<"pile.v1.StoredPart"> & {
  * Use `create(StoredPartSchema)` to create a new message.
  */
 export const StoredPartSchema: GenMessage<StoredPart> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 42);
+  messageDesc(file_pile_v1_pile, 45);
 
 /**
  * One choice of a filter, and the pieces it would find with the other
@@ -2025,7 +2190,7 @@ export type FilterOption = Message<"pile.v1.FilterOption"> & {
  * Use `create(FilterOptionSchema)` to create a new message.
  */
 export const FilterOptionSchema: GenMessage<FilterOption> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 43);
+  messageDesc(file_pile_v1_pile, 46);
 
 /**
  * @generated from message pile.v1.FindPiecesResponse
@@ -2085,7 +2250,7 @@ export type FindPiecesResponse = Message<"pile.v1.FindPiecesResponse"> & {
  * Use `create(FindPiecesResponseSchema)` to create a new message.
  */
 export const FindPiecesResponseSchema: GenMessage<FindPiecesResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 44);
+  messageDesc(file_pile_v1_pile, 47);
 
 /**
  * @generated from message pile.v1.ListStarsRequest
@@ -2098,7 +2263,7 @@ export type ListStarsRequest = Message<"pile.v1.ListStarsRequest"> & {
  * Use `create(ListStarsRequestSchema)` to create a new message.
  */
 export const ListStarsRequestSchema: GenMessage<ListStarsRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 45);
+  messageDesc(file_pile_v1_pile, 48);
 
 /**
  * @generated from message pile.v1.ListStarsResponse
@@ -2117,7 +2282,7 @@ export type ListStarsResponse = Message<"pile.v1.ListStarsResponse"> & {
  * Use `create(ListStarsResponseSchema)` to create a new message.
  */
 export const ListStarsResponseSchema: GenMessage<ListStarsResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 46);
+  messageDesc(file_pile_v1_pile, 49);
 
 /**
  * @generated from message pile.v1.SetStarRequest
@@ -2139,7 +2304,7 @@ export type SetStarRequest = Message<"pile.v1.SetStarRequest"> & {
  * Use `create(SetStarRequestSchema)` to create a new message.
  */
 export const SetStarRequestSchema: GenMessage<SetStarRequest> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 47);
+  messageDesc(file_pile_v1_pile, 50);
 
 /**
  * @generated from message pile.v1.SetStarResponse
@@ -2158,7 +2323,50 @@ export type SetStarResponse = Message<"pile.v1.SetStarResponse"> & {
  * Use `create(SetStarResponseSchema)` to create a new message.
  */
 export const SetStarResponseSchema: GenMessage<SetStarResponse> = /*@__PURE__*/
-  messageDesc(file_pile_v1_pile, 48);
+  messageDesc(file_pile_v1_pile, 51);
+
+/**
+ * Which colors a set's line takes once its own color runs out. A piece in
+ * another color counts as found, and each set says how many of its pieces
+ * are.
+ *
+ * @generated from enum pile.v1.ColorMatch
+ */
+export enum ColorMatch {
+  /**
+   * Exact.
+   *
+   * @generated from enum value: COLOR_MATCH_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * None: a line needs its part in its color.
+   *
+   * @generated from enum value: COLOR_MATCH_EXACT = 1;
+   */
+  EXACT = 1,
+
+  /**
+   * The colors near its own: shades of one color, old and new grays.
+   *
+   * @generated from enum value: COLOR_MATCH_SIMILAR = 2;
+   */
+  SIMILAR = 2,
+
+  /**
+   * Any color of its part.
+   *
+   * @generated from enum value: COLOR_MATCH_ANY = 3;
+   */
+  ANY = 3,
+}
+
+/**
+ * Describes the enum pile.v1.ColorMatch.
+ */
+export const ColorMatchSchema: GenEnum<ColorMatch> = /*@__PURE__*/
+  enumDesc(file_pile_v1_pile, 0);
 
 /**
  * Why a filter hides a set.
@@ -2221,7 +2429,7 @@ export enum Rule {
  * Describes the enum pile.v1.Rule.
  */
 export const RuleSchema: GenEnum<Rule> = /*@__PURE__*/
-  enumDesc(file_pile_v1_pile, 0);
+  enumDesc(file_pile_v1_pile, 1);
 
 /**
  * @generated from enum pile.v1.Kind
@@ -2260,7 +2468,7 @@ export enum Kind {
  * Describes the enum pile.v1.Kind.
  */
 export const KindSchema: GenEnum<Kind> = /*@__PURE__*/
-  enumDesc(file_pile_v1_pile, 1);
+  enumDesc(file_pile_v1_pile, 2);
 
 /**
  * Which of the overview's sections a set is in.
@@ -2341,7 +2549,7 @@ export enum Place {
  * Describes the enum pile.v1.Place.
  */
 export const PlaceSchema: GenEnum<Place> = /*@__PURE__*/
-  enumDesc(file_pile_v1_pile, 2);
+  enumDesc(file_pile_v1_pile, 3);
 
 /**
  * @generated from enum pile.v1.Order
@@ -2394,7 +2602,7 @@ export enum Order {
  * Describes the enum pile.v1.Order.
  */
 export const OrderSchema: GenEnum<Order> = /*@__PURE__*/
-  enumDesc(file_pile_v1_pile, 3);
+  enumDesc(file_pile_v1_pile, 4);
 
 /**
  * What kind of part a set's line is, for what counts toward completeness.
@@ -2438,7 +2646,7 @@ export enum PartClass {
  * Describes the enum pile.v1.PartClass.
  */
 export const PartClassSchema: GenEnum<PartClass> = /*@__PURE__*/
-  enumDesc(file_pile_v1_pile, 4);
+  enumDesc(file_pile_v1_pile, 5);
 
 /**
  * A collection of sorted pieces, kept as lots (one box, one sort), the

@@ -1,7 +1,8 @@
 // How lots are being looked at (docs/views.md). The lots are the route's:
 // `/lots/big-box,goodwill-box` is a stack of two, in priority order, so a
 // link carries them. The rest is kept in the browser, so it lasts across
-// pages and reloads: any-color matching, what counts toward a set's
+// pages and reloads: which colors a line takes (exact, similar or any), the
+// changes made to sets' colors (docs/views.md#colors), what counts toward a set's
 // completeness (docs/views.md#counting), the filter (which sets are listed,
 // docs/views.md#the-filter), whether sets are grouped by theme, and the
 // sort-out queue (most wanted first), which is the view's whatever lots it
@@ -9,7 +10,7 @@
 // counts it against the new ones. Every page reads it and the server works
 // from it.
 import { page } from '$app/state';
-import { Kind, type View } from './gen/pile/v1/pile_pb';
+import { ColorMatch, Kind, type View } from './gen/pile/v1/pile_pb';
 import type { MessageInitShape } from '@bufbuild/protobuf';
 import type { CountingSchema, FilterSchema, ViewSchema } from './gen/pile/v1/pile_pb';
 
@@ -45,8 +46,22 @@ const fresh: Filter = { ...presets.interesting, kind: Kind.UNSPECIFIED, themeGro
 export type Counting = { printed: boolean; figureParts: boolean; accessories: boolean };
 export const defaultCounting: Counting = { printed: false, figureParts: false, accessories: true };
 
+// Which colors a set's line takes once its own runs out: none, those near
+// it (a darker shade, an old gray), or any color of its part.
+export type ColorMode = 'exact' | 'similar' | 'any';
+const colorMatch: Record<ColorMode, ColorMatch> = {
+	exact: ColorMatch.EXACT,
+	similar: ColorMatch.SIMILAR,
+	any: ColorMatch.ANY
+};
+
+// A change to a set's colors: its lines in `color` (all, or only
+// `partNum`'s) take `use` instead, or any color of their part.
+export type Choice = { setNum: string; color: number; partNum: string; use?: number; any?: boolean };
+
 type Saved = {
-	anyColor: boolean;
+	colors: ColorMode;
+	choices: Choice[];
 	byTheme: boolean;
 	counting: Counting;
 	filter: Filter;
@@ -66,7 +81,9 @@ function load(): Saved {
 		const s = JSON.parse(localStorage.getItem(KEY) ?? '');
 		if (s && typeof s === 'object')
 			return {
-				anyColor: !!s.anyColor,
+				// Before similar colors, a switch for any color.
+				colors: ['exact', 'similar', 'any'].includes(s.colors) ? s.colors : s.anyColor ? 'any' : 'exact',
+				choices: Array.isArray(s.choices) ? s.choices : [],
 				byTheme: !!s.byTheme,
 				counting: { ...defaultCounting, ...(s.counting ?? {}) },
 				filter: { ...fresh, ...(s.filter ?? {}) },
@@ -75,11 +92,12 @@ function load(): Saved {
 	} catch {
 		// Nothing saved, or storage is off.
 	}
-	return { anyColor: false, byTheme: false, counting: defaultCounting, filter: fresh, queue: [] };
+	return { colors: 'exact', choices: [], byTheme: false, counting: defaultCounting, filter: fresh, queue: [] };
 }
 
 class ViewState {
-	anyColor = $state(false);
+	colors = $state<ColorMode>('exact');
+	choices = $state<Choice[]>([]);
 	// Sets grouped by theme, in each section and list.
 	byTheme = $state(false);
 	counting = $state<Counting>(defaultCounting);
@@ -89,7 +107,8 @@ class ViewState {
 
 	constructor() {
 		const s = load();
-		this.anyColor = s.anyColor;
+		this.colors = s.colors;
+		this.choices = s.choices;
 		this.byTheme = s.byTheme;
 		this.counting = s.counting;
 		this.filter = s.filter;
@@ -101,7 +120,8 @@ class ViewState {
 			localStorage.setItem(
 				KEY,
 				JSON.stringify({
-					anyColor: this.anyColor,
+					colors: this.colors,
+					choices: this.choices,
 					byTheme: this.byTheme,
 					counting: this.counting,
 					filter: this.filter,
@@ -113,8 +133,27 @@ class ViewState {
 		}
 	}
 
-	setAnyColor(anyColor: boolean) {
-		this.anyColor = anyColor;
+	setColors(colors: ColorMode) {
+		this.colors = colors;
+		this.save();
+	}
+
+	// The view's choice for a set's color (partNum empty) or one part's line.
+	choiceOf(setNum: string, color: number, partNum = ''): Choice | undefined {
+		return this.choices.find((c) => c.setNum === setNum && c.color === color && c.partNum === partNum);
+	}
+
+	// Make a set's color (or one part's line in it) take `use` instead, or
+	// any color; null takes the choice back.
+	choose(setNum: string, color: number, partNum: string, take: { use: number } | { any: true } | null) {
+		const rest = this.choices.filter((c) => !(c.setNum === setNum && c.color === color && c.partNum === partNum));
+		this.choices = take ? [...rest, { setNum, color, partNum, ...take }] : rest;
+		this.save();
+	}
+
+	// Take back every choice for a set.
+	clearChoices(setNum: string) {
+		this.choices = this.choices.filter((c) => c.setNum !== setNum);
 		this.save();
 	}
 
@@ -178,7 +217,13 @@ class ViewState {
 	of(stack: string): MessageInitShape<typeof ViewSchema> {
 		return {
 			lots: lotsOf(stack),
-			anyColor: this.anyColor,
+			colors: colorMatch[this.colors],
+			colorChoices: this.choices.map((c) => ({
+				setNum: c.setNum,
+				color: c.color,
+				partNum: c.partNum,
+				take: c.any ? { case: 'anyColor' as const, value: true } : { case: 'useColor' as const, value: c.use ?? c.color }
+			})),
 			counting: { ...this.counting } as MessageInitShape<typeof CountingSchema>,
 			filter: { ...this.filter } as MessageInitShape<typeof FilterSchema>,
 			sortOut: this.queue
