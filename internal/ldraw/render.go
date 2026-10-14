@@ -168,10 +168,38 @@ var view = func() Transform {
 }()
 
 // Draw draws parts in a square picture size wide, the parts filling it.
+// It draws as it walks the parts, so no build is held whole as triangles:
+// first it frames the picture by the parts' bodies, then draws every face
+// and edge straight onto the canvas, keeping only the see-through faces to
+// draw last.
 func (d *Drawer) Draw(parts []Placed, size int) image.Image {
-	var tris, lines []face
-	var collect func(name string, c int32, at Transform, depth int)
-	collect = func(name string, c int32, at Transform, depth int) {
+	const ss = 2 // drawn this many times larger, then shrunk, for smooth edges
+	w := size * ss
+	img := newCanvas(w)
+	box := Empty
+	for _, p := range parts {
+		if sh, ok := d.lib.Shape(p.Name); ok {
+			box = box.Union(sh.Body.Moved(p.At.Then(view)))
+		}
+	}
+	if box.IsEmpty() {
+		return img.shrink(ss)
+	}
+	// Studs stand above the bodies; leave room for them.
+	scale := 0.9 * float64(w) / max(box.Max[0]-box.Min[0], box.Max[1]-box.Min[1], 1)
+	cx, cy := (box.Min[0]+box.Max[0])/2, (box.Min[1]+box.Max[1])/2
+	screen := func(p [3]float64) [3]float64 {
+		return [3]float64{(p[0]-cx)*scale + float64(w)/2, (p[1]-cy)*scale + float64(w)/2, p[2]}
+	}
+	light := [3]float64{-0.35, -0.85, -0.4}
+	ln := math.Sqrt(light[0]*light[0] + light[1]*light[1] + light[2]*light[2])
+	for i := range light {
+		light[i] /= ln
+	}
+	edge := max(1, float64(ss)*float64(size)/400)
+	var clear []face
+	var walk func(name string, c int32, at Transform, depth int)
+	walk = func(name string, c int32, at Transform, depth int) {
 		if depth > 16 {
 			return
 		}
@@ -186,62 +214,27 @@ func (d *Drawer) Draw(parts []Placed, size int) image.Image {
 			return fc
 		}
 		for _, t := range s.tris {
-			tris = append(tris, face{[3][3]float64{at.Apply(t.p[0]), at.Apply(t.p[1]), at.Apply(t.p[2])}, resolve(t.color)})
+			f := face{[3][3]float64{at.Apply(t.p[0]), at.Apply(t.p[1]), at.Apply(t.p[2])}, resolve(t.color)}
+			col := d.paintFor(f.color)
+			if col.A < 255 {
+				clear = append(clear, f)
+				continue
+			}
+			img.triangle(screen(f.p[0]), screen(f.p[1]), screen(f.p[2]), shade(f.p, col, light), true)
 		}
 		for _, l := range s.lines {
-			lines = append(lines, face{[3][3]float64{at.Apply(l.p[0]), at.Apply(l.p[1])}, resolve(l.color)})
+			img.line(screen(at.Apply(l.p[0])), screen(at.Apply(l.p[1])), d.paintFor(resolve(l.color)), edge)
 		}
 		for _, r := range s.refs {
 			rc := r.Color
 			if rc == Inherit {
 				rc = c
 			}
-			collect(r.Name, rc, r.Place.Then(at), depth+1)
+			walk(r.Name, rc, r.Place.Then(at), depth+1)
 		}
 	}
 	for _, p := range parts {
-		collect(p.Name, p.Color, p.At.Then(view), 0)
-	}
-
-	const ss = 2 // drawn this many times larger, then shrunk, for smooth edges
-	w := size * ss
-	img := newCanvas(w)
-	if len(tris) == 0 {
-		return img.shrink(ss)
-	}
-	box := Empty
-	for _, t := range tris {
-		for _, p := range t.p {
-			box = box.Add(p)
-		}
-	}
-	scale := 0.92 * float64(w) / max(box.Max[0]-box.Min[0], box.Max[1]-box.Min[1], 1)
-	cx, cy := (box.Min[0]+box.Max[0])/2, (box.Min[1]+box.Max[1])/2
-	screen := func(p [3]float64) [3]float64 {
-		return [3]float64{(p[0]-cx)*scale + float64(w)/2, (p[1]-cy)*scale + float64(w)/2, p[2]}
-	}
-	light := [3]float64{-0.35, -0.85, -0.4}
-	ln := math.Sqrt(light[0]*light[0] + light[1]*light[1] + light[2]*light[2])
-	for i := range light {
-		light[i] /= ln
-	}
-	var clear []face
-	for pass := 0; pass < 2; pass++ {
-		for _, t := range tris {
-			p := d.paintFor(t.color)
-			if (p.A < 255) != (pass == 1) {
-				continue
-			}
-			if pass == 0 {
-				img.triangle(screen(t.p[0]), screen(t.p[1]), screen(t.p[2]), shade(t.p, p, light), true)
-			} else {
-				clear = append(clear, t)
-			}
-		}
-	}
-	edge := max(1, float64(ss)*float64(size)/400)
-	for _, l := range lines {
-		img.line(screen(l.p[0]), screen(l.p[1]), d.paintFor(l.color), edge)
+		walk(p.Name, p.Color, p.At.Then(view), 0)
 	}
 	for _, t := range clear {
 		img.triangle(screen(t.p[0]), screen(t.p[1]), screen(t.p[2]), shade(t.p, d.paintFor(t.color), light), false)
@@ -332,7 +325,7 @@ func (c *canvas) triangle(a, b, d [3]float64, col color.NRGBA, solid bool) {
 }
 
 // line draws an edge a little in front of its faces, so they do not hide
-// it.
+// it whether they are drawn before it or after.
 func (c *canvas) line(a, b [3]float64, col color.NRGBA, width float64) {
 	dx, dy := b[0]-a[0], b[1]-a[1]
 	n := int(math.Max(math.Abs(dx), math.Abs(dy))) + 1
@@ -344,8 +337,8 @@ func (c *canvas) line(a, b [3]float64, col color.NRGBA, width float64) {
 			for ox := -r; ox <= r; ox++ {
 				px, py := int(x)+ox, int(y)+oy
 				if px >= 0 && py >= 0 && px < c.w && py < c.w {
-					if z <= c.depth[py*c.w+px] {
-						c.pix[py*c.w+px] = col
+					if i := py*c.w + px; z <= c.depth[i] {
+						c.pix[i], c.depth[i] = col, z
 					}
 				}
 			}
