@@ -1,7 +1,10 @@
 <!--
-	One set or custom model against the lots, as its sheet's body. First what
-	it is and where the overview shows it (or why not), then how complete it
-	is. Then its lines as small tiles, filled by how much of each was found,
+	One set, custom model or build against the lots, as its sheet's body.
+	First what it is, where its parts were read from when not Rebrickable
+	(a 3D model of a set, a designer's digital file), and where the overview
+	shows it (or why not), then how complete it is; a set read from a 3D
+	model then lists its builds (a building, a vehicle), each opening in the
+	sheet. Then its lines as small tiles, filled by how much of each was found,
 	in stacked groups: what is missing first, then what was found, then what
 	the view does not count toward completeness (still found, and sorted out
 	with it), then its whole minifigures. Each group shows its first rows and
@@ -22,6 +25,7 @@
 	import { hiddenAs } from './rules';
 	import { classes } from './counting';
 	import LineTile from './LineTile.svelte';
+	import SetGrid from './SetGrid.svelte';
 
 	let {
 		detail,
@@ -38,6 +42,7 @@
 
 	const set = $derived(detail.set!);
 	const custom = $derived(set.kind === Kind.CUSTOM);
+	const build = $derived(set.kind === Kind.BUILD);
 	const short = (l: SetLine) => l.need - l.found;
 	const counted = $derived(detail.lines.filter((l) => l.counted));
 	const missing = $derived(counted.filter((l) => l.found < l.need).sort((a, b) => short(b) - short(a)));
@@ -46,11 +51,25 @@
 		detail.lines.filter((l) => !l.counted).sort((a, b) => short(b) - short(a))
 	);
 	const pieces = (ls: SetLine[], f: (l: SetLine) => number) => ls.reduce((n, l) => n + f(l), 0);
+	const totalPieces = $derived(pieces(detail.lines, (l) => l.need));
+	// Where its parts were read from, in a sentence.
+	const source = $derived.by(() => {
+		if (!set.sourceAuthor) return '';
+		if (build)
+			return `Read from a 3D model of ${set.ofName} by ${set.sourceAuthor}: the parts that hold together, apart from the rest of the set.`;
+		if (custom)
+			return set.sourceAuthor === set.designer
+				? `Its parts are from ${set.designer}'s own digital file.`
+				: `Its parts are from a digital copy by ${set.sourceAuthor}, not ${set.designer}'s own file.`;
+		if (detail.builds.length)
+			return `Its builds are read from a 3D model of the set by ${set.sourceAuthor}, which places ${count(detail.sourcePlaced)} of its ${count(totalPieces)} pieces.`;
+		return '';
+	});
 	const kindsOut = $derived(
 		classes.filter((k) => !view.counting[k.key] && uncounted.some((l) => l.class === k.class))
 	);
 
-	const sectionName: Record<Place, string> = {
+	const sectionName: Record<Place, string> = $derived({
 		[Place.NONE]: '',
 		[Place.COMPLETE]: 'Complete',
 		[Place.ALMOST]: 'Almost complete',
@@ -60,8 +79,10 @@
 		[Place.MINIFIGURE]: 'Minifigure sets',
 		[Place.TINY]: 'Tiny sets',
 		[Place.SORT_OUT]: 'Sorting out',
-		[Place.HIDDEN]: ''
-	};
+		[Place.HIDDEN]: '',
+		[Place.BUILD]: 'Builds',
+		[Place.COLLECTION]: set.collection
+	});
 	const share = (have: number, need: number) => percent(have / Math.max(1, need));
 	// Where the overview shows it, and when it does not, why: in a few words.
 	const where = $derived.by(() => {
@@ -112,16 +133,50 @@
 	<PartImage src={set.imageUrl} onzoom={zoomsTo(`${set.name}, ${set.setNum}`)} class="size-28 shrink-0" />
 	<div class="flex min-w-0 flex-col gap-2">
 		<p class="text-sm text-ink-muted">
-			{custom ? `Custom model by ${set.designer}` : `${set.year} · ${set.theme}`}
+			{#if build}
+				A build in {set.ofName}, {set.ofSetNum}{set.copies > 1 ? `, which has ${set.copies}` : ''}
+			{:else if custom}
+				{set.collection ? `${set.collection}, by ${set.designer}${set.year ? ` · ${set.year}` : ''}` : `Custom model by ${set.designer}`}
+			{:else}
+				{set.year} · {set.theme}
+			{/if}
 		</p>
 		<div class="flex flex-wrap gap-1.5">
-			{#if custom}<Badge tone="info">custom model</Badge>{/if}
+			{#if build}<Badge tone="info">build</Badge>{/if}
+			{#if custom}<Badge tone="info">{set.collection || 'custom model'}</Badge>{/if}
 			{#if set.pick}<Badge tone="primary">{set.pick} in the likely order</Badge>{/if}
 			{#if set.sameContents.length}<Badge>also sold as {set.sameContents.join(', ')}</Badge>{/if}
 		</div>
 		<p class="text-sm text-ink">{where}</p>
+		{#if source}
+			<p class="text-xs text-ink-muted">
+				{source}
+				{#if set.sourceNotes}Its maker's note: “{set.sourceNotes}”.{/if}
+				{#if detail.sourceUnplaced.length}<span title={detail.sourceUnplaced.join(', ')}
+						>{count(detail.sourceUnplaced.length)} of its parts have no catalog part and are left out.</span
+					>{/if}
+				{#if set.sourceUrl}<a
+						href={set.sourceUrl}
+						target="_blank"
+						rel="noreferrer"
+						class="text-primary-ink underline-offset-2 hover:underline">The model's page</a
+					>{/if}
+			</p>
+		{/if}
 	</div>
 </section>
+
+{#if detail.builds.length}
+	<section class="flex flex-col gap-1 border-b border-line pt-4">
+		<div class="px-5">
+			<h3 class="text-sm font-semibold">Builds</h3>
+			<p class="text-xs text-ink-muted">
+				The things it builds, each on its own: what of each is here, against what the view leaves.
+			</p>
+		</div>
+		<SetGrid sets={detail.builds} small />
+	</section>
+{/if}
 
 <section class="grid grid-cols-2 divide-line border-b border-line sm:grid-cols-4 sm:divide-x">
 	<Stat

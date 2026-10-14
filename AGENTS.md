@@ -59,8 +59,12 @@ the public record).
 - **Shape.** One Go binary (`cmd/pile`) loads a data folder at start and
   serves the app and the API from memory: `rebrickable/` (Rebrickable's CSV
   downloads), `parts.db` (a sorter Hive's parts database, for
-  BrickLink-to-Rebrickable part and color ids), `custom-models.json` (free
-  custom models: `docs/custom-models.md`), `lots.json` (the collection's lots:
+  BrickLink- and LDraw-to-Rebrickable part and color ids),
+  `custom-models.json` (free custom models: `docs/custom-models.md`),
+  `set-models/` (3D models of sets, which the builds within sets are read
+  from, and the builds' pictures: `docs/builds.md`), `ldraw/` (the LDraw
+  parts library), `collections/` (designers' collections of custom models:
+  `docs/collections.md`), `lots.json` (the collection's lots:
   each a named stretch of sorted pieces), `machines/<name>/local_state.sqlite`
   (a sorter's own records, copied), `hive.sqlite` (records pulled from a
   Hive by `cmd/pull-hive`: `docs/hive.md`), `storage.json` (the bins
@@ -71,7 +75,9 @@ the public record).
 - **Other commands.** `cmd/pull-hive` (records from a Hive),
   `cmd/collect-time` (how long one sorter takes to come across a set's
   pieces: `docs/collect-time.md`), `cmd/export-pieces` (a lot as CSV),
-  `cmd/import-custom-models`.
+  `cmd/import-custom-models`, `cmd/check-models` (how well the models
+  beside the sets read), `cmd/render-builds` (the builds' pictures).
+  `scripts/builds/gather.py` gathers the 3D models of sets.
 - **Lots, stacks and views.** The collection is lots (`internal/lots`). A
   page looks at a stack of them in priority order (`/lots/a,b`), and every
   request about them carries a View: the lots, any-color matching, and a
@@ -84,8 +90,9 @@ the public record).
 - **Matching** is `internal/match` (its package comment says how sets are
   scored, in exact or any color, and how the likely order is picked). Pieces
   come from `internal/records` (a sorter's own records) and `internal/hive`
-  (pulled from a Hive), lots from `internal/lots`, the catalog (sets and
-  custom models) from `internal/catalog`, the bins from `internal/storage`,
+  (pulled from a Hive), lots from `internal/lots`, the catalog (sets, custom
+  models, builds and collections) from `internal/catalog`, LDraw models,
+  the parts library and drawing from `internal/ldraw`, the bins from `internal/storage`,
   the handlers from `internal/server` (what the bins hold, and finding it,
   in `stock.go`). `internal/collect` is the collect-time model.
 - **App.** SvelteKit 5 + Tailwind, static, in `app/`, embedded into the

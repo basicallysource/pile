@@ -39,7 +39,7 @@ func (c Counting) Counts(cl catalog.Class) bool {
 	return true
 }
 
-// Entry is a set or custom model as matching sees it.
+// Entry is a set, custom model or build as matching sees it.
 type Entry struct {
 	Set *catalog.Set
 	// Every line, one per part and color.
@@ -53,8 +53,10 @@ type Entry struct {
 	// Basically a minifigure: its figures (about four pieces each) and loose
 	// figure parts outweigh its counted pieces.
 	MinifigureSet bool
-	// Other sets with exactly these lines; Hidden on those others.
+	// Other sets with exactly these lines; Hidden on those others, which
+	// point back at this one in SameAs.
 	SameContents []string
+	SameAs       *Entry
 	Hidden       bool
 	// How rare its pieces are on average across all sets (exact colors), and
 	// how many different parts it has: high for a set that is a model of
@@ -70,7 +72,7 @@ type Entry struct {
 	MostlyBasic, FewParts, NothingUnusual bool
 }
 
-// Index is every set and custom model with a counted line, and the weights
+// Index is every set, custom model and build with a counted line, and the weights
 // of their parts.
 type Index struct {
 	cat     *catalog.Catalog
@@ -142,7 +144,7 @@ func NewIndex(cat *catalog.Catalog) *Index {
 	dfAny := map[int32]int{}
 	n := 0
 	for _, e := range ix.Entries {
-		if e.Hidden || e.Set.Custom {
+		if e.Hidden || !e.Set.Sold() {
 			continue
 		}
 		n++
@@ -161,7 +163,7 @@ func NewIndex(cat *catalog.Catalog) *Index {
 	for p, d := range dfAny {
 		ix.wAny[p] = math.Log(float64(n) / float64(d))
 	}
-	// A part no set has (only custom models) is as rare as can be.
+	// A part no sold set has (only models beside them) is as rare as can be.
 	ix.wMax = math.Log(float64(n))
 	for _, e := range ix.Entries {
 		parts := map[int32]bool{}
@@ -175,7 +177,7 @@ func NewIndex(cat *catalog.Catalog) *Index {
 		}
 		e.DistinctParts = int32(len(parts))
 		e.Rarity = w / float64(max(e.Need, 1))
-		e.Bulk = !e.Set.Custom && (e.Set.BulkTheme || bulkName.MatchString(e.Set.Name) ||
+		e.Bulk = e.Set.Sold() && (e.Set.BulkTheme || bulkName.MatchString(e.Set.Name) ||
 			(!e.Set.Licensed && e.Need >= bulkSize && e.Need >= bulkRepeat*e.DistinctParts))
 	}
 	ix.judgePlain()
@@ -226,12 +228,13 @@ func (ix *Index) weight(l Line, anyColor bool) float64 {
 }
 
 // dedupe hides every set whose lines are exactly an earlier set's (the same
-// box sold under several numbers), listing it on that earlier set.
+// box sold under several numbers), listing it on that earlier set, and the
+// builds of such a set when the earlier one has builds too.
 func (ix *Index) dedupe() {
 	sort.Slice(ix.Entries, func(i, j int) bool { return ix.Entries[i].Set.Num < ix.Entries[j].Set.Num })
 	first := map[[32]byte]*Entry{}
 	for _, e := range ix.Entries {
-		if e.Set.Custom {
+		if !e.Set.Sold() {
 			continue
 		}
 		h := sha256.New()
@@ -246,10 +249,19 @@ func (ix *Index) dedupe() {
 		copy(sum[:], h.Sum(nil))
 		if f, ok := first[sum]; ok {
 			f.SameContents = append(f.SameContents, e.Set.Num)
-			e.Hidden = true
+			e.Hidden, e.SameAs = true, f
 			continue
 		}
 		first[sum] = e
+	}
+	// A hidden set's builds are its twin's, when the twin has its own.
+	for _, e := range ix.Entries {
+		if e.Set.Kind != catalog.Build {
+			continue
+		}
+		if of := ix.byNum[e.Set.Of.Num]; of != nil && of.SameAs != nil && len(of.SameAs.Set.Builds) > 0 {
+			e.Hidden = true
+		}
 	}
 }
 

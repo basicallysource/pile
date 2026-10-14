@@ -18,11 +18,13 @@
 
 <PageHeader
 	title="Collection"
-	description="Every lot of sorted pieces. Open one to see what is in it, the sets it completes or nearly completes, the ones it most likely came from, and the custom models it can build."
+	description="Every lot of sorted pieces. Open one to see what is in it, the sets it completes or nearly completes, the ones it most likely came from, and the custom models and builds within sets it can make."
 >
 	{#if data}
 		<p class="text-xs text-ink-faint">
-			Matched against {count(data.setsChecked)} sets and {count(data.customModelsChecked)} custom models
+			Matched against {count(data.setsChecked)} sets, {count(data.customModelsChecked)} custom models and {count(
+				data.buildsChecked
+			)} builds within sets
 			· Rebrickable catalog of {dayOf(data.catalogUnix)}
 		</p>
 	{/if}

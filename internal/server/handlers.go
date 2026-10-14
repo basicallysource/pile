@@ -18,8 +18,9 @@ const (
 	// Half: at least this share found, of a set of at least halfNeed.
 	halfShare = 0.5
 	halfNeed  = 50
-	// Custom models shown: at least this share found.
+	// Custom models and builds shown: at least this share found.
 	customShare = 0.6
+	buildShare  = 0.6
 	// Complete sets with fewer counted pieces are tiny (key chains, gear).
 	tinyNeed = 5
 	// A section sends at most this many; its total says how many it has.
@@ -36,10 +37,13 @@ func (s *Service) ListLots(_ context.Context, _ *connect.Request[pilev1.ListLots
 		if e.Hidden {
 			continue
 		}
-		if e.Set.Custom {
-			out.CustomModelsChecked++
-		} else {
+		switch e.Set.Kind {
+		case catalog.SoldSet:
 			out.SetsChecked++
+		case catalog.CustomModel:
+			out.CustomModelsChecked++
+		case catalog.Build:
+			out.BuildsChecked++
 		}
 	}
 	for _, t := range s.order {
@@ -82,6 +86,7 @@ func (s *Service) GetOverview(_ context.Context, req *connect.Request[pilev1.Get
 	}
 	complete, tiny, almost, half := in[pilev1.Place_PLACE_COMPLETE], in[pilev1.Place_PLACE_TINY], in[pilev1.Place_PLACE_ALMOST], in[pilev1.Place_PLACE_HALF]
 	likely, custom, figures := in[pilev1.Place_PLACE_LIKELY], in[pilev1.Place_PLACE_CUSTOM], in[pilev1.Place_PLACE_MINIFIGURE]
+	builds := in[pilev1.Place_PLACE_BUILD]
 	byShare := func(ms []*match.Match) {
 		sort.SliceStable(ms, func(i, j int) bool {
 			if ms[i].Share() != ms[j].Share() {
@@ -99,11 +104,37 @@ func (s *Service) GetOverview(_ context.Context, req *connect.Request[pilev1.Get
 	sort.SliceStable(half, func(i, j int) bool { return half[i].Have > half[j].Have })
 	byShare(custom)
 	byShare(figures)
+	byShare(builds)
 	sort.SliceStable(likely, func(i, j int) bool { return likely[i].Pick < likely[j].Pick })
 	out.Complete, out.Tiny, out.Almost = section(complete), section(tiny), section(almost)
 	out.Likely, out.Custom, out.Minifigure = section(likely), section(custom), section(figures)
 	out.Half = section(half)
+	out.Builds = section(builds)
+	out.Collections = collections(in[pilev1.Place_PLACE_COLLECTION], byShare)
 	return connect.NewResponse(out), nil
+}
+
+// collections is the models of each designer's collection, a section each,
+// the collections by name.
+func collections(ms []*match.Match, order func([]*match.Match)) []*pilev1.CollectionSection {
+	by := map[string][]*match.Match{}
+	designer := map[string]string{}
+	var names []string
+	for _, m := range ms {
+		c := m.Set.Collection
+		if by[c] == nil {
+			names = append(names, c)
+			designer[c] = m.Set.Designer
+		}
+		by[c] = append(by[c], m)
+	}
+	sort.Strings(names)
+	var out []*pilev1.CollectionSection
+	for _, c := range names {
+		order(by[c])
+		out = append(out, &pilev1.CollectionSection{Name: c, Designer: designer[c], Section: section(by[c])})
+	}
+	return out
 }
 
 func (s *Service) ListSets(_ context.Context, req *connect.Request[pilev1.ListSetsRequest]) (*connect.Response[pilev1.ListSetsResponse], error) {
@@ -201,6 +232,15 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 	}
 	for _, f := range set.Minifigures {
 		out.Minifigures = append(out.Minifigures, &pilev1.Minifigure{FigNum: f.Num, Name: f.Name, Quantity: f.Quantity, ImageUrl: f.ImageURL})
+	}
+	for _, b := range set.Builds {
+		if be := s.index.Entry(b.Num); be != nil {
+			m, _ := s.index.Score(be, w.left.Sum, w.anyColor, w.counting)
+			out.Builds = append(out.Builds, setMatch(m))
+		}
+	}
+	if src := set.Source; src != nil {
+		out.SourcePlaced, out.SourceUnplaced = src.Placed, src.Unplaced
 	}
 	return connect.NewResponse(out), nil
 }

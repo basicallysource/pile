@@ -1,5 +1,5 @@
 <!--
-	The filter: which sets and custom models the overview and Every set list
+	The filter: which sets, custom models and builds the overview and Every set list
 	(docs/views.md#the-filter), the same on both and kept in this browser. A
 	preset first (Interesting, the default, hides loose bricks and basic
 	sets; Models hides only loose bricks; Everything hides nothing; none is
@@ -28,7 +28,7 @@
 
 	const f = $derived(view.filter);
 	const hiding = $derived(rules.filter((r) => f[r.key]).length);
-	const kinds = { all: Kind.UNSPECIFIED, sets: Kind.SET, custom: Kind.CUSTOM } as const;
+	const kinds = { all: Kind.UNSPECIFIED, sets: Kind.SET, custom: Kind.CUSTOM, builds: Kind.BUILD } as const;
 	const kind = $derived(
 		(Object.keys(kinds) as (keyof typeof kinds)[]).find((k) => kinds[k] === f.kind) ?? 'all'
 	);
@@ -134,7 +134,8 @@
 		options={[
 			{ value: 'all', label: 'All' },
 			{ value: 'sets', label: 'Sets' },
-			{ value: 'custom', label: 'Custom models' }
+			{ value: 'custom', label: 'Custom models' },
+			{ value: 'builds', label: 'Builds' }
 		]}
 	/>
 	<label class="flex items-center gap-2 text-sm whitespace-nowrap text-ink">

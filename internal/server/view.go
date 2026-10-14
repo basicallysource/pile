@@ -7,12 +7,13 @@ import (
 	"connectrpc.com/connect"
 
 	pilev1 "github.com/basicallysource/pile/gen/pile/v1"
+	"github.com/basicallysource/pile/internal/catalog"
 	"github.com/basicallysource/pile/internal/match"
 )
 
 // view is a stack of lots as a View sees it: the sort-out queue taken out,
-// drawn from the first lot that has its pieces, and every set and custom
-// model matched against what is left.
+// drawn from the first lot that has its pieces, and every set, custom model
+// and build matched against what is left.
 type view struct {
 	stack    *stack
 	anyColor bool
@@ -25,6 +26,7 @@ type view struct {
 	place    map[string]int         // set number to its place in the queue, from 1
 	left     *match.Stack
 	scores   []*match.Match // every shown entry with a piece left, most interesting first
+	byNum    map[string]*match.Match
 }
 
 func (s *Service) view(v *pilev1.View) (*view, error) {
@@ -62,8 +64,10 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 		w.place[num] = len(w.queue)
 	}
 	w.scores = s.index.ScoreAll(w.left.Sum, w.anyColor, w.counting)
+	w.byNum = make(map[string]*match.Match, len(w.scores))
 	for _, m := range w.scores {
 		m.Pick = st.picks[m.Set.Num]
+		w.byNum[m.Set.Num] = m
 	}
 	for _, m := range w.queue {
 		m.Pick = st.picks[m.Set.Num]
@@ -85,7 +89,7 @@ func (w *view) hiddenBy(m *match.Match) []pilev1.Rule {
 		{f.HideMostlyBasic && m.MostlyBasic, pilev1.Rule_RULE_MOSTLY_BASIC},
 		{f.HideFewParts && m.FewParts, pilev1.Rule_RULE_FEW_PARTS},
 		{f.HideNothingUnusual && m.NothingUnusual, pilev1.Rule_RULE_NOTHING_UNUSUAL},
-		{(f.Kind == pilev1.Kind_KIND_SET && m.Set.Custom) || (f.Kind == pilev1.Kind_KIND_CUSTOM && !m.Set.Custom), pilev1.Rule_RULE_KIND},
+		{f.Kind != pilev1.Kind_KIND_UNSPECIFIED && f.Kind != kinds[m.Set.Kind], pilev1.Rule_RULE_KIND},
 		{f.LicensedOnly && !m.Set.Licensed, pilev1.Rule_RULE_LICENSED},
 		{m.Need < f.MinPieces, pilev1.Rule_RULE_SIZE},
 		{f.StarredOnly && !w.starred[m.Set.Num], pilev1.Rule_RULE_NOT_STARRED},
@@ -134,9 +138,16 @@ func (w *view) placeOf(m *match.Match) pilev1.Place {
 		return pilev1.Place_PLACE_SORT_OUT
 	case len(w.hiddenBy(m)) > 0:
 		return pilev1.Place_PLACE_HIDDEN
-	case m.Set.Custom:
+	case m.Set.Collection != "":
+		return pilev1.Place_PLACE_COLLECTION
+	case m.Set.Kind == catalog.CustomModel:
 		if m.Share() >= customShare {
 			return pilev1.Place_PLACE_CUSTOM
+		}
+	case m.Set.Kind == catalog.Build:
+		// A complete set's builds are complete too, and say nothing more.
+		if of := w.byNum[m.Set.Of.Num]; m.Share() >= buildShare && (of == nil || !of.Complete()) {
+			return pilev1.Place_PLACE_BUILD
 		}
 	case m.MinifigureSet:
 		if m.Complete() || m.Share() >= almostShare || m.Pick > 0 {

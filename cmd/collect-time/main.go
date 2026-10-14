@@ -42,7 +42,7 @@ func main() {
 	flag.Parse()
 
 	start := time.Now()
-	cat, err := catalog.Load(filepath.Join(*data, "rebrickable"), filepath.Join(*data, "parts.db"), filepath.Join(*data, "custom-models.json"))
+	cat, err := catalog.Load(*data)
 	if err != nil {
 		log.Fatal(err)
 	}

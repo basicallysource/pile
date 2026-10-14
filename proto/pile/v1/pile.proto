@@ -80,7 +80,7 @@ message Filter {
   // Hide sets with nothing unusual: their rarest pieces as common as those
   // of the most common tenth of sets.
   bool hide_nothing_unusual = 4;
-  // KIND_UNSPECIFIED is both.
+  // KIND_UNSPECIFIED is every kind.
   Kind kind = 5;
   // Only this theme group; empty for every theme.
   string theme_group = 6;
@@ -176,17 +176,23 @@ message ListLotsResponse {
   repeated Lot lots = 1;
   // When the Rebrickable catalog was downloaded.
   int64 catalog_unix = 2;
-  // Sets and custom models every lot is matched against.
+  // Sets, custom models and builds within sets every lot is matched
+  // against.
   int32 sets_checked = 3;
   int32 custom_models_checked = 4;
+  int32 builds_checked = 5;
 }
 
 enum Kind {
   KIND_UNSPECIFIED = 0;
   // A set LEGO sold.
   KIND_SET = 1;
-  // A free custom model (MOC) on Rebrickable.
+  // A free custom model (MOC): on Rebrickable, or in a designer's
+  // collection.
   KIND_CUSTOM = 2;
+  // One build within a set LEGO sold (a building, a vehicle), from a 3D
+  // model of the set.
+  KIND_BUILD = 3;
 }
 
 // A set or custom model against the pieces a view leaves.
@@ -243,6 +249,19 @@ message SetMatch {
   bool nothing_unusual = 27;
   // Minifigure accessories in it.
   int32 accessories = 28;
+  // A build's set, and how many of the build it has.
+  string of_set_num = 29;
+  string of_name = 30;
+  int32 copies = 31;
+  // The designer's collection a custom model is in; empty for one from
+  // Rebrickable.
+  string collection = 32;
+  // The file its parts were read from when they are not Rebrickable's (a 3D
+  // model of its set, a digital copy of a designer's model): who made it,
+  // its page, and what it says it lacks.
+  string source_author = 33;
+  string source_url = 34;
+  string source_notes = 35;
 }
 
 // The first sets of a section, and how many it has.
@@ -295,6 +314,18 @@ message GetOverviewResponse {
   // Every starred set and custom model with a piece left in the lots,
   // whatever the filter, most recently starred first.
   Section starred = 14;
+  // Builds within sets at least 60% there whose set is not complete, most
+  // complete first.
+  Section builds = 15;
+  // Each designer's collection: every model of it with a piece there, most
+  // complete first.
+  repeated CollectionSection collections = 16;
+}
+
+message CollectionSection {
+  string name = 1;
+  string designer = 2;
+  Section section = 3;
 }
 
 // Which of the overview's sections a set is in.
@@ -312,6 +343,9 @@ enum Place {
   PLACE_SORT_OUT = 8;
   // The view's filter hides it.
   PLACE_HIDDEN = 9;
+  PLACE_BUILD = 10;
+  // Its designer's collection.
+  PLACE_COLLECTION = 11;
 }
 
 enum Order {
@@ -402,6 +436,15 @@ message GetSetResponse {
   Place other_place = 6;
   // The filter's rules that hide it (with PLACE_HIDDEN).
   repeated Rule hidden_by = 7;
+  // A sold set's builds, each against what the view leaves, in its 3D
+  // model's order.
+  repeated SetMatch builds = 8;
+  // Of the file its parts were read from (see SetMatch.source_author): for
+  // a sold set's 3D model, the set's pieces its builds hold; for a model's
+  // file, the pieces read. And the file's parts no catalog part stands for,
+  // left out.
+  int32 source_placed = 9;
+  repeated string source_unplaced = 10;
 }
 
 message ListPartsRequest {

@@ -173,7 +173,7 @@ func NewCatalog(cat *catalog.Catalog, ix *match.Index, sizes map[string]Size) *C
 		}
 	}
 	for _, e := range ix.Entries {
-		if e.Hidden || e.Set.Custom {
+		if e.Hidden || !e.Set.Sold() {
 			continue
 		}
 		seen := map[int32]bool{}
@@ -316,7 +316,7 @@ func (c *Catalog) prior() (map[Key]float64, map[Key]float64) {
 	sets := map[Key]float64{}
 	var total float64
 	for _, e := range c.Ix.Entries {
-		if e.Hidden || e.Set.Custom {
+		if e.Hidden || !e.Set.Sold() {
 			continue
 		}
 		in := map[Key]bool{}

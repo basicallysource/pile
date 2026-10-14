@@ -1,6 +1,6 @@
 <!--
-	One set or custom model in a grid: its picture, its name and number (a
-	custom model's designer) in small type, and a thin bar for how much of it
+	One set, custom model or build in a grid: its picture, its name and
+	number (a custom model's designer, a build's set) in small type, and a thin bar for how much of it
 	the pieces hold, with the count. Green when complete; in an any-color view
 	the pieces in another color are counted after it. The tile opens the set
 	in the sheet over the page, and is marked while it is open;
@@ -32,6 +32,8 @@
 	const done = $derived(set.have >= set.need);
 	const share = $derived(set.have / Math.max(1, set.need));
 	const custom = $derived(set.kind === Kind.CUSTOM);
+	const build = $derived(set.kind === Kind.BUILD);
+	const copies = $derived(set.copies > 1 ? ` ×${set.copies}` : '');
 	const place = $derived(view.placeOf(set.setNum));
 	const open = $derived(openSet() === set.setNum);
 	const starred = $derived(stars.has(set.setNum));
@@ -55,7 +57,7 @@
 		href={setHref(set.setNum)}
 		onclick={opensSet(set.setNum)}
 		aria-current={open ? 'true' : undefined}
-		title="{set.name}, {set.setNum}{custom
+		title="{set.name}{copies}, {build ? `in ${set.ofName} (${set.ofSetNum})` : set.setNum}{custom
 			? `, by ${set.designer}`
 			: `, ${set.year}, ${set.themeGroup}${set.theme !== set.themeGroup ? ` / ${set.theme}` : ''}`}, {set.distinctParts} different parts{notes
 			? ` (${notes})`
@@ -67,7 +69,7 @@
 			<div class="truncate text-xs font-medium text-ink">{set.name}</div>
 			<div class="num truncate text-xs text-ink-muted">
 				{#if numbered && set.pick}<span class="text-ink-faint">{set.pick} · </span>{/if}
-				{#if custom}by {set.designer || 'a designer'}{:else}{set.setNum} · {set.year}{/if}
+				{#if custom}by {set.designer || 'a designer'}{:else if build}{copies ? `×${set.copies} in ` : 'in '}{set.ofName}{:else}{set.setNum} · {set.year}{/if}
 			</div>
 		</div>
 		<ProgressBar

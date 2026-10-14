@@ -3,8 +3,9 @@
 	their pieces are, then what they make, through the view (exact or any
 	color, and the sort-out queue): the queue, the sets that are all there,
 	the ones nearly there, the ones half there, the ones the pieces most
-	likely came from, the custom models they can build, and the minifigure
-	and tiny sets last; the filter above them says which are listed. The
+	likely came from, the custom models they can build, the builds within
+	sets (a building, a vehicle) nearly there, each designer's collection,
+	and the minifigure and tiny sets last; the filter above them says which are listed. The
 	starred sets come before the filter, all of them. While a new view (or other lots) loads, the last one
 	stays on screen and the reader's place holds when it lands; one already
 	seen this visit draws at once (docs/loading-data.md).
@@ -120,6 +121,20 @@
 			section={data.custom}
 			{stack}
 		/>
+		<SetSection
+			title="Builds"
+			description="Builds within sets (a building, a vehicle), read from 3D models of the sets, 60% or more here and their set not complete. Most complete first."
+			section={data.builds}
+			{stack}
+		/>
+		{#each data.collections as c (c.name)}
+			<SetSection
+				title={c.name}
+				description="Every model of {c.designer}'s with a piece here, most complete first."
+				section={c.section}
+				{stack}
+			/>
+		{/each}
 		<SetSection
 			title="Minifigure sets"
 			description="Sets that are basically a minifigure. Only their loose pieces are counted."

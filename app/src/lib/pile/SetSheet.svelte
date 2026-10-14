@@ -1,8 +1,8 @@
 <!--
 	The set open beside a page of lots (`?set=` in the URL), in a Sheet: its name
-	and number in the head with its star, its Rebrickable link and the button
-	that puts it in or takes it out of the sort-out queue, and SetDetail under
-	them.
+	and number in the head with its star, its page (on Rebrickable, or a
+	designer's site), a build's way to its set, and the button that puts it in
+	or takes it out of the sort-out queue, and SetDetail under them.
 	The page beside it narrows and keeps its place; another set opened swaps it,
 	and the same set in a new view keeps showing until its new numbers are in
 	(docs/loading-data.md).
@@ -12,7 +12,7 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Star from '@lucide/svelte/icons/star';
 	import X from '@lucide/svelte/icons/x';
-	import { Kind } from '$lib/gen/pile/v1/pile_pb';
+	import { Kind, type SetMatch } from '$lib/gen/pile/v1/pile_pb';
 	import { sources } from '$lib/api';
 	import { query } from '$lib/data/query.svelte';
 	import Loaded from '$lib/data/Loaded.svelte';
@@ -20,7 +20,7 @@
 	import Button from '$lib/components/Button.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import { lotsOf, routeStack, view } from '$lib/view.svelte';
-	import { closeSet, openSet } from './open-set.svelte';
+	import { closeSet, openSet, opensSet, setHref } from './open-set.svelte';
 	import SetDetail from './SetDetail.svelte';
 	import { stars } from './stars.svelte';
 
@@ -43,13 +43,19 @@
 	// Its place in the queue, from the view itself: the button changes on
 	// the click, before the new numbers are in.
 	const place = $derived(set ? view.placeOf(set.setNum) : 0);
+	const subtitle = (s: SetMatch) =>
+		s.kind === Kind.BUILD
+			? `a build in ${s.ofSetNum}`
+			: s.kind === Kind.CUSTOM
+				? s.collection || `${s.setNum} · custom model`
+				: s.setNum;
 </script>
 
 {#if num}
 <Sheet
 	width="40rem"
 	title={set?.name ?? num ?? ''}
-	description={set ? (set.kind === Kind.CUSTOM ? `${set.setNum} · custom model` : set.setNum) : undefined}
+	description={set ? subtitle(set) : undefined}
 	onclose={closeSet}
 >
 	{#snippet actions()}
@@ -65,7 +71,10 @@
 				onclick={() => stars.toggle(set.setNum)}
 			/>
 			{#if set.url}<Button href={set.url} variant="ghost" size="sm" icon={ExternalLink} target="_blank" rel="noreferrer"
-					>Rebrickable</Button
+					>{set.url.includes('rebrickable.com') ? 'Rebrickable' : set.collection || 'Its page'}</Button
+				>{/if}
+			{#if set.kind === Kind.BUILD}<Button href={setHref(set.ofSetNum)} onclick={opensSet(set.ofSetNum)} size="sm" variant="ghost"
+					>Its set</Button
 				>{/if}
 			<Button
 				size="sm"

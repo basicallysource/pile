@@ -62,7 +62,7 @@ func (ix *Index) judgePlain() {
 			sum += w
 		}
 		rarest[i] = sum / float64(max(len(ws), 1))
-		if !e.Hidden && !e.Set.Custom {
+		if !e.Hidden && e.Set.Sold() {
 			sold = append(sold, rarest[i])
 		}
 	}

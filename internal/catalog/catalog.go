@@ -1,6 +1,9 @@
-// Package catalog loads Rebrickable's catalog (parts, colors, sets and every
-// set's inventory) from its CSV downloads, and the BrickLink-to-Rebrickable
-// part and color mapping from a sorter Hive's parts database.
+// Package catalog loads what pieces are matched against: Rebrickable's
+// catalog (parts, colors, sets and every set's inventory) from its CSV
+// downloads, which Rebrickable part and color each BrickLink and LDraw id is
+// from a sorter Hive's parts database, and the models beside the sets LEGO
+// sold: free custom models, the builds within sets (from 3D models of the
+// sets), and designers' collections.
 package catalog
 
 import (
@@ -10,8 +13,11 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/basicallysource/pile/internal/ldraw"
 )
 
 type Color struct {
@@ -74,6 +80,22 @@ type Minifigure struct {
 	ImageURL string
 }
 
+// Kind is what a Set is: a set LEGO sold, or one of the models matched
+// beside them.
+type Kind int
+
+const (
+	// SoldSet is a set LEGO sold. Only these are evidence of what a pile came
+	// from, and only these weigh how rare a part is.
+	SoldSet Kind = iota
+	// CustomModel is a free custom model (MOC), from Rebrickable or a
+	// designer's collection.
+	CustomModel
+	// Build is one build within a set LEGO sold (a building, a vehicle), from
+	// a 3D model of the set.
+	Build
+)
+
 type Set struct {
 	Num      string
 	Name     string
@@ -81,19 +103,51 @@ type Set struct {
 	Theme    string
 	ImageURL string
 	// The theme at the top of Theme's tree ("Star Wars" for "Ultimate
-	// Collector Series").
+	// Collector Series"). A collection's models have the collection's name.
 	ThemeGroup string
 	// Made under license (Star Wars, Marvel, Minecraft...).
 	Licensed bool
 	// In a theme of loose bricks: buckets, brick boxes, service packs.
 	BulkTheme bool
-	// A free custom model (MOC) rather than a set LEGO sold.
-	Custom bool
-	// A custom model's designer and its page on Rebrickable.
-	Designer    string
-	URL         string
+	Kind      Kind
+	// A custom model's designer, and its page (on Rebrickable, or the
+	// designer's site). A sold set's page is on Rebrickable.
+	Designer string
+	URL      string
+	// The designer's collection a custom model is in; empty for one from
+	// Rebrickable.
+	Collection string
+	// A build's set, and how many of it the set has.
+	Of     *Set
+	Copies int32
+	// A sold set's builds, in its model's order.
+	Builds []*Set
+	// One copy of a build's parts where its set's model puts them, to draw
+	// it.
+	Parts []ldraw.Placed
+	// The file its lines were read from, when not Rebrickable's: a sold
+	// set's and its builds' 3D model, a collection model's digital file.
+	Source *Source
+	// For one copy, a build's.
 	Lines       []Line
 	Minifigures []Minifigure
+}
+
+// Sold is whether s is a set LEGO sold.
+func (s *Set) Sold() bool { return s.Kind == SoldSet }
+
+// Source is a file a model's lines were read from, and who made it.
+type Source struct {
+	// Who made the file (a 3D model of a set, or a digital copy of a
+	// designer's model), and its page.
+	Author string
+	URL    string
+	// What the file says it lacks or gets wrong, in its maker's words.
+	Notes string
+	// Of a sold set's 3D model: the pieces of the set its builds hold, and
+	// the model's parts no catalog part stands for, which no build has.
+	Placed   int32
+	Unplaced []string
 }
 
 type Catalog struct {
@@ -105,9 +159,13 @@ type Catalog struct {
 	Canonical map[string]string
 	// Image of a part in a color, from any set's inventory.
 	Images map[PartColor]string
-	// BrickLink ids to Rebrickable ones.
+	// Parts by their number but for a closing letter, the plainest first.
+	stems map[string][]string
+	// BrickLink and LDraw ids to Rebrickable ones.
 	BrickLinkParts  map[string]string
 	BrickLinkColors map[int32]int32
+	LDrawParts      map[string]string
+	LDrawColors     map[int32]int32
 	DownloadedAt    int64
 }
 
@@ -116,16 +174,22 @@ type PartColor struct {
 	Color int32
 }
 
-// Load reads the Rebrickable CSVs in dir, the BrickLink mapping in
-// hivePartsDB, and the custom models in customModels (skipped when absent).
-func Load(dir, hivePartsDB, customModels string) (*Catalog, error) {
+// Load reads the catalog from a data folder: the Rebrickable CSVs in
+// rebrickable/, the id mapping in parts.db, and when they are there, the
+// custom models in custom-models.json, the 3D models of sets in set-models/
+// (docs/builds.md), the designers' collections in collections/
+// (docs/collections.md), and the LDraw parts library in ldraw/, which
+// reading the models leans on.
+func Load(data string) (*Catalog, error) {
 	c := &Catalog{
 		Colors:    map[int32]*Color{},
 		Parts:     map[string]*Part{},
 		Sets:      map[string]*Set{},
 		Canonical: map[string]string{},
 		Images:    map[PartColor]string{},
+		stems:     map[string][]string{},
 	}
+	dir := filepath.Join(data, "rebrickable")
 	if st, err := os.Stat(filepath.Join(dir, "inventory_parts.csv.gz")); err == nil {
 		c.DownloadedAt = st.ModTime().Unix()
 	}
@@ -135,13 +199,31 @@ func Load(dir, hivePartsDB, customModels string) (*Catalog, error) {
 			return nil, err
 		}
 	}
-	if err := c.loadBrickLink(hivePartsDB); err != nil {
-		return nil, fmt.Errorf("bricklink mapping from %s: %w", hivePartsDB, err)
+	for _, ps := range c.stems {
+		sort.Strings(ps)
 	}
-	if err := c.loadCustom(customModels); err != nil {
-		return nil, fmt.Errorf("custom models from %s: %w", customModels, err)
+	if err := c.loadIDs(filepath.Join(data, "parts.db")); err != nil {
+		return nil, fmt.Errorf("id mapping from parts.db: %w", err)
+	}
+	if err := c.loadCustom(filepath.Join(data, "custom-models.json")); err != nil {
+		return nil, fmt.Errorf("custom models: %w", err)
+	}
+	lib := ldraw.OpenLibrary(existing(filepath.Join(data, "ldraw")))
+	if err := c.loadBuilds(filepath.Join(data, "set-models"), lib); err != nil {
+		return nil, fmt.Errorf("builds: %w", err)
+	}
+	if err := c.loadCollections(filepath.Join(data, "collections"), lib); err != nil {
+		return nil, fmt.Errorf("collections: %w", err)
 	}
 	return c, nil
+}
+
+// existing is dir when it is there, else "".
+func existing(dir string) string {
+	if st, err := os.Stat(dir); err == nil && st.IsDir() {
+		return dir
+	}
+	return ""
 }
 
 // Canon is the part standing for p's mold variants and alternates.
@@ -229,6 +311,8 @@ func (c *Catalog) loadParts(dir string) error {
 			}
 		}
 		c.Parts[p.Num] = p
+		stem := moldLetters.ReplaceAllString(p.Num, "")
+		c.stems[stem] = append(c.stems[stem], p.Num)
 		return nil
 	})
 }

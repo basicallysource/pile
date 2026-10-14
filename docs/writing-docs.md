@@ -43,6 +43,9 @@ same merge rules on both sides...
 - `writing-docs.md`: this.
 - `running.md`: building pile and what its data folder needs.
 - `custom-models.md`: free custom models from Rebrickable, gathered by hand.
+- `builds.md`: the builds within sets (a building, a vehicle), read from 3D
+  models of the sets, and their pictures.
+- `collections.md`: designers' collections of custom models.
 - `hive.md`: pulling records from a Hive, and lots made of them.
 - `collect-time.md`: how long one sorter takes to come across a set's pieces.
 - `storage.md`: bins at addresses, what each holds, and finding pieces in them.

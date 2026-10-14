@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"sort"
 
 	"github.com/basicallysource/pile/internal/catalog"
@@ -26,7 +25,7 @@ func main() {
 	id := flag.String("lot", "", "the lot, by id")
 	flag.Parse()
 
-	cat, err := catalog.Load(filepath.Join(*data, "rebrickable"), filepath.Join(*data, "parts.db"), filepath.Join(*data, "custom-models.json"))
+	cat, err := catalog.Load(*data)
 	if err != nil {
 		log.Fatal(err)
 	}

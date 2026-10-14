@@ -17,7 +17,7 @@ on Every set, the same on both. It opens on Interesting, which hides sets of
 loose bricks and basic sets: those almost all plain bricks (like The Brick
 Apple), those of ten or fewer different parts, and those with nothing unusual
 in them. Models hides only the loose bricks, Everything hides nothing, and
-each rule is a switch of its own. A theme, a size, sets or custom models, and
+each rule is a switch of its own. A theme, a size, sets, custom models or builds, and
 licensed only narrow it further, and "Group by theme" puts each theme's sets
 together. A set the filter hides says why in its panel. Each section of sets
 folds from the button in its head, and stays folded after a reload.
@@ -115,7 +115,8 @@ in the sort-out queue is never hidden.
   unusual. With *loose bricks* (`Entry.Bulk`, as before) these are the
   presets' rules: Interesting hides all four (the default), Models only loose
   bricks, Everything none (`presets` in `view.svelte.ts`).
-- **Narrowing**: kind (sets, custom models), one theme group, licensed
+- **Narrowing**: kind (sets, custom models, builds), one theme group (a
+  designer's collection is one), licensed
   only, a least size in counted pieces, and starred only (below). The overview and Every set send
   the theme groups the rest of the filter lets through, with their counts,
   for the theme menu.

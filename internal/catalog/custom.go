@@ -23,8 +23,8 @@ type customModel struct {
 	} `json:"lines"`
 }
 
-// loadCustom adds the free custom models (MOCs) in path to the sets, marked
-// Custom. The file is a JSON list of customModel; a missing file adds none.
+// loadCustom adds the free custom models (MOCs) in path to the sets. The
+// file is a JSON list of customModel; a missing file adds none.
 func (c *Catalog) loadCustom(path string) error {
 	b, err := os.ReadFile(path)
 	if errors.Is(err, fs.ErrNotExist) {
@@ -38,7 +38,7 @@ func (c *Catalog) loadCustom(path string) error {
 		return err
 	}
 	for _, m := range models {
-		s := &Set{Num: m.Num, Name: m.Name, Year: m.Year, Theme: "Custom", ThemeGroup: "Custom models", ImageURL: m.Image, Custom: true, Designer: m.Designer, URL: m.URL}
+		s := &Set{Num: m.Num, Name: m.Name, Year: m.Year, Theme: "Custom", ThemeGroup: "Custom models", ImageURL: m.Image, Kind: CustomModel, Designer: m.Designer, URL: m.URL}
 		for _, l := range m.Lines {
 			s.Lines = append(s.Lines, Line{Part: l.Part, Color: l.Color, Quantity: l.Quantity, ImageURL: c.Images[PartColor{l.Part, l.Color}]})
 		}

@@ -26,7 +26,7 @@ func (ix *Index) Explain(p *Pile, anyColor bool) []*Entry {
 	left := p.Clone()
 	var h candidates
 	for i, e := range ix.Entries {
-		if e.Hidden || e.Set.Custom {
+		if e.Hidden || !e.Set.Sold() {
 			continue
 		}
 		if m, _ := ix.Score(e, left, anyColor, DefaultCounting); m.qualifies() {

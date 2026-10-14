@@ -36,7 +36,7 @@ scripts/build.sh
 It installs the app's packages, regenerates the contract (`buf generate`),
 builds the app, vets, and writes `bin/pile` (the app is embedded in it) and
 the other commands beside it: `pull-hive`, `collect-time`, `export-pieces`,
-`import-custom-models`. The generated code is committed, so a build that
+`import-custom-models`, `check-models`, `render-builds`. The generated code is committed, so a build that
 changes it shows in `git status`.
 
 ## The data folder
@@ -46,11 +46,14 @@ changes it shows in `git status`.
 | In `DIR` | Needed | What it is and where it comes from |
 | --- | --- | --- |
 | `rebrickable/` | yes | Rebrickable's catalog, as gzipped CSVs from [rebrickable.com/downloads](https://rebrickable.com/downloads/): `colors`, `part_categories`, `parts`, `part_relationships`, `themes`, `sets`, `inventories`, `inventory_parts`, `minifigs`, `inventory_minifigs`, each as `NAME.csv.gz`. They need no account or key. |
-| `parts.db` | yes | A sorter Hive's parts catalog (SQLite). pile reads three tables from it: `part_bricklink_ids` (which BrickLink id is which Rebrickable part), `colors` (its `extra` JSON lists each color's BrickLink ids) and `part_geometry` (part sizes). **This is not rebuilt by pile and is slow to rebuild at all:** the Hive builds it itself, by syncing from Rebrickable's API with a key, which takes hours. Take it from a running Hive (`data/profile_builder/parts.db` in the [Hive](https://github.com/basicallysource/sorter-v2/tree/main/software/hive); copy it with SQLite's backup API, not `cp`, while the Hive runs) or from whoever runs one. |
+| `parts.db` | yes | A sorter Hive's parts catalog (SQLite). pile reads four tables from it: `part_bricklink_ids` (which BrickLink id is which Rebrickable part), `colors` (its `extra` JSON lists each color's BrickLink and LDraw ids), `parts` (its `external_ids` list each part's LDraw files) and `part_geometry` (part sizes, and the LDraw file each was measured from). **This is not rebuilt by pile and is slow to rebuild at all:** the Hive builds it itself, by syncing from Rebrickable's API with a key, which takes hours. Take it from a running Hive (`data/profile_builder/parts.db` in the [Hive](https://github.com/basicallysource/sorter-v2/tree/main/software/hive); copy it with SQLite's backup API, not `cp`, while the Hive runs) or from whoever runs one. |
 | `lots.json` | yes | The collection's lots: each a named stretch of sorted pieces. See below. |
 | `machines/NAME/local_state.sqlite` | one of these two | A sorter's own records, copied off the machine (its `local_state.sqlite`; pile reads its `piece_records` table, `lots` and `sorting_runs` for a lot named on the sorter, and `piece_prediction_requests` and `piece_predictions` when it has them). |
 | `hive.sqlite` | one of these two | Records pulled from a Hive with `bin/pull-hive`: [hive.md](hive.md). |
 | `custom-models.json` | no | Free custom models, [custom-models.md](custom-models.md). Skipped when absent. |
+| `set-models/` | no | 3D models of sets, which the builds within sets are read from, and the builds' pictures: [builds.md](builds.md). No builds when absent. |
+| `ldraw/` | no | The LDraw parts library, unpacked (`complete.zip` from [ldraw.org](https://library.ldraw.org/updates?latest)): what LDraw parts are made of, their shapes and colors, for the builds and their pictures. Keep it on a fast disk: loading reads it many times. |
+| `collections/` | no | Designers' collections of custom models, a folder each: [collections.md](collections.md). |
 | `storage.json` | no | The bins the pieces are kept in, each at an address: [storage.md](storage.md). Empty when absent; pile writes it when the storage is set while it runs. |
 | `stars.json` | no | The starred sets and custom models: [views.md](views.md#stars). Empty when absent; pile writes it when a star changes. |
 

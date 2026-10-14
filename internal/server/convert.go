@@ -41,11 +41,7 @@ func setMatches(ms []*match.Match) []*pilev1.SetMatch {
 
 func setMatch(m *match.Match) *pilev1.SetMatch {
 	s := m.Set
-	kind := pilev1.Kind_KIND_SET
-	if s.Custom {
-		kind = pilev1.Kind_KIND_CUSTOM
-	}
-	return &pilev1.SetMatch{
+	out := &pilev1.SetMatch{
 		SetNum:               s.Num,
 		Name:                 s.Name,
 		Year:                 s.Year,
@@ -61,7 +57,7 @@ func setMatch(m *match.Match) *pilev1.SetMatch {
 		Pick:                 int32(m.Pick),
 		MinifigureParts:      m.FigureParts,
 		MinifigureSet:        m.MinifigureSet,
-		Kind:                 kind,
+		Kind:                 kinds[s.Kind],
 		Designer:             s.Designer,
 		Url:                  s.URL,
 		WrongColor:           m.WrongColor,
@@ -74,7 +70,22 @@ func setMatch(m *match.Match) *pilev1.SetMatch {
 		FewParts:             m.FewParts,
 		NothingUnusual:       m.NothingUnusual,
 		Accessories:          m.Accessories,
+		Collection:           s.Collection,
+		Copies:               s.Copies,
 	}
+	if s.Of != nil {
+		out.OfSetNum, out.OfName = s.Of.Num, s.Of.Name
+	}
+	if src := s.Source; src != nil {
+		out.SourceAuthor, out.SourceUrl, out.SourceNotes = src.Author, src.URL, src.Notes
+	}
+	return out
+}
+
+var kinds = map[catalog.Kind]pilev1.Kind{
+	catalog.SoldSet:     pilev1.Kind_KIND_SET,
+	catalog.CustomModel: pilev1.Kind_KIND_CUSTOM,
+	catalog.Build:       pilev1.Kind_KIND_BUILD,
 }
 
 var partClass = map[catalog.Class]pilev1.PartClass{
