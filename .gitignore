@@ -8,3 +8,4 @@ bin/
 app/build/
 app/.svelte-kit/
 node_modules/
+__pycache__/
