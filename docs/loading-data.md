@@ -60,7 +60,9 @@ the reader changes on the server, do (`docs/views.md#stars`).
   moves for it.
 - **Actions change state first.** What an action changes is drawn from the
   state at once, not from the answer: a tile's and the sheet's sort-out
-  button read the queue in `view.svelte.ts`. Lists are keyed by their
+  button read the queue in `view.svelte.ts`, and the queue's cards stand in
+  its order (a card the answer does not have yet holds its place as a
+  skeleton; numbers counted for another order fade until theirs come). Lists are keyed by their
   item's id, so an answer updates the elements in place instead of
   remounting them.
 

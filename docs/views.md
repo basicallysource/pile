@@ -151,3 +151,14 @@ what they have of it). Before it was the view's, each stack kept one
 The queue's sets take their pieces in order, each against what the ones
 before it left; everything else is matched against what is left after all
 of them (`internal/server/view.go`).
+
+On a lot's overview the queue is a grid of cards (`SortOutQueue.svelte`),
+put in order by dragging: a card picked up floats under the pointer as the
+raised plane (no shadow, no lift), the others slide aside (`animate:flip`,
+none under reduced motion), its empty place is a fill, and it glides into
+that place when let go; Escape puts it back, and its grip moves it with the
+arrow keys. The order shown is the view's from the moment a card is let go
+(`view.reorder`); the cards' numbers, which depend on the order, fade until
+the new count is in. A card's layout is read from its place in the grid
+(`offsetLeft`, `offsetTop`), not from where a slide has it, so the gaps never
+chase a moving card.

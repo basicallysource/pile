@@ -156,6 +156,11 @@ class ViewState {
 		this.setQueue(q.includes(num) ? q.filter((n) => n !== num) : [...q, num]);
 	}
 
+	// The queue in this order: the same sets, moved about.
+	reorder(nums: string[]) {
+		if (nums.length === this.queue.length && nums.every((n) => this.queue.includes(n))) this.setQueue(nums);
+	}
+
 	move(num: string, step: -1 | 1) {
 		const q = [...this.queue];
 		const i = q.indexOf(num);
