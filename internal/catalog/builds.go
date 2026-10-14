@@ -90,8 +90,7 @@ func (c *Catalog) loadBuilds(dir string, lib *ldraw.Library) error {
 	close(work)
 	wg.Wait()
 
-	var sets, builds, drawn int
-	pictures := filepath.Join(dir, "pictures")
+	var sets, builds int
 	for _, sm := range models {
 		set := c.Sets[sm.Set]
 		if set == nil || len(set.Builds) == 0 {
@@ -101,14 +100,9 @@ func (c *Catalog) loadBuilds(dir string, lib *ldraw.Library) error {
 		for _, b := range set.Builds {
 			c.Sets[b.Num] = b
 			builds++
-			// Its own picture once drawn; its set's until then.
-			if _, err := os.Stat(filepath.Join(pictures, BuildPicture(b.Num))); err == nil {
-				b.ImageURL = BuildPicturesURL + b.Num + ".png"
-				drawn++
-			}
 		}
 	}
-	log.Printf("builds: %d in %d of %d set models, %d drawn", builds, sets, len(models), drawn)
+	log.Printf("builds: %d in %d of %d set models", builds, sets, len(models))
 	return nil
 }
 
@@ -186,7 +180,7 @@ func (c *Catalog) addBuilds(set *Set, m *ldraw.Model, lib *ldraw.Library) {
 	for _, o := range objs {
 		s := &Set{
 			Name: o.name, Year: set.Year, Theme: set.Theme, ThemeGroup: set.ThemeGroup,
-			ImageURL: set.ImageURL, Licensed: set.Licensed, BulkTheme: set.BulkTheme,
+			Licensed: set.Licensed, BulkTheme: set.BulkTheme,
 			Kind: Build, Of: set, Copies: o.copies, Source: src, Parts: o.parts,
 		}
 		var counted, figure int32
@@ -226,6 +220,8 @@ func (c *Catalog) addBuilds(set *Set, m *ldraw.Model, lib *ldraw.Library) {
 			slug += fmt.Sprintf("-%d", slugs[slug])
 		}
 		s.Num = set.Num + "/" + slug
+		// pile serves its set's picture until its own is drawn.
+		s.ImageURL = BuildPicturesURL + s.Num + ".png"
 	}
 	set.Builds = builds
 }

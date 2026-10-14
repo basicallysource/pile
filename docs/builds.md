@@ -87,8 +87,8 @@ part is. A set sold under two numbers shows the builds of one.
 `set-models/pictures/SET/slug.png` (320 pixels square by default, from
 above and to the front left, in LDraw's colors with its edge lines;
 `internal/ldraw/render.go`), on every core. pile serves them at
-`/pictures/builds/` and a build uses its picture once there is one, else its
-set's; a restart picks new pictures up. `-again` draws them all again (after
+`/pictures/builds/SET/slug.png`: a build's picture once it is drawn, else
+a redirect to its set's, so new pictures show without a restart. `-again` draws them all again (after
 the drawing or the split changes), `-set NUM` one set's.
 
 ## Checking

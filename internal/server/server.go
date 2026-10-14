@@ -56,14 +56,14 @@ func New(cat *catalog.Catalog, ls []*lots.Lot, st *storage.Storage, sr *stars.St
 	return s, nil
 }
 
-// Handler serves the API, the pictures of builds drawn into the data folder
-// (catalog.BuildPictures), and the app's static build for every other path
+// Handler serves the API, the pictures of builds (pictures.go), and the
+// app's static build for every other path
 // (index.html for the app's own routes).
 func Handler(s *Service, app fs.FS) http.Handler {
 	mux := http.NewServeMux()
 	path, h := pilev1connect.NewPileServiceHandler(s)
 	mux.Handle(path, h)
-	mux.Handle(catalog.BuildPicturesURL, http.StripPrefix(catalog.BuildPicturesURL, http.FileServer(http.Dir(catalog.BuildPictures(s.dataDir)))))
+	mux.HandleFunc(catalog.BuildPicturesURL, s.buildPicture)
 	files := http.FileServerFS(app)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		name := strings.TrimPrefix(r.URL.Path, "/")
