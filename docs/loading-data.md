@@ -32,8 +32,10 @@ the reader changes on the server, do (`docs/views.md#stars`).
     request does not carry (the stars, when only starred sets are asked
     for). It is part of the answer's key and read where the query notices
     it change, so a change asks again.
-  Everything else in pile changes only when it restarts, so an answer lasts
-  the visit and a reload picks up a restart.
+  Everything else in pile changes only when it restarts or reads fresh
+  records of its lots' machines from a Hive (every few minutes,
+  [hive.md](hive.md#refreshing)), so an answer lasts the visit and a reload
+  picks up either.
 - **A Query** is a component asking a source:
   `query(sources.set, () => request, (req) => req.setNum)`. The request
   function is reactive: whenever what it reads changes (the view, a filter,

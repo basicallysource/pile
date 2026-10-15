@@ -27,7 +27,7 @@ const resamples = 50
 // collecting works out every lot's collect times in the background, one
 // thing at a time: at start it fits each lot's model (smallest lot first) and
 // times the standard sets, then times any other set a page asks for. What is
-// done stays in memory until the server restarts with fresh data.
+// done stays in memory as long as its Service is served.
 type collecting struct {
 	cat  *collect.Catalog
 	hive string
@@ -38,6 +38,8 @@ type collecting struct {
 	lots  map[string]*lotTimes
 	order []*lotTimes
 	asked chan struct{}
+	// Closed when its Service is no longer served.
+	done chan struct{}
 }
 
 type lotTimes struct {
@@ -55,7 +57,7 @@ type lotTimes struct {
 // newCollecting counts every lot's pieces (here, before serving, since it
 // grows the index) and starts the background work.
 func newCollecting(cat *catalog.Catalog, c *collect.Catalog, hivePath string, ls []*lot) *collecting {
-	k := &collecting{cat: c, hive: hivePath, partImage: map[string]string{}, lots: map[string]*lotTimes{}, asked: make(chan struct{}, 1)}
+	k := &collecting{cat: c, hive: hivePath, partImage: map[string]string{}, lots: map[string]*lotTimes{}, asked: make(chan struct{}, 1), done: make(chan struct{})}
 	for pc, img := range cat.Images {
 		if _, ok := k.partImage[pc.Part]; !ok {
 			k.partImage[pc.Part] = img
@@ -71,8 +73,23 @@ func newCollecting(cat *catalog.Catalog, c *collect.Catalog, hivePath string, ls
 	return k
 }
 
+// close stops the background work, after the step it is on.
+func (k *collecting) close() { close(k.done) }
+
+func (k *collecting) closed() bool {
+	select {
+	case <-k.done:
+		return true
+	default:
+		return false
+	}
+}
+
 func (k *collecting) run() {
 	for _, t := range k.order {
+		if k.closed() {
+			return
+		}
 		start := time.Now()
 		basis := k.basis(t)
 		var models [3]*collect.Model
@@ -87,19 +104,27 @@ func (k *collecting) run() {
 	}
 	for _, t := range k.order {
 		for _, num := range collect.Standard() {
+			if k.closed() {
+				return
+			}
 			k.asks()
 			k.time(t, num)
 		}
 		log.Printf("collect times: %s, the standard sets done", t.lot.ID)
 	}
-	for range k.asked {
-		k.asks()
+	for {
+		select {
+		case <-k.done:
+			return
+		case <-k.asked:
+			k.asks()
+		}
 	}
 }
 
 // asks times every set a page asked for that is not timed yet.
 func (k *collecting) asks() {
-	for {
+	for !k.closed() {
 		t, num := k.next()
 		if t == nil {
 			return
@@ -191,8 +216,8 @@ func (k *collecting) times(r *collect.Result, rate float64) *pilev1.CollectTime 
 }
 
 // basis is what a lot's times rest on. Its rate is classified pieces an
-// hour of sorting: from Hive's records of every piece when the lot is from
-// Hive, else from its own classified pieces.
+// hour of sorting: from the fleet pull's records of every piece when the lot
+// is from it, else from its own classified pieces.
 func (k *collecting) basis(t *lotTimes) *pilev1.CollectBasis {
 	r := t.lot.Records
 	b := &pilev1.CollectBasis{

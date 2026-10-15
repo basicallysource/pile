@@ -85,6 +85,19 @@ func newStock(st *storage.Storage, lots map[string]*lot, cat *catalog.Catalog) *
 	return k
 }
 
+// stock is what the bins of the storage in use hold, worked out again when
+// the storage was replaced since (through this Service or another sharing
+// it).
+func (s *Service) stock() *stock {
+	st := s.storage.Now()
+	if k := s.stocked.Load(); k != nil && k.store == st {
+		return k
+	}
+	k := newStock(st, s.lots, s.cat)
+	s.stocked.Store(k)
+	return k
+}
+
 // words splits text into lowercase words of letters and digits.
 func words(text string) []string {
 	return strings.FieldsFunc(strings.ToLower(text), func(r rune) bool { return !unicode.IsLetter(r) && !unicode.IsDigit(r) })

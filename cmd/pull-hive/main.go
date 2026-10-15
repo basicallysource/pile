@@ -49,7 +49,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	s, err := hive.Open(filepath.Join(*data, "hive.sqlite"))
+	s, err := hive.OpenFleet(filepath.Join(*data, hive.FleetFile))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +61,7 @@ func main() {
 			names = append(names, n)
 		}
 	}
-	err = hive.Pull(ctx, c, s, *full, names, func(name string, n int) {
+	err = hive.PullFleet(ctx, c, s, *full, names, func(name string, n int) {
 		total += n
 		log.Printf("%s: %d pieces read", name, n)
 	})

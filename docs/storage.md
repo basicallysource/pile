@@ -18,9 +18,12 @@ holds. It works on a phone.
 
 `storage.json` in the data folder, read at start (`internal/storage`). With
 no file the storage is empty and Find pieces says so. It is replaced whole at
-run time with `SetStorage`, which checks it, puts the pieces in the new bins,
-writes the file (to `storage.json.new`, then renamed over it) and only then
-serves it, so a restart serves what was last set.
+run time with `SetStorage`, which checks it, writes the file (to
+`storage.json.new`, then renamed over it) and only then serves it, so a
+restart serves what was last set. The storage in use (`storage.Kept`) is
+shared by every Service: when fresh records make new lots
+([hive.md](hive.md#refreshing)), the bins hold their pieces at once, and a
+storage set during that is kept.
 
 ```json
 {

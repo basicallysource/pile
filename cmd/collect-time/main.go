@@ -73,7 +73,7 @@ func main() {
 		r.Pieces, r.Known = s.Pieces, s.Known
 		r.Rate = *rate
 		if l.Hive != "" {
-			st, err := hive.SortingTime(filepath.Join(*data, "hive.sqlite"), l.Hive)
+			st, err := hive.SortingTime(filepath.Join(*data, hive.FleetFile), l.Hive)
 			if err != nil {
 				log.Fatal(err)
 			}

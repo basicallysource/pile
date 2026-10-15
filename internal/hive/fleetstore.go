@@ -11,9 +11,12 @@ import (
 	"github.com/basicallysource/pile/internal/records"
 )
 
-// The store is hive.sqlite in the data folder: every machine pulled and every
-// piece it reported, as Hive gave them (BrickLink ids, unix times).
-const schema = `
+// FleetFile is the fleet store in the data folder: every machine the fleet
+// pull read and every piece it reported.
+const FleetFile = "hive.sqlite"
+
+// The pieces as Hive gave them (BrickLink ids, unix times).
+const fleetSchema = `
 create table if not exists machines (
 	id        text primary key,
 	name      text not null,
@@ -39,28 +42,28 @@ create table if not exists pieces (
 create index if not exists pieces_machine_local on pieces (machine_id, local_id);
 `
 
-// Store is hive.sqlite open for a pull.
-type Store struct{ db *sql.DB }
+// FleetStore is hive.sqlite open for a pull.
+type FleetStore struct{ db *sql.DB }
 
-// Open opens (making it if need be) the store at path.
-func Open(path string) (*Store, error) {
+// OpenFleet opens (making it if need be) the fleet store at path.
+func OpenFleet(path string) (*FleetStore, error) {
 	db, err := sql.Open("sqlite", "file:"+path+"?_pragma=journal_mode(wal)&_pragma=busy_timeout(300000)")
 	if err != nil {
 		return nil, err
 	}
 	db.SetMaxOpenConns(1)
-	if _, err := db.Exec(schema); err != nil {
+	if _, err := db.Exec(fleetSchema); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
-	return &Store{db: db}, nil
+	return &FleetStore{db: db}, nil
 }
 
-func (s *Store) Close() error { return s.db.Close() }
+func (s *FleetStore) Close() error { return s.db.Close() }
 
 // held is the highest and lowest local id stored for a machine (0 for
 // none), and whether a pull of it ever finished (it then has a machines row).
-func (s *Store) held(machine string) (newest, oldest int64, done bool, err error) {
+func (s *FleetStore) held(machine string) (newest, oldest int64, done bool, err error) {
 	var hi, lo sql.NullInt64
 	if err = s.db.QueryRow(`select max(local_id), min(local_id) from pieces where machine_id = ?`, machine).Scan(&hi, &lo); err != nil {
 		return
@@ -69,7 +72,7 @@ func (s *Store) held(machine string) (newest, oldest int64, done bool, err error
 	return hi.Int64, lo.Int64, done, err
 }
 
-func (s *Store) putPieces(machine string, ps []piece) error {
+func (s *FleetStore) putPieces(machine string, ps []fleetPiece) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
@@ -83,14 +86,14 @@ func (s *Store) putPieces(machine string, ps []piece) error {
 	}
 	defer st.Close()
 	for _, p := range ps {
-		if _, err := st.Exec(machine, p.UUID, p.LocalID, p.seen(), p.Status, p.Part, p.PartName, p.Color, p.ColorName, p.Confidence, p.Dead); err != nil {
+		if _, err := st.Exec(machine, p.UUID, p.LocalID, column(p.SeenAt), p.Status, p.Part, p.PartName, p.Color, p.ColorName, p.Confidence, p.Dead); err != nil {
 			return err
 		}
 	}
 	return tx.Commit()
 }
 
-func (s *Store) putMachine(m machine, mine bool) error {
+func (s *FleetStore) putMachine(m fleetMachine, mine bool) error {
 	var n int64
 	if err := s.db.QueryRow(`select count(*) from pieces where machine_id = ?`, m.ID).Scan(&n); err != nil {
 		return err
@@ -100,11 +103,11 @@ func (s *Store) putMachine(m machine, mine bool) error {
 	return err
 }
 
-// Read returns the classified pieces in the store at path, from from up to
-// until (the zero time for no end), of the machines which names: "mine" (the
-// signed-in user's own), "all" (every machine pulled), or one machine's name
-// or id. Like a sorter's own records, it leaves out pieces lost (dead).
-func Read(path, which string, from, until time.Time) (*records.Records, error) {
+// ReadFleet returns the classified pieces in the fleet store at path, from
+// from up to until (the zero time for no end), of the machines which names:
+// "mine" (the signed-in user's own), "all" (every machine pulled), or one
+// machine's name or id. It leaves out pieces lost (dead).
+func ReadFleet(path, which string, from, until time.Time) (*records.Records, error) {
 	st, err := os.Stat(path)
 	if err != nil {
 		return nil, err
@@ -180,7 +183,7 @@ type Sorting struct {
 // activeGap is the longest gap between pieces still counted as sorting.
 const activeGap = 60.0
 
-// SortingTime reads how much each machine which names (as Read takes it)
+// SortingTime reads how much each machine which names (as ReadFleet takes it)
 // sorted, and for how long.
 func SortingTime(path, which string) ([]Sorting, error) {
 	db, err := sql.Open("sqlite", "file:"+path+"?mode=ro")

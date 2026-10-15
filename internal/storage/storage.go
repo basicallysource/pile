@@ -14,6 +14,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 )
 
 // File is the storage's file in the data folder.
@@ -37,11 +39,21 @@ type Storage struct {
 	Bins []Bin `json:"bins"`
 }
 
+// Kept is the storage in use and the folder it is kept in, shared by
+// everything serving it: replaced whole while pile runs.
+type Kept struct {
+	dir string
+	mu  sync.Mutex
+	now atomic.Pointer[Storage]
+}
+
 // Read loads dir's storage.json; with none there, the storage is empty.
-func Read(dir string) (*Storage, error) {
+func Read(dir string) (*Kept, error) {
+	k := &Kept{dir: dir}
 	b, err := os.ReadFile(filepath.Join(dir, File))
 	if errors.Is(err, os.ErrNotExist) {
-		return &Storage{}, nil
+		k.now.Store(&Storage{})
+		return k, nil
 	}
 	if err != nil {
 		return nil, err
@@ -50,20 +62,31 @@ func Read(dir string) (*Storage, error) {
 	if err := json.Unmarshal(b, &s); err != nil {
 		return nil, fmt.Errorf("%s: %w", File, err)
 	}
-	return &s, nil
+	k.now.Store(&s)
+	return k, nil
 }
 
-// Write saves s as dir's storage.json, whole or not at all.
-func (s *Storage) Write(dir string) error {
+// Now is the storage in use. It is never changed, only replaced.
+func (k *Kept) Now() *Storage { return k.now.Load() }
+
+// Replace keeps s in the folder, whole or not at all, and only then puts it
+// in use.
+func (k *Kept) Replace(s *Storage) error {
+	k.mu.Lock()
+	defer k.mu.Unlock()
 	b, err := json.MarshalIndent(s, "", "\t")
 	if err != nil {
 		return err
 	}
-	tmp := filepath.Join(dir, File+".new")
+	tmp := filepath.Join(k.dir, File+".new")
 	if err := os.WriteFile(tmp, append(b, '\n'), 0o644); err != nil {
 		return err
 	}
-	return os.Rename(tmp, filepath.Join(dir, File))
+	if err := os.Rename(tmp, filepath.Join(k.dir, File)); err != nil {
+		return err
+	}
+	k.now.Store(s)
+	return nil
 }
 
 // Check says what is wrong with s, if anything: every bin has an address no

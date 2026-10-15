@@ -65,14 +65,17 @@ the public record).
   from, and the builds' pictures: `docs/builds.md`), `ldraw/` (the LDraw
   parts library), `collections/` (designers' collections of custom models:
   `docs/collections.md`), `lots.json` (the collection's lots:
-  each a named stretch of sorted pieces), `machines/<name>/local_state.sqlite`
-  (a sorter's own records, copied), `hive.sqlite` (records pulled from a
-  Hive by `cmd/pull-hive`: `docs/hive.md`), `storage.json` (the bins
+  each a named stretch of sorted pieces), `records.sqlite` (the machines
+  lots name, read through a Hive's records API with the key in
+  `PILE_HIVE_KEY`), `hive.sqlite` (the fleet, pulled from a Hive by
+  `cmd/pull-hive`; both in `docs/hive.md`), `storage.json` (the bins
   pieces are kept in: `docs/storage.md`) and `stars.json` (the starred
-  sets: `docs/views.md`). Fresh data means a restart, except the storage,
-  which `SetStorage` replaces while it runs and writes back, and the stars,
-  which `SetStar` changes one at a time.
-- **Other commands.** `cmd/pull-hive` (records from a Hive),
+  sets: `docs/views.md`). Fresh data means a restart, except the lots'
+  machines, which it reads again from the Hive every `-refresh` and serves
+  through a new Service swapped in whole (`cmd/pile/refresh.go`,
+  `server.Live`), the storage, which `SetStorage` replaces while it runs
+  and writes back, and the stars, which `SetStar` changes one at a time.
+- **Other commands.** `cmd/pull-hive` (the fleet's records from a Hive),
   `cmd/collect-time` (how long one sorter takes to come across a set's
   pieces: `docs/collect-time.md`), `cmd/export-pieces` (a lot as CSV),
   `cmd/import-custom-models`, `cmd/check-models` (how well the models
@@ -89,8 +92,8 @@ the public record).
   Generated code is committed.
 - **Matching** is `internal/match` (its package comment says how sets are
   scored, in exact or any color, and how the likely order is picked). Pieces
-  come from `internal/records` (a sorter's own records) and `internal/hive`
-  (pulled from a Hive), lots from `internal/lots`, the catalog (sets, custom
+  (`internal/records`) are read from a Hive by `internal/hive` (its
+  package comment says the two ways in), lots from `internal/lots`, the catalog (sets, custom
   models, builds and collections) from `internal/catalog`, LDraw models,
   the parts library and drawing from `internal/ldraw`, the bins from `internal/storage`,
   the handlers from `internal/server` (what the bins hold, and finding it,
@@ -106,8 +109,11 @@ the public record).
 - **Served as a service.** Where it is kept up, pile runs as a systemd user
   unit named `pile` with lingering on for its user, so it starts at boot and
   comes back after a reboot: `WorkingDirectory` the checkout,
-  `ExecStart=BIN/pile -data DIR -addr :PORT`, `Restart=on-failure`,
-  `Nice=10`, `WantedBy=default.target`. After a build or new data in the
+  `ExecStart=BIN/pile -data DIR -addr :PORT`, `EnvironmentFile=` a file
+  only its user reads with the line `PILE_HIVE_KEY=...` (the Hive key, for
+  the lots' machines), `Restart=on-failure`, `Nice=10`,
+  `WantedBy=default.target`. New records of the lots' machines need
+  nothing: it reads them itself. After a build or other new data in the
   folder: `systemctl --user restart pile`; `systemctl --user status pile`
   for its state, `journalctl --user -u pile -f` for its log. It reads the
   whole folder into memory before it listens: about 3 minutes for the big

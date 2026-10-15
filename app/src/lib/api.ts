@@ -9,8 +9,9 @@ import { stars } from './pile/stars.svelte';
 const starred = (req: { view?: { filter?: { starredOnly?: boolean } } }) =>
 	req.view?.filter?.starredOnly ? stars.revision : 0;
 
-// pile's data changes only when it restarts (a reload picks that up), so an
-// answer lasts the visit; the bins and the stars are the exceptions.
+// pile's data changes only when it restarts or reads fresh records of its
+// lots' machines from a Hive (a reload picks either up), so an answer lasts
+// the visit; the bins and the stars are the exceptions.
 export const sources = {
 	lots: new Source(pile.listLots, { doing: 'Loading the collection' }),
 	overview: new Source(pile.getOverview, { doing: 'Matching the sets', version: starred }),

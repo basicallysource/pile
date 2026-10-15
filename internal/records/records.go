@@ -1,9 +1,12 @@
-// Package records holds the pieces sorters classified, read either from a
-// copy of one sorter's own records (its local_state.sqlite) or from the
-// records pulled from a Hive (package hive).
+// Package records holds the pieces sorters classified, as package hive reads
+// them from what it pulled from a Hive.
 package records
 
-import "slices"
+import (
+	"slices"
+	"strconv"
+	"time"
+)
 
 // Piece is one physical piece a sorter saw and classified, in BrickLink's ids.
 type Piece struct {
@@ -19,7 +22,7 @@ type Piece struct {
 	Machine int32
 	// The category its sorter's profile sent it to (the profile's id for
 	// it, such as "bricks_red"): which of the sorter's bins it went into.
-	// Empty when the records do not say (records pulled from a Hive).
+	// Empty when the records do not say (the fleet pull's).
 	Category string
 	// Who gave it its color: empty for the sorter's own classifier while
 	// sorting, the model's name for a model run over its pictures later,
@@ -36,7 +39,7 @@ type Records struct {
 	Pieces []Piece
 	// The sorters the pieces came from, by name (two may share one).
 	Machines []string
-	// When the records were copied or pulled.
+	// When the records were read from Hive.
 	CopiedAt  int64
 	FirstSeen int64
 	LastSeen  int64
@@ -79,4 +82,22 @@ func (r *Records) Add(p Piece) {
 	}
 	r.LastSeen = max(r.LastSeen, p.SeenAt)
 	r.Pieces = append(r.Pieces, p)
+}
+
+// Color reads a sorter's color id: a BrickLink color, or empty or "any" when
+// the classifier did not say.
+func Color(s string) (int32, bool) {
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, false
+	}
+	return int32(n), true
+}
+
+// End is until as a unix time, far in the future for the zero time.
+func End(t time.Time) int64 {
+	if t.IsZero() {
+		return 1 << 62
+	}
+	return t.Unix()
 }
