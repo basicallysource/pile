@@ -1,7 +1,8 @@
 <!--
-	The sort-out queue: the sets and custom models to pull from the pile,
-	most wanted first, each counted against what the ones before it left,
-	as a grid of cards. Everything below on the page is matched against what
+	The sort-out queue: the sets, custom models and builds within sets to
+	pull from the pile, most wanted first, each counted against what the ones
+	before it left, as a grid of cards, under a search that adds one
+	(AddToQueue). Everything below on the page is matched against what
 	is left after all of them. With several lots, each card says how many of
 	its pieces come from which lot (the first lot that has them, then the
 	next). It is the view's, so it stays as lots are added, taken out or
@@ -32,6 +33,7 @@
 	import { count, percent } from '$lib/format';
 	import { view } from '$lib/view.svelte';
 	import { opensSet, setHref } from './open-set.svelte';
+	import AddToQueue from './AddToQueue.svelte';
 
 	let {
 		queue,
@@ -265,19 +267,22 @@
 
 <Panel
 	title="Sorting out · {view.queue.length}"
-	description="Most wanted first: drag a card to its place. Each takes its pieces from what the ones before it left; everything below is matched against the {count(
-		left
-	)} of {count(pieces)} pieces still in the pile."
+	description={view.queue.length
+		? `Most wanted first: drag a card to its place. Each takes its pieces from what the ones before it left; everything below is matched against the ${count(left)} of ${count(pieces)} pieces still in the pile.`
+		: 'Sets and builds to pull from the pile, most wanted first: add one by its name or number, or with Sort this out on its panel.'}
 	flush
 >
 	{#snippet actions()}
-		<Button size="sm" variant="ghost" icon={X} onclick={() => view.clear()}>Clear</Button>
+		{#if view.queue.length}
+			<Button size="sm" variant="ghost" icon={X} onclick={() => view.clear()}>Clear</Button>
+		{/if}
 	{/snippet}
+	<div class="px-2 pt-2 {shown.length ? '' : 'pb-2'}"><AddToQueue /></div>
 	<div
 		bind:this={grid}
 		aria-busy={recounting}
 		role="list"
-		class="relative grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-2 p-2"
+		class="relative grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-2 {shown.length ? 'p-2' : ''}"
 	>
 		{#each shown as num, i (num)}
 			<div

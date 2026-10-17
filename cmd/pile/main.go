@@ -19,6 +19,7 @@ import (
 
 	pile "github.com/basicallysource/pile"
 	"github.com/basicallysource/pile/internal/catalog"
+	"github.com/basicallysource/pile/internal/changes"
 	"github.com/basicallysource/pile/internal/collect"
 	"github.com/basicallysource/pile/internal/lots"
 	"github.com/basicallysource/pile/internal/server"
@@ -27,7 +28,7 @@ import (
 )
 
 func main() {
-	data := flag.String("data", "data", "folder holding rebrickable/ (the catalog CSVs), parts.db (a sorter Hive's parts database), custom-models.json, set-models/ (3D models of sets, for their builds), ldraw/ (the LDraw parts library), collections/ (designers' models), lots.json, records.sqlite (the lots' machines, read through a Hive's records API), hive.sqlite (records pulled by pull-hive), storage.json (the bins pieces are kept in) and stars.json (the starred sets); records.sqlite and the last two are kept there when they change")
+	data := flag.String("data", "data", "folder holding rebrickable/ (the catalog CSVs), parts.db (a sorter Hive's parts database), custom-models.json, set-models/ (3D models of sets, for their builds), ldraw/ (the LDraw parts library), collections/ (designers' models), lots.json, records.sqlite (the lots' machines, read through a Hive's records API), hive.sqlite (records pulled by pull-hive), storage.json (the bins pieces are kept in), stars.json (the starred sets) and changes.json (how sets will be built where they differ from their inventories); records.sqlite and the last three are kept there when they change")
 	addr := flag.String("addr", ":8790", "where to listen")
 	base := flag.String("hive", "https://hive.basically.website", "the Hive whose records API the lots' machines (hiveMachine) are read from, with the API key in "+keyVar)
 	every := flag.Duration("refresh", 10*time.Minute, "how often to read the lots' machines from the Hive again")
@@ -64,11 +65,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	ch, err := changes.Read(*data)
+	if err != nil {
+		log.Fatal(err)
+	}
 	sizes, err := collect.LoadSizes(filepath.Join(*data, "parts.db"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	sh := &server.Shared{Cat: cat, Sizes: sizes, Storage: kept, Stars: sr, DataDir: *data}
+	sh := &server.Shared{Cat: cat, Sizes: sizes, Storage: kept, Stars: sr, Changes: ch, DataDir: *data}
 	s, err := server.New(sh, ls)
 	if err != nil {
 		log.Fatal(err)

@@ -8,6 +8,7 @@ import (
 
 	pilev1 "github.com/basicallysource/pile/gen/pile/v1"
 	"github.com/basicallysource/pile/internal/catalog"
+	"github.com/basicallysource/pile/internal/changes"
 	"github.com/basicallysource/pile/internal/match"
 )
 
@@ -27,12 +28,13 @@ type view struct {
 	left     *match.Stack
 	scores   []*match.Match // every shown entry with a piece left, most interesting first
 	byNum    map[string]*match.Match
-	// The view's color choices, by set, and the sets as they change them.
-	choices map[string][]match.Choice
+	// The sets' changes (kept with the sets, not in the view) at the moment
+	// it was made, by set, and the sets as they change them.
+	changes map[string][]changes.Change
 	changed map[string]*match.Entry
 }
 
-// entry is e as the view's color choices change it.
+// entry is e as its set's changes change it.
 func (w *view) entry(e *match.Entry) *match.Entry {
 	if c, ok := w.changed[e.Set.Num]; ok {
 		return c
@@ -64,16 +66,10 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 	if c := v.Counting; c != nil {
 		counting = match.Counting{Printed: c.Printed, Figure: c.FigureParts, Accessory: c.Accessories}
 	}
-	w := &view{stack: st, colors: s.index.Colors(colorModes[v.Colors]), counting: counting, filter: filter, starred: map[string]bool{}, place: map[string]int{}, found: map[string]match.Found{}, drawn: map[string]match.Drawn{}, left: st.piles, choices: map[string][]match.Choice{}, changed: map[string]*match.Entry{}}
-	for _, c := range v.ColorChoices {
-		// One that takes nothing would read as color 0, black.
-		if c.Take != nil {
-			w.choices[c.SetNum] = append(w.choices[c.SetNum], match.Choice{Color: c.Color, Part: c.PartNum, Use: c.GetUseColor(), Any: c.GetAnyColor()})
-		}
-	}
-	for num, cs := range w.choices {
+	w := &view{stack: st, colors: s.index.Colors(colorModes[v.Colors]), counting: counting, filter: filter, starred: map[string]bool{}, place: map[string]int{}, found: map[string]match.Found{}, drawn: map[string]match.Drawn{}, left: st.piles, changes: s.changes.All(), changed: map[string]*match.Entry{}}
+	for num, cs := range w.changes {
 		if e := s.index.Entry(num); e != nil {
-			w.changed[num] = s.index.WithChoices(e, cs)
+			w.changed[num] = s.index.WithChanges(e, cs)
 		}
 	}
 	if filter.StarredOnly {
@@ -96,7 +92,7 @@ func (s *Service) view(v *pilev1.View) (*view, error) {
 	}
 	w.scores = s.index.ScoreAll(w.left.Sum, w.colors, w.counting)
 	if len(w.changed) > 0 {
-		// The sets the choices change, scored as changed.
+		// The sets their changes change, scored as changed.
 		kept := w.scores[:0]
 		for _, m := range w.scores {
 			if w.changed[m.Set.Num] == nil {
@@ -176,6 +172,21 @@ func (w *view) listed() ([]*match.Match, []*pilev1.ThemeCount) {
 		return ts[i].Name < ts[j].Name
 	})
 	return out, ts
+}
+
+// against is the pieces a set is matched against in this view: in the
+// sort-out queue, what the sets before it left; otherwise what the whole
+// queue leaves. A queued set's is worked out again, so it is the caller's.
+func (w *view) against(num string) *match.Pile {
+	at := w.place[num]
+	if at == 0 {
+		return w.left.Sum
+	}
+	p := w.stack.piles.Sum.Clone()
+	for _, m := range w.queue[:at-1] {
+		p.Take(m.Entry, w.colors)
+	}
+	return p
 }
 
 // placeOf is which of the overview's sections shows m in this view.

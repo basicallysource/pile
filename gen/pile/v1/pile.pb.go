@@ -413,6 +413,71 @@ func (PartClass) EnumDescriptor() ([]byte, []int) {
 	return file_pile_v1_pile_proto_rawDescGZIP(), []int{5}
 }
 
+// Where a stand-in comes from.
+type StandInSource int32
+
+const (
+	StandInSource_STAND_IN_SOURCE_UNSPECIFIED StandInSource = 0
+	// Smaller plates, tiles or bricks of its kind and height that cover its
+	// footprint.
+	StandInSource_STAND_IN_SOURCE_FOOTPRINT StandInSource = 1
+	// The part it is a print or pattern of.
+	StandInSource_STAND_IN_SOURCE_UNPRINTED StandInSource = 2
+	// A print or pattern of it.
+	StandInSource_STAND_IN_SOURCE_PRINTED StandInSource = 3
+	// The parts it is assembled from, one of each.
+	StandInSource_STAND_IN_SOURCE_SUB_PARTS StandInSource = 4
+	// Picked by hand.
+	StandInSource_STAND_IN_SOURCE_PICKED StandInSource = 5
+)
+
+// Enum value maps for StandInSource.
+var (
+	StandInSource_name = map[int32]string{
+		0: "STAND_IN_SOURCE_UNSPECIFIED",
+		1: "STAND_IN_SOURCE_FOOTPRINT",
+		2: "STAND_IN_SOURCE_UNPRINTED",
+		3: "STAND_IN_SOURCE_PRINTED",
+		4: "STAND_IN_SOURCE_SUB_PARTS",
+		5: "STAND_IN_SOURCE_PICKED",
+	}
+	StandInSource_value = map[string]int32{
+		"STAND_IN_SOURCE_UNSPECIFIED": 0,
+		"STAND_IN_SOURCE_FOOTPRINT":   1,
+		"STAND_IN_SOURCE_UNPRINTED":   2,
+		"STAND_IN_SOURCE_PRINTED":     3,
+		"STAND_IN_SOURCE_SUB_PARTS":   4,
+		"STAND_IN_SOURCE_PICKED":      5,
+	}
+)
+
+func (x StandInSource) Enum() *StandInSource {
+	p := new(StandInSource)
+	*p = x
+	return p
+}
+
+func (x StandInSource) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (StandInSource) Descriptor() protoreflect.EnumDescriptor {
+	return file_pile_v1_pile_proto_enumTypes[6].Descriptor()
+}
+
+func (StandInSource) Type() protoreflect.EnumType {
+	return &file_pile_v1_pile_proto_enumTypes[6]
+}
+
+func (x StandInSource) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use StandInSource.Descriptor instead.
+func (StandInSource) EnumDescriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{6}
+}
+
 // How lots are looked at.
 type View struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -429,10 +494,7 @@ type View struct {
 	// accessories count, printed parts and minifigure parts do not.
 	Counting *Counting `protobuf:"bytes,5,opt,name=counting,proto3" json:"counting,omitempty"`
 	// Which colors a set's line takes once its own color runs out.
-	Colors ColorMatch `protobuf:"varint,6,opt,name=colors,proto3,enum=pile.v1.ColorMatch" json:"colors,omitempty"`
-	// Changes to sets' colors: a set takes another color for one of its
-	// colors, or for one part.
-	ColorChoices  []*ColorChoice `protobuf:"bytes,7,rep,name=color_choices,json=colorChoices,proto3" json:"color_choices,omitempty"`
+	Colors        ColorMatch `protobuf:"varint,6,opt,name=colors,proto3,enum=pile.v1.ColorMatch" json:"colors,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -502,47 +564,45 @@ func (x *View) GetColors() ColorMatch {
 	return ColorMatch_COLOR_MATCH_UNSPECIFIED
 }
 
-func (x *View) GetColorChoices() []*ColorChoice {
-	if x != nil {
-		return x.ColorChoices
-	}
-	return nil
-}
-
-// A change to a set's colors: its lines in `color` (all of them, or only
-// `part_num`'s) take `use_color` instead, or any color of their part. A
-// part's choice is made after its color's.
-type ColorChoice struct {
-	state  protoimpl.MessageState `protogen:"open.v1"`
-	SetNum string                 `protobuf:"bytes,1,opt,name=set_num,json=setNum,proto3" json:"set_num,omitempty"`
+// A change to how a set will be built where it differs from its inventory,
+// kept with the set in pile's data folder and counted wherever the set is
+// matched (its panel, the sort-out queue, the overview) in every view. It is
+// for one line (a part in a color, as the set has them) or, for its colors
+// only, every line in a color; a line's own change of colors is made after
+// its color's.
+type Change struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The set's part (Rebrickable's number); empty for every line in `color`.
+	PartNum string `protobuf:"bytes,1,opt,name=part_num,json=partNum,proto3" json:"part_num,omitempty"`
 	// The color as the set has it.
 	Color int32 `protobuf:"varint,2,opt,name=color,proto3" json:"color,omitempty"`
-	// One part's line (Rebrickable's number); empty for every line in the
-	// color.
-	PartNum string `protobuf:"bytes,3,opt,name=part_num,json=partNum,proto3" json:"part_num,omitempty"`
-	// Types that are valid to be assigned to Take:
+	// Types that are valid to be assigned to What:
 	//
-	//	*ColorChoice_UseColor
-	//	*ColorChoice_AnyColor
-	Take          isColorChoice_Take `protobuf_oneof:"take"`
+	//	*Change_Colors
+	//	*Change_Swap
+	//	*Change_Counted
+	What isChange_What `protobuf_oneof:"what"`
+	// Read only: the change in words, part numbers and color names
+	// ("60470b Yellow: or 2 x 4085 Yellow").
+	Text          string `protobuf:"bytes,6,opt,name=text,proto3" json:"text,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ColorChoice) Reset() {
-	*x = ColorChoice{}
+func (x *Change) Reset() {
+	*x = Change{}
 	mi := &file_pile_v1_pile_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ColorChoice) String() string {
+func (x *Change) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ColorChoice) ProtoMessage() {}
+func (*Change) ProtoMessage() {}
 
-func (x *ColorChoice) ProtoReflect() protoreflect.Message {
+func (x *Change) ProtoReflect() protoreflect.Message {
 	mi := &file_pile_v1_pile_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -554,72 +614,353 @@ func (x *ColorChoice) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ColorChoice.ProtoReflect.Descriptor instead.
-func (*ColorChoice) Descriptor() ([]byte, []int) {
+// Deprecated: Use Change.ProtoReflect.Descriptor instead.
+func (*Change) Descriptor() ([]byte, []int) {
 	return file_pile_v1_pile_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ColorChoice) GetSetNum() string {
-	if x != nil {
-		return x.SetNum
-	}
-	return ""
-}
-
-func (x *ColorChoice) GetColor() int32 {
-	if x != nil {
-		return x.Color
-	}
-	return 0
-}
-
-func (x *ColorChoice) GetPartNum() string {
+func (x *Change) GetPartNum() string {
 	if x != nil {
 		return x.PartNum
 	}
 	return ""
 }
 
-func (x *ColorChoice) GetTake() isColorChoice_Take {
+func (x *Change) GetColor() int32 {
 	if x != nil {
-		return x.Take
-	}
-	return nil
-}
-
-func (x *ColorChoice) GetUseColor() int32 {
-	if x != nil {
-		if x, ok := x.Take.(*ColorChoice_UseColor); ok {
-			return x.UseColor
-		}
+		return x.Color
 	}
 	return 0
 }
 
-func (x *ColorChoice) GetAnyColor() bool {
+func (x *Change) GetWhat() isChange_What {
 	if x != nil {
-		if x, ok := x.Take.(*ColorChoice_AnyColor); ok {
-			return x.AnyColor
+		return x.What
+	}
+	return nil
+}
+
+func (x *Change) GetColors() *ColorTake {
+	if x != nil {
+		if x, ok := x.What.(*Change_Colors); ok {
+			return x.Colors
+		}
+	}
+	return nil
+}
+
+func (x *Change) GetSwap() *PartSwap {
+	if x != nil {
+		if x, ok := x.What.(*Change_Swap); ok {
+			return x.Swap
+		}
+	}
+	return nil
+}
+
+func (x *Change) GetCounted() bool {
+	if x != nil {
+		if x, ok := x.What.(*Change_Counted); ok {
+			return x.Counted
 		}
 	}
 	return false
 }
 
-type isColorChoice_Take interface {
-	isColorChoice_Take()
+func (x *Change) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
 }
 
-type ColorChoice_UseColor struct {
-	UseColor int32 `protobuf:"varint,4,opt,name=use_color,json=useColor,proto3,oneof"`
+type isChange_What interface {
+	isChange_What()
 }
 
-type ColorChoice_AnyColor struct {
-	AnyColor bool `protobuf:"varint,5,opt,name=any_color,json=anyColor,proto3,oneof"`
+type Change_Colors struct {
+	// The colors it takes instead of its own.
+	Colors *ColorTake `protobuf:"bytes,3,opt,name=colors,proto3,oneof"`
 }
 
-func (*ColorChoice_UseColor) isColorChoice_Take() {}
+type Change_Swap struct {
+	// Other parts that make one of it once its own part runs out.
+	Swap *PartSwap `protobuf:"bytes,4,opt,name=swap,proto3,oneof"`
+}
 
-func (*ColorChoice_AnyColor) isColorChoice_Take() {}
+type Change_Counted struct {
+	// Counted toward the set's completeness, or left out, whatever the
+	// view counts.
+	Counted bool `protobuf:"varint,5,opt,name=counted,proto3,oneof"`
+}
+
+func (*Change_Colors) isChange_What() {}
+
+func (*Change_Swap) isChange_What() {}
+
+func (*Change_Counted) isChange_What() {}
+
+// Which colors a line takes instead of its own: one other color, several to
+// fill it from in any mix (the first counts as its color, the rest as
+// another color), or any color of its part. None is its own color, which
+// undoes its color's change for one part.
+type ColorTake struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Colors        []int32                `protobuf:"varint,1,rep,packed,name=colors,proto3" json:"colors,omitempty"`
+	Any           bool                   `protobuf:"varint,2,opt,name=any,proto3" json:"any,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ColorTake) Reset() {
+	*x = ColorTake{}
+	mi := &file_pile_v1_pile_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ColorTake) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ColorTake) ProtoMessage() {}
+
+func (x *ColorTake) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ColorTake.ProtoReflect.Descriptor instead.
+func (*ColorTake) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ColorTake) GetColors() []int32 {
+	if x != nil {
+		return x.Colors
+	}
+	return nil
+}
+
+func (x *ColorTake) GetAny() bool {
+	if x != nil {
+		return x.Any
+	}
+	return false
+}
+
+// Other parts that make one of a line's part, each tried in turn once its
+// own part (in every color it takes) runs out, in the colors the line takes.
+type PartSwap struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StandIns      []*StandIn             `protobuf:"bytes,1,rep,name=stand_ins,json=standIns,proto3" json:"stand_ins,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PartSwap) Reset() {
+	*x = PartSwap{}
+	mi := &file_pile_v1_pile_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartSwap) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartSwap) ProtoMessage() {}
+
+func (x *PartSwap) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartSwap.ProtoReflect.Descriptor instead.
+func (*PartSwap) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *PartSwap) GetStandIns() []*StandIn {
+	if x != nil {
+		return x.StandIns
+	}
+	return nil
+}
+
+// What makes one of a part: so many of each of some other parts, or (fits)
+// any combination of plates, tiles or bricks of its kind and height that
+// covers its footprint, which matching picks from what the lots have.
+type StandIn struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Parts         []*PartQuantity        `protobuf:"bytes,1,rep,name=parts,proto3" json:"parts,omitempty"`
+	Fits          bool                   `protobuf:"varint,2,opt,name=fits,proto3" json:"fits,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StandIn) Reset() {
+	*x = StandIn{}
+	mi := &file_pile_v1_pile_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StandIn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StandIn) ProtoMessage() {}
+
+func (x *StandIn) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StandIn.ProtoReflect.Descriptor instead.
+func (*StandIn) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *StandIn) GetParts() []*PartQuantity {
+	if x != nil {
+		return x.Parts
+	}
+	return nil
+}
+
+func (x *StandIn) GetFits() bool {
+	if x != nil {
+		return x.Fits
+	}
+	return false
+}
+
+type PartQuantity struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PartNum       string                 `protobuf:"bytes,1,opt,name=part_num,json=partNum,proto3" json:"part_num,omitempty"`
+	Quantity      int32                  `protobuf:"varint,2,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PartQuantity) Reset() {
+	*x = PartQuantity{}
+	mi := &file_pile_v1_pile_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartQuantity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartQuantity) ProtoMessage() {}
+
+func (x *PartQuantity) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartQuantity.ProtoReflect.Descriptor instead.
+func (*PartQuantity) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *PartQuantity) GetPartNum() string {
+	if x != nil {
+		return x.PartNum
+	}
+	return ""
+}
+
+func (x *PartQuantity) GetQuantity() int32 {
+	if x != nil {
+		return x.Quantity
+	}
+	return 0
+}
+
+// A set's changes, in the order they were made.
+type SetChanges struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SetNum        string                 `protobuf:"bytes,1,opt,name=set_num,json=setNum,proto3" json:"set_num,omitempty"`
+	Changes       []*Change              `protobuf:"bytes,2,rep,name=changes,proto3" json:"changes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetChanges) Reset() {
+	*x = SetChanges{}
+	mi := &file_pile_v1_pile_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetChanges) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetChanges) ProtoMessage() {}
+
+func (x *SetChanges) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetChanges.ProtoReflect.Descriptor instead.
+func (*SetChanges) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SetChanges) GetSetNum() string {
+	if x != nil {
+		return x.SetNum
+	}
+	return ""
+}
+
+func (x *SetChanges) GetChanges() []*Change {
+	if x != nil {
+		return x.Changes
+	}
+	return nil
+}
 
 // A color, and how many pieces of something are in it.
 type ColorCount struct {
@@ -632,7 +973,7 @@ type ColorCount struct {
 
 func (x *ColorCount) Reset() {
 	*x = ColorCount{}
-	mi := &file_pile_v1_pile_proto_msgTypes[2]
+	mi := &file_pile_v1_pile_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -644,7 +985,7 @@ func (x *ColorCount) String() string {
 func (*ColorCount) ProtoMessage() {}
 
 func (x *ColorCount) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[2]
+	mi := &file_pile_v1_pile_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -657,7 +998,7 @@ func (x *ColorCount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ColorCount.ProtoReflect.Descriptor instead.
 func (*ColorCount) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{2}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ColorCount) GetColor() *Color {
@@ -692,7 +1033,7 @@ type Counting struct {
 
 func (x *Counting) Reset() {
 	*x = Counting{}
-	mi := &file_pile_v1_pile_proto_msgTypes[3]
+	mi := &file_pile_v1_pile_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -704,7 +1045,7 @@ func (x *Counting) String() string {
 func (*Counting) ProtoMessage() {}
 
 func (x *Counting) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[3]
+	mi := &file_pile_v1_pile_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -717,7 +1058,7 @@ func (x *Counting) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Counting.ProtoReflect.Descriptor instead.
 func (*Counting) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{3}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Counting) GetPrinted() bool {
@@ -769,7 +1110,7 @@ type Filter struct {
 
 func (x *Filter) Reset() {
 	*x = Filter{}
-	mi := &file_pile_v1_pile_proto_msgTypes[4]
+	mi := &file_pile_v1_pile_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -781,7 +1122,7 @@ func (x *Filter) String() string {
 func (*Filter) ProtoMessage() {}
 
 func (x *Filter) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[4]
+	mi := &file_pile_v1_pile_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -794,7 +1135,7 @@ func (x *Filter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Filter.ProtoReflect.Descriptor instead.
 func (*Filter) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{4}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Filter) GetHideLooseBricks() bool {
@@ -875,7 +1216,7 @@ type Color struct {
 
 func (x *Color) Reset() {
 	*x = Color{}
-	mi := &file_pile_v1_pile_proto_msgTypes[5]
+	mi := &file_pile_v1_pile_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -887,7 +1228,7 @@ func (x *Color) String() string {
 func (*Color) ProtoMessage() {}
 
 func (x *Color) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[5]
+	mi := &file_pile_v1_pile_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -900,7 +1241,7 @@ func (x *Color) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Color.ProtoReflect.Descriptor instead.
 func (*Color) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{5}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Color) GetId() int32 {
@@ -961,7 +1302,7 @@ type Totals struct {
 
 func (x *Totals) Reset() {
 	*x = Totals{}
-	mi := &file_pile_v1_pile_proto_msgTypes[6]
+	mi := &file_pile_v1_pile_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -973,7 +1314,7 @@ func (x *Totals) String() string {
 func (*Totals) ProtoMessage() {}
 
 func (x *Totals) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[6]
+	mi := &file_pile_v1_pile_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -986,7 +1327,7 @@ func (x *Totals) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Totals.ProtoReflect.Descriptor instead.
 func (*Totals) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{6}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Totals) GetPieces() int32 {
@@ -1059,7 +1400,7 @@ type ColorSource struct {
 
 func (x *ColorSource) Reset() {
 	*x = ColorSource{}
-	mi := &file_pile_v1_pile_proto_msgTypes[7]
+	mi := &file_pile_v1_pile_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1071,7 +1412,7 @@ func (x *ColorSource) String() string {
 func (*ColorSource) ProtoMessage() {}
 
 func (x *ColorSource) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[7]
+	mi := &file_pile_v1_pile_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1084,7 +1425,7 @@ func (x *ColorSource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ColorSource.ProtoReflect.Descriptor instead.
 func (*ColorSource) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{7}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ColorSource) GetBy() string {
@@ -1118,7 +1459,7 @@ type Lot struct {
 
 func (x *Lot) Reset() {
 	*x = Lot{}
-	mi := &file_pile_v1_pile_proto_msgTypes[8]
+	mi := &file_pile_v1_pile_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1130,7 +1471,7 @@ func (x *Lot) String() string {
 func (*Lot) ProtoMessage() {}
 
 func (x *Lot) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[8]
+	mi := &file_pile_v1_pile_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1143,7 +1484,7 @@ func (x *Lot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Lot.ProtoReflect.Descriptor instead.
 func (*Lot) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{8}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Lot) GetId() string {
@@ -1199,7 +1540,7 @@ type LotCount struct {
 
 func (x *LotCount) Reset() {
 	*x = LotCount{}
-	mi := &file_pile_v1_pile_proto_msgTypes[9]
+	mi := &file_pile_v1_pile_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1211,7 +1552,7 @@ func (x *LotCount) String() string {
 func (*LotCount) ProtoMessage() {}
 
 func (x *LotCount) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[9]
+	mi := &file_pile_v1_pile_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1224,7 +1565,7 @@ func (x *LotCount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LotCount.ProtoReflect.Descriptor instead.
 func (*LotCount) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{9}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *LotCount) GetLotId() string {
@@ -1251,7 +1592,7 @@ type ColorShare struct {
 
 func (x *ColorShare) Reset() {
 	*x = ColorShare{}
-	mi := &file_pile_v1_pile_proto_msgTypes[10]
+	mi := &file_pile_v1_pile_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1263,7 +1604,7 @@ func (x *ColorShare) String() string {
 func (*ColorShare) ProtoMessage() {}
 
 func (x *ColorShare) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[10]
+	mi := &file_pile_v1_pile_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1276,7 +1617,7 @@ func (x *ColorShare) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ColorShare.ProtoReflect.Descriptor instead.
 func (*ColorShare) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{10}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ColorShare) GetColor() *Color {
@@ -1303,7 +1644,7 @@ type CategoryShare struct {
 
 func (x *CategoryShare) Reset() {
 	*x = CategoryShare{}
-	mi := &file_pile_v1_pile_proto_msgTypes[11]
+	mi := &file_pile_v1_pile_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1315,7 +1656,7 @@ func (x *CategoryShare) String() string {
 func (*CategoryShare) ProtoMessage() {}
 
 func (x *CategoryShare) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[11]
+	mi := &file_pile_v1_pile_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1328,7 +1669,7 @@ func (x *CategoryShare) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CategoryShare.ProtoReflect.Descriptor instead.
 func (*CategoryShare) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{11}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CategoryShare) GetName() string {
@@ -1353,7 +1694,7 @@ type ListLotsRequest struct {
 
 func (x *ListLotsRequest) Reset() {
 	*x = ListLotsRequest{}
-	mi := &file_pile_v1_pile_proto_msgTypes[12]
+	mi := &file_pile_v1_pile_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1365,7 +1706,7 @@ func (x *ListLotsRequest) String() string {
 func (*ListLotsRequest) ProtoMessage() {}
 
 func (x *ListLotsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[12]
+	mi := &file_pile_v1_pile_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1378,7 +1719,7 @@ func (x *ListLotsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLotsRequest.ProtoReflect.Descriptor instead.
 func (*ListLotsRequest) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{12}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{17}
 }
 
 type ListLotsResponse struct {
@@ -1397,7 +1738,7 @@ type ListLotsResponse struct {
 
 func (x *ListLotsResponse) Reset() {
 	*x = ListLotsResponse{}
-	mi := &file_pile_v1_pile_proto_msgTypes[13]
+	mi := &file_pile_v1_pile_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1409,7 +1750,7 @@ func (x *ListLotsResponse) String() string {
 func (*ListLotsResponse) ProtoMessage() {}
 
 func (x *ListLotsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[13]
+	mi := &file_pile_v1_pile_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1422,7 +1763,7 @@ func (x *ListLotsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLotsResponse.ProtoReflect.Descriptor instead.
 func (*ListLotsResponse) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{13}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ListLotsResponse) GetLots() []*Lot {
@@ -1534,7 +1875,7 @@ type SetMatch struct {
 
 func (x *SetMatch) Reset() {
 	*x = SetMatch{}
-	mi := &file_pile_v1_pile_proto_msgTypes[14]
+	mi := &file_pile_v1_pile_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1546,7 +1887,7 @@ func (x *SetMatch) String() string {
 func (*SetMatch) ProtoMessage() {}
 
 func (x *SetMatch) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[14]
+	mi := &file_pile_v1_pile_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1559,7 +1900,7 @@ func (x *SetMatch) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMatch.ProtoReflect.Descriptor instead.
 func (*SetMatch) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{14}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *SetMatch) GetSetNum() string {
@@ -1818,7 +2159,7 @@ type Section struct {
 
 func (x *Section) Reset() {
 	*x = Section{}
-	mi := &file_pile_v1_pile_proto_msgTypes[15]
+	mi := &file_pile_v1_pile_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1830,7 +2171,7 @@ func (x *Section) String() string {
 func (*Section) ProtoMessage() {}
 
 func (x *Section) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[15]
+	mi := &file_pile_v1_pile_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1843,7 +2184,7 @@ func (x *Section) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Section.ProtoReflect.Descriptor instead.
 func (*Section) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{15}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *Section) GetSets() []*SetMatch {
@@ -1869,7 +2210,7 @@ type GetOverviewRequest struct {
 
 func (x *GetOverviewRequest) Reset() {
 	*x = GetOverviewRequest{}
-	mi := &file_pile_v1_pile_proto_msgTypes[16]
+	mi := &file_pile_v1_pile_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1881,7 +2222,7 @@ func (x *GetOverviewRequest) String() string {
 func (*GetOverviewRequest) ProtoMessage() {}
 
 func (x *GetOverviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[16]
+	mi := &file_pile_v1_pile_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1894,7 +2235,7 @@ func (x *GetOverviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOverviewRequest.ProtoReflect.Descriptor instead.
 func (*GetOverviewRequest) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{16}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetOverviewRequest) GetView() *View {
@@ -1916,7 +2257,7 @@ type QueuedSet struct {
 
 func (x *QueuedSet) Reset() {
 	*x = QueuedSet{}
-	mi := &file_pile_v1_pile_proto_msgTypes[17]
+	mi := &file_pile_v1_pile_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1928,7 +2269,7 @@ func (x *QueuedSet) String() string {
 func (*QueuedSet) ProtoMessage() {}
 
 func (x *QueuedSet) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[17]
+	mi := &file_pile_v1_pile_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1941,7 +2282,7 @@ func (x *QueuedSet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueuedSet.ProtoReflect.Descriptor instead.
 func (*QueuedSet) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{17}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *QueuedSet) GetSet() *SetMatch {
@@ -2004,7 +2345,7 @@ type GetOverviewResponse struct {
 
 func (x *GetOverviewResponse) Reset() {
 	*x = GetOverviewResponse{}
-	mi := &file_pile_v1_pile_proto_msgTypes[18]
+	mi := &file_pile_v1_pile_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2016,7 +2357,7 @@ func (x *GetOverviewResponse) String() string {
 func (*GetOverviewResponse) ProtoMessage() {}
 
 func (x *GetOverviewResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[18]
+	mi := &file_pile_v1_pile_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2029,7 +2370,7 @@ func (x *GetOverviewResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOverviewResponse.ProtoReflect.Descriptor instead.
 func (*GetOverviewResponse) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{18}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetOverviewResponse) GetLots() []*Lot {
@@ -2155,7 +2496,7 @@ type CollectionSection struct {
 
 func (x *CollectionSection) Reset() {
 	*x = CollectionSection{}
-	mi := &file_pile_v1_pile_proto_msgTypes[19]
+	mi := &file_pile_v1_pile_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2167,7 +2508,7 @@ func (x *CollectionSection) String() string {
 func (*CollectionSection) ProtoMessage() {}
 
 func (x *CollectionSection) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[19]
+	mi := &file_pile_v1_pile_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2180,7 +2521,7 @@ func (x *CollectionSection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CollectionSection.ProtoReflect.Descriptor instead.
 func (*CollectionSection) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{19}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CollectionSection) GetName() string {
@@ -2214,7 +2555,7 @@ type ListSetsRequest struct {
 
 func (x *ListSetsRequest) Reset() {
 	*x = ListSetsRequest{}
-	mi := &file_pile_v1_pile_proto_msgTypes[20]
+	mi := &file_pile_v1_pile_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2226,7 +2567,7 @@ func (x *ListSetsRequest) String() string {
 func (*ListSetsRequest) ProtoMessage() {}
 
 func (x *ListSetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[20]
+	mi := &file_pile_v1_pile_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2239,7 +2580,7 @@ func (x *ListSetsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSetsRequest.ProtoReflect.Descriptor instead.
 func (*ListSetsRequest) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{20}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListSetsRequest) GetView() *View {
@@ -2266,7 +2607,7 @@ type ThemeCount struct {
 
 func (x *ThemeCount) Reset() {
 	*x = ThemeCount{}
-	mi := &file_pile_v1_pile_proto_msgTypes[21]
+	mi := &file_pile_v1_pile_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2278,7 +2619,7 @@ func (x *ThemeCount) String() string {
 func (*ThemeCount) ProtoMessage() {}
 
 func (x *ThemeCount) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[21]
+	mi := &file_pile_v1_pile_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2291,7 +2632,7 @@ func (x *ThemeCount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ThemeCount.ProtoReflect.Descriptor instead.
 func (*ThemeCount) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{21}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ThemeCount) GetName() string {
@@ -2320,7 +2661,7 @@ type ListSetsResponse struct {
 
 func (x *ListSetsResponse) Reset() {
 	*x = ListSetsResponse{}
-	mi := &file_pile_v1_pile_proto_msgTypes[22]
+	mi := &file_pile_v1_pile_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2332,7 +2673,7 @@ func (x *ListSetsResponse) String() string {
 func (*ListSetsResponse) ProtoMessage() {}
 
 func (x *ListSetsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[22]
+	mi := &file_pile_v1_pile_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2345,7 +2686,7 @@ func (x *ListSetsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSetsResponse.ProtoReflect.Descriptor instead.
 func (*ListSetsResponse) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{22}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListSetsResponse) GetSets() []*SetMatch {
@@ -2372,7 +2713,7 @@ type GetSetRequest struct {
 
 func (x *GetSetRequest) Reset() {
 	*x = GetSetRequest{}
-	mi := &file_pile_v1_pile_proto_msgTypes[23]
+	mi := &file_pile_v1_pile_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2384,7 +2725,7 @@ func (x *GetSetRequest) String() string {
 func (*GetSetRequest) ProtoMessage() {}
 
 func (x *GetSetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[23]
+	mi := &file_pile_v1_pile_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2397,7 +2738,7 @@ func (x *GetSetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSetRequest.ProtoReflect.Descriptor instead.
 func (*GetSetRequest) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{23}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetSetRequest) GetView() *View {
@@ -2421,30 +2762,40 @@ type SetLine struct {
 	Color   *Color                 `protobuf:"bytes,3,opt,name=color,proto3" json:"color,omitempty"`
 	Need    int32                  `protobuf:"varint,4,opt,name=need,proto3" json:"need,omitempty"`
 	// Pieces of this part (or a mold variant) found for this line, up to `need`:
-	// in its color, or in the other colors it takes (View.colors, its
-	// ColorChoice). Counted or not.
+	// in its color, or in the other colors it takes (View.colors, the set's
+	// ColorTake), or made from other parts (the set's PartSwap). Counted or
+	// not.
 	Found int32 `protobuf:"varint,5,opt,name=found,proto3" json:"found,omitempty"`
 	// Of `found`, the pieces in another color.
 	WrongColor int32     `protobuf:"varint,6,opt,name=wrong_color,json=wrongColor,proto3" json:"wrong_color,omitempty"`
 	ImageUrl   string    `protobuf:"bytes,7,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
 	Class      PartClass `protobuf:"varint,8,opt,name=class,proto3,enum=pile.v1.PartClass" json:"class,omitempty"`
-	// The lots `found` is drawn from, in the view's order.
+	// The lots the pieces `found` takes are drawn from, in the view's order
+	// (other parts' pieces included).
 	Lots []*LotCount `protobuf:"bytes,9,rep,name=lots,proto3" json:"lots,omitempty"`
-	// Whether the view counts it toward the set's completeness.
+	// Whether it counts toward the set's completeness: as the view counts
+	// its class, or as the set's change says.
 	Counted bool `protobuf:"varint,10,opt,name=counted,proto3" json:"counted,omitempty"`
-	// The view's choice for it (ColorChoice): the color it takes instead of
-	// its own, or any color.
-	UseColor *Color `protobuf:"bytes,11,opt,name=use_color,json=useColor,proto3" json:"use_color,omitempty"`
-	AnyColor bool   `protobuf:"varint,12,opt,name=any_color,json=anyColor,proto3" json:"any_color,omitempty"`
+	// The colors it takes instead of its own (its ColorTake, or its color's):
+	// one, or several to mix; or any color.
+	UseColors []*Color `protobuf:"bytes,14,rep,name=use_colors,json=useColors,proto3" json:"use_colors,omitempty"`
+	AnyColor  bool     `protobuf:"varint,12,opt,name=any_color,json=anyColor,proto3" json:"any_color,omitempty"`
 	// Its part in every color the lots have, most first.
-	PartColors    []*ColorCount `protobuf:"bytes,13,rep,name=part_colors,json=partColors,proto3" json:"part_colors,omitempty"`
+	PartColors []*ColorCount `protobuf:"bytes,13,rep,name=part_colors,json=partColors,proto3" json:"part_colors,omitempty"`
+	// Of `found`, how many are made from other parts (its PartSwap), and the
+	// pieces of those parts they take.
+	Made     int32        `protobuf:"varint,15,opt,name=made,proto3" json:"made,omitempty"`
+	MadeFrom []*PartCount `protobuf:"bytes,16,rep,name=made_from,json=madeFrom,proto3" json:"made_from,omitempty"`
+	// A plate, tile or brick of whole studs, which smaller ones of its kind
+	// can cover.
+	HasFootprint  bool `protobuf:"varint,17,opt,name=has_footprint,json=hasFootprint,proto3" json:"has_footprint,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SetLine) Reset() {
 	*x = SetLine{}
-	mi := &file_pile_v1_pile_proto_msgTypes[24]
+	mi := &file_pile_v1_pile_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2456,7 +2807,7 @@ func (x *SetLine) String() string {
 func (*SetLine) ProtoMessage() {}
 
 func (x *SetLine) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[24]
+	mi := &file_pile_v1_pile_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2469,7 +2820,7 @@ func (x *SetLine) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetLine.ProtoReflect.Descriptor instead.
 func (*SetLine) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{24}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *SetLine) GetPartNum() string {
@@ -2542,9 +2893,9 @@ func (x *SetLine) GetCounted() bool {
 	return false
 }
 
-func (x *SetLine) GetUseColor() *Color {
+func (x *SetLine) GetUseColors() []*Color {
 	if x != nil {
-		return x.UseColor
+		return x.UseColors
 	}
 	return nil
 }
@@ -2563,17 +2914,37 @@ func (x *SetLine) GetPartColors() []*ColorCount {
 	return nil
 }
 
+func (x *SetLine) GetMade() int32 {
+	if x != nil {
+		return x.Made
+	}
+	return 0
+}
+
+func (x *SetLine) GetMadeFrom() []*PartCount {
+	if x != nil {
+		return x.MadeFrom
+	}
+	return nil
+}
+
+func (x *SetLine) GetHasFootprint() bool {
+	if x != nil {
+		return x.HasFootprint
+	}
+	return false
+}
+
 // One of a set's colors, and what could stand in for it.
 type SetColor struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Color *Color                 `protobuf:"bytes,1,opt,name=color,proto3" json:"color,omitempty"`
 	// Its pieces in the set, and of those, found (in the colors the view
 	// takes).
-	Need  int32 `protobuf:"varint,2,opt,name=need,proto3" json:"need,omitempty"`
-	Found int32 `protobuf:"varint,3,opt,name=found,proto3" json:"found,omitempty"`
-	// The view's choice for the color: the color it takes instead, or any.
-	UseColor *Color `protobuf:"bytes,4,opt,name=use_color,json=useColor,proto3" json:"use_color,omitempty"`
-	AnyColor bool   `protobuf:"varint,5,opt,name=any_color,json=anyColor,proto3" json:"any_color,omitempty"`
+	Need      int32    `protobuf:"varint,2,opt,name=need,proto3" json:"need,omitempty"`
+	Found     int32    `protobuf:"varint,3,opt,name=found,proto3" json:"found,omitempty"`
+	UseColors []*Color `protobuf:"bytes,7,rep,name=use_colors,json=useColors,proto3" json:"use_colors,omitempty"`
+	AnyColor  bool     `protobuf:"varint,5,opt,name=any_color,json=anyColor,proto3" json:"any_color,omitempty"`
 	// Other colors, each with how many of this color's pieces the lots have
 	// in it, part by part (each line capped at what it needs): what taking it
 	// instead would find. The most first.
@@ -2584,7 +2955,7 @@ type SetColor struct {
 
 func (x *SetColor) Reset() {
 	*x = SetColor{}
-	mi := &file_pile_v1_pile_proto_msgTypes[25]
+	mi := &file_pile_v1_pile_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2596,7 +2967,7 @@ func (x *SetColor) String() string {
 func (*SetColor) ProtoMessage() {}
 
 func (x *SetColor) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[25]
+	mi := &file_pile_v1_pile_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2609,7 +2980,7 @@ func (x *SetColor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetColor.ProtoReflect.Descriptor instead.
 func (*SetColor) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{25}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *SetColor) GetColor() *Color {
@@ -2633,9 +3004,9 @@ func (x *SetColor) GetFound() int32 {
 	return 0
 }
 
-func (x *SetColor) GetUseColor() *Color {
+func (x *SetColor) GetUseColors() []*Color {
 	if x != nil {
-		return x.UseColor
+		return x.UseColors
 	}
 	return nil
 }
@@ -2666,7 +3037,7 @@ type Minifigure struct {
 
 func (x *Minifigure) Reset() {
 	*x = Minifigure{}
-	mi := &file_pile_v1_pile_proto_msgTypes[26]
+	mi := &file_pile_v1_pile_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2678,7 +3049,7 @@ func (x *Minifigure) String() string {
 func (*Minifigure) ProtoMessage() {}
 
 func (x *Minifigure) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[26]
+	mi := &file_pile_v1_pile_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2691,7 +3062,7 @@ func (x *Minifigure) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Minifigure.ProtoReflect.Descriptor instead.
 func (*Minifigure) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{26}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *Minifigure) GetFigNum() string {
@@ -2746,14 +3117,16 @@ type GetSetResponse struct {
 	SourcePlaced   int32    `protobuf:"varint,9,opt,name=source_placed,json=sourcePlaced,proto3" json:"source_placed,omitempty"`
 	SourceUnplaced []string `protobuf:"bytes,10,rep,name=source_unplaced,json=sourceUnplaced,proto3" json:"source_unplaced,omitempty"`
 	// Its colors, the most pieces first.
-	Colors        []*SetColor `protobuf:"bytes,11,rep,name=colors,proto3" json:"colors,omitempty"`
+	Colors []*SetColor `protobuf:"bytes,11,rep,name=colors,proto3" json:"colors,omitempty"`
+	// Its changes, in the order they were made.
+	Changes       []*Change `protobuf:"bytes,12,rep,name=changes,proto3" json:"changes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetSetResponse) Reset() {
 	*x = GetSetResponse{}
-	mi := &file_pile_v1_pile_proto_msgTypes[27]
+	mi := &file_pile_v1_pile_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2765,7 +3138,7 @@ func (x *GetSetResponse) String() string {
 func (*GetSetResponse) ProtoMessage() {}
 
 func (x *GetSetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[27]
+	mi := &file_pile_v1_pile_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2778,7 +3151,7 @@ func (x *GetSetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSetResponse.ProtoReflect.Descriptor instead.
 func (*GetSetResponse) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{27}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetSetResponse) GetSet() *SetMatch {
@@ -2858,6 +3231,13 @@ func (x *GetSetResponse) GetColors() []*SetColor {
 	return nil
 }
 
+func (x *GetSetResponse) GetChanges() []*Change {
+	if x != nil {
+		return x.Changes
+	}
+	return nil
+}
+
 type ListPartsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Taken together, in a view's order.
@@ -2868,7 +3248,7 @@ type ListPartsRequest struct {
 
 func (x *ListPartsRequest) Reset() {
 	*x = ListPartsRequest{}
-	mi := &file_pile_v1_pile_proto_msgTypes[28]
+	mi := &file_pile_v1_pile_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2880,7 +3260,7 @@ func (x *ListPartsRequest) String() string {
 func (*ListPartsRequest) ProtoMessage() {}
 
 func (x *ListPartsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[28]
+	mi := &file_pile_v1_pile_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2893,7 +3273,7 @@ func (x *ListPartsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPartsRequest.ProtoReflect.Descriptor instead.
 func (*ListPartsRequest) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{28}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ListPartsRequest) GetLots() []string {
@@ -2923,7 +3303,7 @@ type PartCount struct {
 
 func (x *PartCount) Reset() {
 	*x = PartCount{}
-	mi := &file_pile_v1_pile_proto_msgTypes[29]
+	mi := &file_pile_v1_pile_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2935,7 +3315,7 @@ func (x *PartCount) String() string {
 func (*PartCount) ProtoMessage() {}
 
 func (x *PartCount) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[29]
+	mi := &file_pile_v1_pile_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2948,7 +3328,7 @@ func (x *PartCount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PartCount.ProtoReflect.Descriptor instead.
 func (*PartCount) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{29}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *PartCount) GetPartNum() string {
@@ -3027,7 +3407,7 @@ type UnmatchedPart struct {
 
 func (x *UnmatchedPart) Reset() {
 	*x = UnmatchedPart{}
-	mi := &file_pile_v1_pile_proto_msgTypes[30]
+	mi := &file_pile_v1_pile_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3039,7 +3419,7 @@ func (x *UnmatchedPart) String() string {
 func (*UnmatchedPart) ProtoMessage() {}
 
 func (x *UnmatchedPart) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[30]
+	mi := &file_pile_v1_pile_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3052,7 +3432,7 @@ func (x *UnmatchedPart) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnmatchedPart.ProtoReflect.Descriptor instead.
 func (*UnmatchedPart) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{30}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *UnmatchedPart) GetBricklinkId() string {
@@ -3093,7 +3473,7 @@ type ListPartsResponse struct {
 
 func (x *ListPartsResponse) Reset() {
 	*x = ListPartsResponse{}
-	mi := &file_pile_v1_pile_proto_msgTypes[31]
+	mi := &file_pile_v1_pile_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3105,7 +3485,7 @@ func (x *ListPartsResponse) String() string {
 func (*ListPartsResponse) ProtoMessage() {}
 
 func (x *ListPartsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[31]
+	mi := &file_pile_v1_pile_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3118,7 +3498,7 @@ func (x *ListPartsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPartsResponse.ProtoReflect.Descriptor instead.
 func (*ListPartsResponse) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{31}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListPartsResponse) GetParts() []*PartCount {
@@ -3146,7 +3526,7 @@ type GetCollectTimesRequest struct {
 
 func (x *GetCollectTimesRequest) Reset() {
 	*x = GetCollectTimesRequest{}
-	mi := &file_pile_v1_pile_proto_msgTypes[32]
+	mi := &file_pile_v1_pile_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3158,7 +3538,7 @@ func (x *GetCollectTimesRequest) String() string {
 func (*GetCollectTimesRequest) ProtoMessage() {}
 
 func (x *GetCollectTimesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[32]
+	mi := &file_pile_v1_pile_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3171,7 +3551,7 @@ func (x *GetCollectTimesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCollectTimesRequest.ProtoReflect.Descriptor instead.
 func (*GetCollectTimesRequest) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{32}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *GetCollectTimesRequest) GetLotId() string {
@@ -3209,7 +3589,7 @@ type CollectBasis struct {
 
 func (x *CollectBasis) Reset() {
 	*x = CollectBasis{}
-	mi := &file_pile_v1_pile_proto_msgTypes[33]
+	mi := &file_pile_v1_pile_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3221,7 +3601,7 @@ func (x *CollectBasis) String() string {
 func (*CollectBasis) ProtoMessage() {}
 
 func (x *CollectBasis) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[33]
+	mi := &file_pile_v1_pile_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3234,7 +3614,7 @@ func (x *CollectBasis) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CollectBasis.ProtoReflect.Descriptor instead.
 func (*CollectBasis) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{33}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *CollectBasis) GetPieces() int32 {
@@ -3305,7 +3685,7 @@ type SlowPiece struct {
 
 func (x *SlowPiece) Reset() {
 	*x = SlowPiece{}
-	mi := &file_pile_v1_pile_proto_msgTypes[34]
+	mi := &file_pile_v1_pile_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3317,7 +3697,7 @@ func (x *SlowPiece) String() string {
 func (*SlowPiece) ProtoMessage() {}
 
 func (x *SlowPiece) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[34]
+	mi := &file_pile_v1_pile_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3330,7 +3710,7 @@ func (x *SlowPiece) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SlowPiece.ProtoReflect.Descriptor instead.
 func (*SlowPiece) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{34}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *SlowPiece) GetPartNum() string {
@@ -3416,7 +3796,7 @@ type CollectTime struct {
 
 func (x *CollectTime) Reset() {
 	*x = CollectTime{}
-	mi := &file_pile_v1_pile_proto_msgTypes[35]
+	mi := &file_pile_v1_pile_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3428,7 +3808,7 @@ func (x *CollectTime) String() string {
 func (*CollectTime) ProtoMessage() {}
 
 func (x *CollectTime) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[35]
+	mi := &file_pile_v1_pile_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3441,7 +3821,7 @@ func (x *CollectTime) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CollectTime.ProtoReflect.Descriptor instead.
 func (*CollectTime) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{35}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *CollectTime) GetHalf() float64 {
@@ -3581,7 +3961,7 @@ type SetCollectTimes struct {
 
 func (x *SetCollectTimes) Reset() {
 	*x = SetCollectTimes{}
-	mi := &file_pile_v1_pile_proto_msgTypes[36]
+	mi := &file_pile_v1_pile_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3593,7 +3973,7 @@ func (x *SetCollectTimes) String() string {
 func (*SetCollectTimes) ProtoMessage() {}
 
 func (x *SetCollectTimes) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[36]
+	mi := &file_pile_v1_pile_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3606,7 +3986,7 @@ func (x *SetCollectTimes) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetCollectTimes.ProtoReflect.Descriptor instead.
 func (*SetCollectTimes) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{36}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *SetCollectTimes) GetSetNum() string {
@@ -3713,7 +4093,7 @@ type GetCollectTimesResponse struct {
 
 func (x *GetCollectTimesResponse) Reset() {
 	*x = GetCollectTimesResponse{}
-	mi := &file_pile_v1_pile_proto_msgTypes[37]
+	mi := &file_pile_v1_pile_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3725,7 +4105,7 @@ func (x *GetCollectTimesResponse) String() string {
 func (*GetCollectTimesResponse) ProtoMessage() {}
 
 func (x *GetCollectTimesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[37]
+	mi := &file_pile_v1_pile_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3738,7 +4118,7 @@ func (x *GetCollectTimesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCollectTimesResponse.ProtoReflect.Descriptor instead.
 func (*GetCollectTimesResponse) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{37}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *GetCollectTimesResponse) GetBasis() *CollectBasis {
@@ -3783,7 +4163,7 @@ type StorageBin struct {
 
 func (x *StorageBin) Reset() {
 	*x = StorageBin{}
-	mi := &file_pile_v1_pile_proto_msgTypes[38]
+	mi := &file_pile_v1_pile_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3795,7 +4175,7 @@ func (x *StorageBin) String() string {
 func (*StorageBin) ProtoMessage() {}
 
 func (x *StorageBin) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[38]
+	mi := &file_pile_v1_pile_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3808,7 +4188,7 @@ func (x *StorageBin) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageBin.ProtoReflect.Descriptor instead.
 func (*StorageBin) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{38}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *StorageBin) GetAddress() string {
@@ -3854,7 +4234,7 @@ type GetStorageRequest struct {
 
 func (x *GetStorageRequest) Reset() {
 	*x = GetStorageRequest{}
-	mi := &file_pile_v1_pile_proto_msgTypes[39]
+	mi := &file_pile_v1_pile_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3866,7 +4246,7 @@ func (x *GetStorageRequest) String() string {
 func (*GetStorageRequest) ProtoMessage() {}
 
 func (x *GetStorageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[39]
+	mi := &file_pile_v1_pile_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3879,7 +4259,7 @@ func (x *GetStorageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStorageRequest.ProtoReflect.Descriptor instead.
 func (*GetStorageRequest) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{39}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{44}
 }
 
 type GetStorageResponse struct {
@@ -3891,7 +4271,7 @@ type GetStorageResponse struct {
 
 func (x *GetStorageResponse) Reset() {
 	*x = GetStorageResponse{}
-	mi := &file_pile_v1_pile_proto_msgTypes[40]
+	mi := &file_pile_v1_pile_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3903,7 +4283,7 @@ func (x *GetStorageResponse) String() string {
 func (*GetStorageResponse) ProtoMessage() {}
 
 func (x *GetStorageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[40]
+	mi := &file_pile_v1_pile_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3916,7 +4296,7 @@ func (x *GetStorageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStorageResponse.ProtoReflect.Descriptor instead.
 func (*GetStorageResponse) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{40}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *GetStorageResponse) GetBins() []*StorageBin {
@@ -3937,7 +4317,7 @@ type SetStorageRequest struct {
 
 func (x *SetStorageRequest) Reset() {
 	*x = SetStorageRequest{}
-	mi := &file_pile_v1_pile_proto_msgTypes[41]
+	mi := &file_pile_v1_pile_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3949,7 +4329,7 @@ func (x *SetStorageRequest) String() string {
 func (*SetStorageRequest) ProtoMessage() {}
 
 func (x *SetStorageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[41]
+	mi := &file_pile_v1_pile_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3962,7 +4342,7 @@ func (x *SetStorageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStorageRequest.ProtoReflect.Descriptor instead.
 func (*SetStorageRequest) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{41}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *SetStorageRequest) GetBins() []*StorageBin {
@@ -3981,7 +4361,7 @@ type SetStorageResponse struct {
 
 func (x *SetStorageResponse) Reset() {
 	*x = SetStorageResponse{}
-	mi := &file_pile_v1_pile_proto_msgTypes[42]
+	mi := &file_pile_v1_pile_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3993,7 +4373,7 @@ func (x *SetStorageResponse) String() string {
 func (*SetStorageResponse) ProtoMessage() {}
 
 func (x *SetStorageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[42]
+	mi := &file_pile_v1_pile_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4006,7 +4386,7 @@ func (x *SetStorageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStorageResponse.ProtoReflect.Descriptor instead.
 func (*SetStorageResponse) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{42}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *SetStorageResponse) GetBins() []*StorageBin {
@@ -4038,7 +4418,7 @@ type FindPiecesRequest struct {
 
 func (x *FindPiecesRequest) Reset() {
 	*x = FindPiecesRequest{}
-	mi := &file_pile_v1_pile_proto_msgTypes[43]
+	mi := &file_pile_v1_pile_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4050,7 +4430,7 @@ func (x *FindPiecesRequest) String() string {
 func (*FindPiecesRequest) ProtoMessage() {}
 
 func (x *FindPiecesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[43]
+	mi := &file_pile_v1_pile_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4063,7 +4443,7 @@ func (x *FindPiecesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FindPiecesRequest.ProtoReflect.Descriptor instead.
 func (*FindPiecesRequest) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{43}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *FindPiecesRequest) GetQuery() string {
@@ -4121,7 +4501,7 @@ type BinCount struct {
 
 func (x *BinCount) Reset() {
 	*x = BinCount{}
-	mi := &file_pile_v1_pile_proto_msgTypes[44]
+	mi := &file_pile_v1_pile_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4133,7 +4513,7 @@ func (x *BinCount) String() string {
 func (*BinCount) ProtoMessage() {}
 
 func (x *BinCount) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[44]
+	mi := &file_pile_v1_pile_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4146,7 +4526,7 @@ func (x *BinCount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BinCount.ProtoReflect.Descriptor instead.
 func (*BinCount) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{44}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *BinCount) GetAddress() string {
@@ -4196,7 +4576,7 @@ type StoredPart struct {
 
 func (x *StoredPart) Reset() {
 	*x = StoredPart{}
-	mi := &file_pile_v1_pile_proto_msgTypes[45]
+	mi := &file_pile_v1_pile_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4208,7 +4588,7 @@ func (x *StoredPart) String() string {
 func (*StoredPart) ProtoMessage() {}
 
 func (x *StoredPart) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[45]
+	mi := &file_pile_v1_pile_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4221,7 +4601,7 @@ func (x *StoredPart) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StoredPart.ProtoReflect.Descriptor instead.
 func (*StoredPart) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{45}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *StoredPart) GetPartNum() string {
@@ -4296,7 +4676,7 @@ type FilterOption struct {
 
 func (x *FilterOption) Reset() {
 	*x = FilterOption{}
-	mi := &file_pile_v1_pile_proto_msgTypes[46]
+	mi := &file_pile_v1_pile_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4308,7 +4688,7 @@ func (x *FilterOption) String() string {
 func (*FilterOption) ProtoMessage() {}
 
 func (x *FilterOption) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[46]
+	mi := &file_pile_v1_pile_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4321,7 +4701,7 @@ func (x *FilterOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FilterOption.ProtoReflect.Descriptor instead.
 func (*FilterOption) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{46}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *FilterOption) GetValue() string {
@@ -4372,7 +4752,7 @@ type FindPiecesResponse struct {
 
 func (x *FindPiecesResponse) Reset() {
 	*x = FindPiecesResponse{}
-	mi := &file_pile_v1_pile_proto_msgTypes[47]
+	mi := &file_pile_v1_pile_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4384,7 +4764,7 @@ func (x *FindPiecesResponse) String() string {
 func (*FindPiecesResponse) ProtoMessage() {}
 
 func (x *FindPiecesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[47]
+	mi := &file_pile_v1_pile_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4397,7 +4777,7 @@ func (x *FindPiecesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FindPiecesResponse.ProtoReflect.Descriptor instead.
 func (*FindPiecesResponse) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{47}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *FindPiecesResponse) GetParts() []*StoredPart {
@@ -4464,7 +4844,7 @@ type ListStarsRequest struct {
 
 func (x *ListStarsRequest) Reset() {
 	*x = ListStarsRequest{}
-	mi := &file_pile_v1_pile_proto_msgTypes[48]
+	mi := &file_pile_v1_pile_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4476,7 +4856,7 @@ func (x *ListStarsRequest) String() string {
 func (*ListStarsRequest) ProtoMessage() {}
 
 func (x *ListStarsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[48]
+	mi := &file_pile_v1_pile_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4489,7 +4869,7 @@ func (x *ListStarsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStarsRequest.ProtoReflect.Descriptor instead.
 func (*ListStarsRequest) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{48}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{53}
 }
 
 type ListStarsResponse struct {
@@ -4502,7 +4882,7 @@ type ListStarsResponse struct {
 
 func (x *ListStarsResponse) Reset() {
 	*x = ListStarsResponse{}
-	mi := &file_pile_v1_pile_proto_msgTypes[49]
+	mi := &file_pile_v1_pile_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4514,7 +4894,7 @@ func (x *ListStarsResponse) String() string {
 func (*ListStarsResponse) ProtoMessage() {}
 
 func (x *ListStarsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[49]
+	mi := &file_pile_v1_pile_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4527,7 +4907,7 @@ func (x *ListStarsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStarsResponse.ProtoReflect.Descriptor instead.
 func (*ListStarsResponse) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{49}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *ListStarsResponse) GetSetNums() []string {
@@ -4547,7 +4927,7 @@ type SetStarRequest struct {
 
 func (x *SetStarRequest) Reset() {
 	*x = SetStarRequest{}
-	mi := &file_pile_v1_pile_proto_msgTypes[50]
+	mi := &file_pile_v1_pile_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4559,7 +4939,7 @@ func (x *SetStarRequest) String() string {
 func (*SetStarRequest) ProtoMessage() {}
 
 func (x *SetStarRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[50]
+	mi := &file_pile_v1_pile_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4572,7 +4952,7 @@ func (x *SetStarRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStarRequest.ProtoReflect.Descriptor instead.
 func (*SetStarRequest) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{50}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *SetStarRequest) GetSetNum() string {
@@ -4599,7 +4979,7 @@ type SetStarResponse struct {
 
 func (x *SetStarResponse) Reset() {
 	*x = SetStarResponse{}
-	mi := &file_pile_v1_pile_proto_msgTypes[51]
+	mi := &file_pile_v1_pile_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4611,7 +4991,7 @@ func (x *SetStarResponse) String() string {
 func (*SetStarResponse) ProtoMessage() {}
 
 func (x *SetStarResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pile_v1_pile_proto_msgTypes[51]
+	mi := &file_pile_v1_pile_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4624,7 +5004,7 @@ func (x *SetStarResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStarResponse.ProtoReflect.Descriptor instead.
 func (*SetStarResponse) Descriptor() ([]byte, []int) {
-	return file_pile_v1_pile_proto_rawDescGZIP(), []int{51}
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *SetStarResponse) GetSetNums() []string {
@@ -4634,25 +5014,863 @@ func (x *SetStarResponse) GetSetNums() []string {
 	return nil
 }
 
+type FindSetsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Words that each start a word of its name or number, or a build's set's,
+	// in any order.
+	Query string `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	// At most this many; 0 for 20.
+	Limit         int32 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FindSetsRequest) Reset() {
+	*x = FindSetsRequest{}
+	mi := &file_pile_v1_pile_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FindSetsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FindSetsRequest) ProtoMessage() {}
+
+func (x *FindSetsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FindSetsRequest.ProtoReflect.Descriptor instead.
+func (*FindSetsRequest) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *FindSetsRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *FindSetsRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+// A set, custom model or build within a set, as a search finds it.
+type FoundSet struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	SetNum   string                 `protobuf:"bytes,1,opt,name=set_num,json=setNum,proto3" json:"set_num,omitempty"`
+	Name     string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Kind     Kind                   `protobuf:"varint,3,opt,name=kind,proto3,enum=pile.v1.Kind" json:"kind,omitempty"`
+	Year     int32                  `protobuf:"varint,4,opt,name=year,proto3" json:"year,omitempty"`
+	Theme    string                 `protobuf:"bytes,5,opt,name=theme,proto3" json:"theme,omitempty"`
+	ImageUrl string                 `protobuf:"bytes,6,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	// A build's set.
+	OfSetNum string `protobuf:"bytes,7,opt,name=of_set_num,json=ofSetNum,proto3" json:"of_set_num,omitempty"`
+	OfName   string `protobuf:"bytes,8,opt,name=of_name,json=ofName,proto3" json:"of_name,omitempty"`
+	// A custom model's designer, and its collection.
+	Designer   string `protobuf:"bytes,9,opt,name=designer,proto3" json:"designer,omitempty"`
+	Collection string `protobuf:"bytes,10,opt,name=collection,proto3" json:"collection,omitempty"`
+	// Its pieces, counting what a view counts by default.
+	Pieces        int32 `protobuf:"varint,11,opt,name=pieces,proto3" json:"pieces,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FoundSet) Reset() {
+	*x = FoundSet{}
+	mi := &file_pile_v1_pile_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FoundSet) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FoundSet) ProtoMessage() {}
+
+func (x *FoundSet) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FoundSet.ProtoReflect.Descriptor instead.
+func (*FoundSet) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *FoundSet) GetSetNum() string {
+	if x != nil {
+		return x.SetNum
+	}
+	return ""
+}
+
+func (x *FoundSet) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *FoundSet) GetKind() Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return Kind_KIND_UNSPECIFIED
+}
+
+func (x *FoundSet) GetYear() int32 {
+	if x != nil {
+		return x.Year
+	}
+	return 0
+}
+
+func (x *FoundSet) GetTheme() string {
+	if x != nil {
+		return x.Theme
+	}
+	return ""
+}
+
+func (x *FoundSet) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
+	}
+	return ""
+}
+
+func (x *FoundSet) GetOfSetNum() string {
+	if x != nil {
+		return x.OfSetNum
+	}
+	return ""
+}
+
+func (x *FoundSet) GetOfName() string {
+	if x != nil {
+		return x.OfName
+	}
+	return ""
+}
+
+func (x *FoundSet) GetDesigner() string {
+	if x != nil {
+		return x.Designer
+	}
+	return ""
+}
+
+func (x *FoundSet) GetCollection() string {
+	if x != nil {
+		return x.Collection
+	}
+	return ""
+}
+
+func (x *FoundSet) GetPieces() int32 {
+	if x != nil {
+		return x.Pieces
+	}
+	return 0
+}
+
+type FindSetsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Its number first, then whole words before beginnings of words; sets
+	// LEGO sold, then builds, then custom models; the biggest first.
+	Sets          []*FoundSet `protobuf:"bytes,1,rep,name=sets,proto3" json:"sets,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FindSetsResponse) Reset() {
+	*x = FindSetsResponse{}
+	mi := &file_pile_v1_pile_proto_msgTypes[59]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FindSetsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FindSetsResponse) ProtoMessage() {}
+
+func (x *FindSetsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[59]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FindSetsResponse.ProtoReflect.Descriptor instead.
+func (*FindSetsResponse) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{59}
+}
+
+func (x *FindSetsResponse) GetSets() []*FoundSet {
+	if x != nil {
+		return x.Sets
+	}
+	return nil
+}
+
+type FindPartsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Words that each start a word of the part's name or number.
+	Query string `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	// The lots whose pieces are counted, taken together.
+	Lots []string `protobuf:"bytes,2,rep,name=lots,proto3" json:"lots,omitempty"`
+	// Count only these colors; none for every color.
+	Colors []int32 `protobuf:"varint,3,rep,packed,name=colors,proto3" json:"colors,omitempty"`
+	// At most this many; 0 for 30.
+	Limit         int32 `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FindPartsRequest) Reset() {
+	*x = FindPartsRequest{}
+	mi := &file_pile_v1_pile_proto_msgTypes[60]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FindPartsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FindPartsRequest) ProtoMessage() {}
+
+func (x *FindPartsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[60]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FindPartsRequest.ProtoReflect.Descriptor instead.
+func (*FindPartsRequest) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{60}
+}
+
+func (x *FindPartsRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *FindPartsRequest) GetLots() []string {
+	if x != nil {
+		return x.Lots
+	}
+	return nil
+}
+
+func (x *FindPartsRequest) GetColors() []int32 {
+	if x != nil {
+		return x.Colors
+	}
+	return nil
+}
+
+func (x *FindPartsRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type FindPartsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Its number first, then whole words; the most pieces first. Each
+	// PartCount has no color: `count` is in the colors asked for.
+	Parts         []*PartCount `protobuf:"bytes,1,rep,name=parts,proto3" json:"parts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FindPartsResponse) Reset() {
+	*x = FindPartsResponse{}
+	mi := &file_pile_v1_pile_proto_msgTypes[61]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FindPartsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FindPartsResponse) ProtoMessage() {}
+
+func (x *FindPartsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[61]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FindPartsResponse.ProtoReflect.Descriptor instead.
+func (*FindPartsResponse) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{61}
+}
+
+func (x *FindPartsResponse) GetParts() []*PartCount {
+	if x != nil {
+		return x.Parts
+	}
+	return nil
+}
+
+type GetStandInsRequest struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	View   *View                  `protobuf:"bytes,1,opt,name=view,proto3" json:"view,omitempty"`
+	SetNum string                 `protobuf:"bytes,2,opt,name=set_num,json=setNum,proto3" json:"set_num,omitempty"`
+	// The line, as the set has it.
+	PartNum       string `protobuf:"bytes,3,opt,name=part_num,json=partNum,proto3" json:"part_num,omitempty"`
+	Color         int32  `protobuf:"varint,4,opt,name=color,proto3" json:"color,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStandInsRequest) Reset() {
+	*x = GetStandInsRequest{}
+	mi := &file_pile_v1_pile_proto_msgTypes[62]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStandInsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStandInsRequest) ProtoMessage() {}
+
+func (x *GetStandInsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[62]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStandInsRequest.ProtoReflect.Descriptor instead.
+func (*GetStandInsRequest) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{62}
+}
+
+func (x *GetStandInsRequest) GetView() *View {
+	if x != nil {
+		return x.View
+	}
+	return nil
+}
+
+func (x *GetStandInsRequest) GetSetNum() string {
+	if x != nil {
+		return x.SetNum
+	}
+	return ""
+}
+
+func (x *GetStandInsRequest) GetPartNum() string {
+	if x != nil {
+		return x.PartNum
+	}
+	return ""
+}
+
+func (x *GetStandInsRequest) GetColor() int32 {
+	if x != nil {
+		return x.Color
+	}
+	return 0
+}
+
+// A part of a stand-in: how many of it make one, and how many pieces of it
+// the lots have.
+type StandInPart struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PartNum       string                 `protobuf:"bytes,1,opt,name=part_num,json=partNum,proto3" json:"part_num,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	ImageUrl      string                 `protobuf:"bytes,3,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	Quantity      int32                  `protobuf:"varint,4,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	Pieces        int32                  `protobuf:"varint,5,opt,name=pieces,proto3" json:"pieces,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StandInPart) Reset() {
+	*x = StandInPart{}
+	mi := &file_pile_v1_pile_proto_msgTypes[63]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StandInPart) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StandInPart) ProtoMessage() {}
+
+func (x *StandInPart) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[63]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StandInPart.ProtoReflect.Descriptor instead.
+func (*StandInPart) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{63}
+}
+
+func (x *StandInPart) GetPartNum() string {
+	if x != nil {
+		return x.PartNum
+	}
+	return ""
+}
+
+func (x *StandInPart) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *StandInPart) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
+	}
+	return ""
+}
+
+func (x *StandInPart) GetQuantity() int32 {
+	if x != nil {
+		return x.Quantity
+	}
+	return 0
+}
+
+func (x *StandInPart) GetPieces() int32 {
+	if x != nil {
+		return x.Pieces
+	}
+	return 0
+}
+
+// One way to make one of a line's part, and how many the lots could make.
+type StandInOption struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	StandIn *StandIn               `protobuf:"bytes,1,opt,name=stand_in,json=standIn,proto3" json:"stand_in,omitempty"`
+	Source  StandInSource          `protobuf:"varint,2,opt,name=source,proto3,enum=pile.v1.StandInSource" json:"source,omitempty"`
+	// Its parts (none for any that fit), each with how many pieces the lots
+	// have in the colors the line takes, of what the sets before it in the
+	// queue and the set itself leave (the set without this line's
+	// stand-ins).
+	Parts []*StandInPart `protobuf:"bytes,3,rep,name=parts,proto3" json:"parts,omitempty"`
+	// How many of the line's part (up to what it needs) the lots could make
+	// from it, of the same.
+	Makes int32 `protobuf:"varint,4,opt,name=makes,proto3" json:"makes,omitempty"`
+	// The line takes it (its PartSwap has it).
+	Chosen        bool `protobuf:"varint,5,opt,name=chosen,proto3" json:"chosen,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StandInOption) Reset() {
+	*x = StandInOption{}
+	mi := &file_pile_v1_pile_proto_msgTypes[64]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StandInOption) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StandInOption) ProtoMessage() {}
+
+func (x *StandInOption) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[64]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StandInOption.ProtoReflect.Descriptor instead.
+func (*StandInOption) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{64}
+}
+
+func (x *StandInOption) GetStandIn() *StandIn {
+	if x != nil {
+		return x.StandIn
+	}
+	return nil
+}
+
+func (x *StandInOption) GetSource() StandInSource {
+	if x != nil {
+		return x.Source
+	}
+	return StandInSource_STAND_IN_SOURCE_UNSPECIFIED
+}
+
+func (x *StandInOption) GetParts() []*StandInPart {
+	if x != nil {
+		return x.Parts
+	}
+	return nil
+}
+
+func (x *StandInOption) GetMakes() int32 {
+	if x != nil {
+		return x.Makes
+	}
+	return 0
+}
+
+func (x *StandInOption) GetChosen() bool {
+	if x != nil {
+		return x.Chosen
+	}
+	return false
+}
+
+type GetStandInsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Any combination of smaller plates, tiles or bricks of its kind and
+	// height that covers its footprint, when it is a plain one.
+	Fits *StandInOption `protobuf:"bytes,1,opt,name=fits,proto3" json:"fits,omitempty"`
+	// Every other way: those chosen first, in the line's order, then the
+	// most it could make first, and the fewest pieces; those the lots could
+	// make none of are left out but for those chosen.
+	Options       []*StandInOption `protobuf:"bytes,2,rep,name=options,proto3" json:"options,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStandInsResponse) Reset() {
+	*x = GetStandInsResponse{}
+	mi := &file_pile_v1_pile_proto_msgTypes[65]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStandInsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStandInsResponse) ProtoMessage() {}
+
+func (x *GetStandInsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[65]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStandInsResponse.ProtoReflect.Descriptor instead.
+func (*GetStandInsResponse) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{65}
+}
+
+func (x *GetStandInsResponse) GetFits() *StandInOption {
+	if x != nil {
+		return x.Fits
+	}
+	return nil
+}
+
+func (x *GetStandInsResponse) GetOptions() []*StandInOption {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
+type ListChangesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListChangesRequest) Reset() {
+	*x = ListChangesRequest{}
+	mi := &file_pile_v1_pile_proto_msgTypes[66]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListChangesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListChangesRequest) ProtoMessage() {}
+
+func (x *ListChangesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[66]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListChangesRequest.ProtoReflect.Descriptor instead.
+func (*ListChangesRequest) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{66}
+}
+
+type ListChangesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Every set with a change, by set number.
+	Sets          []*SetChanges `protobuf:"bytes,1,rep,name=sets,proto3" json:"sets,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListChangesResponse) Reset() {
+	*x = ListChangesResponse{}
+	mi := &file_pile_v1_pile_proto_msgTypes[67]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListChangesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListChangesResponse) ProtoMessage() {}
+
+func (x *ListChangesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[67]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListChangesResponse.ProtoReflect.Descriptor instead.
+func (*ListChangesResponse) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{67}
+}
+
+func (x *ListChangesResponse) GetSets() []*SetChanges {
+	if x != nil {
+		return x.Sets
+	}
+	return nil
+}
+
+type SetChangeRequest struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	SetNum string                 `protobuf:"bytes,1,opt,name=set_num,json=setNum,proto3" json:"set_num,omitempty"`
+	// Replaces the set's change of the same line and kind, if any.
+	Change *Change `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	// Takes back the set's change of that line and kind instead.
+	Undo          bool `protobuf:"varint,3,opt,name=undo,proto3" json:"undo,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetChangeRequest) Reset() {
+	*x = SetChangeRequest{}
+	mi := &file_pile_v1_pile_proto_msgTypes[68]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetChangeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetChangeRequest) ProtoMessage() {}
+
+func (x *SetChangeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[68]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetChangeRequest.ProtoReflect.Descriptor instead.
+func (*SetChangeRequest) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{68}
+}
+
+func (x *SetChangeRequest) GetSetNum() string {
+	if x != nil {
+		return x.SetNum
+	}
+	return ""
+}
+
+func (x *SetChangeRequest) GetChange() *Change {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *SetChangeRequest) GetUndo() bool {
+	if x != nil {
+		return x.Undo
+	}
+	return false
+}
+
+type SetChangeResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The set's changes after it.
+	Set           *SetChanges `protobuf:"bytes,1,opt,name=set,proto3" json:"set,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetChangeResponse) Reset() {
+	*x = SetChangeResponse{}
+	mi := &file_pile_v1_pile_proto_msgTypes[69]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetChangeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetChangeResponse) ProtoMessage() {}
+
+func (x *SetChangeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pile_v1_pile_proto_msgTypes[69]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetChangeResponse.ProtoReflect.Descriptor instead.
+func (*SetChangeResponse) Descriptor() ([]byte, []int) {
+	return file_pile_v1_pile_proto_rawDescGZIP(), []int{69}
+}
+
+func (x *SetChangeResponse) GetSet() *SetChanges {
+	if x != nil {
+		return x.Set
+	}
+	return nil
+}
+
 var File_pile_v1_pile_proto protoreflect.FileDescriptor
 
 const file_pile_v1_pile_proto_rawDesc = "" +
 	"\n" +
-	"\x12pile/v1/pile.proto\x12\apile.v1\"\x86\x02\n" +
+	"\x12pile/v1/pile.proto\x12\apile.v1\"\xe0\x01\n" +
 	"\x04View\x12\x12\n" +
 	"\x04lots\x18\x01 \x03(\tR\x04lots\x12\x19\n" +
 	"\bsort_out\x18\x03 \x03(\tR\asortOut\x12'\n" +
 	"\x06filter\x18\x04 \x01(\v2\x0f.pile.v1.FilterR\x06filter\x12-\n" +
 	"\bcounting\x18\x05 \x01(\v2\x11.pile.v1.CountingR\bcounting\x12+\n" +
-	"\x06colors\x18\x06 \x01(\x0e2\x13.pile.v1.ColorMatchR\x06colors\x129\n" +
-	"\rcolor_choices\x18\a \x03(\v2\x14.pile.v1.ColorChoiceR\fcolorChoicesJ\x04\b\x02\x10\x03R\tany_color\"\x9d\x01\n" +
-	"\vColorChoice\x12\x17\n" +
-	"\aset_num\x18\x01 \x01(\tR\x06setNum\x12\x14\n" +
-	"\x05color\x18\x02 \x01(\x05R\x05color\x12\x19\n" +
-	"\bpart_num\x18\x03 \x01(\tR\apartNum\x12\x1d\n" +
-	"\tuse_color\x18\x04 \x01(\x05H\x00R\buseColor\x12\x1d\n" +
-	"\tany_color\x18\x05 \x01(\bH\x00R\banyColorB\x06\n" +
-	"\x04take\"J\n" +
+	"\x06colors\x18\x06 \x01(\x0e2\x13.pile.v1.ColorMatchR\x06colorsJ\x04\b\x02\x10\x03J\x04\b\a\x10\bR\tany_colorR\rcolor_choices\"\xc8\x01\n" +
+	"\x06Change\x12\x19\n" +
+	"\bpart_num\x18\x01 \x01(\tR\apartNum\x12\x14\n" +
+	"\x05color\x18\x02 \x01(\x05R\x05color\x12,\n" +
+	"\x06colors\x18\x03 \x01(\v2\x12.pile.v1.ColorTakeH\x00R\x06colors\x12'\n" +
+	"\x04swap\x18\x04 \x01(\v2\x11.pile.v1.PartSwapH\x00R\x04swap\x12\x1a\n" +
+	"\acounted\x18\x05 \x01(\bH\x00R\acounted\x12\x12\n" +
+	"\x04text\x18\x06 \x01(\tR\x04textB\x06\n" +
+	"\x04what\"5\n" +
+	"\tColorTake\x12\x16\n" +
+	"\x06colors\x18\x01 \x03(\x05R\x06colors\x12\x10\n" +
+	"\x03any\x18\x02 \x01(\bR\x03any\"9\n" +
+	"\bPartSwap\x12-\n" +
+	"\tstand_ins\x18\x01 \x03(\v2\x10.pile.v1.StandInR\bstandIns\"J\n" +
+	"\aStandIn\x12+\n" +
+	"\x05parts\x18\x01 \x03(\v2\x15.pile.v1.PartQuantityR\x05parts\x12\x12\n" +
+	"\x04fits\x18\x02 \x01(\bR\x04fits\"E\n" +
+	"\fPartQuantity\x12\x19\n" +
+	"\bpart_num\x18\x01 \x01(\tR\apartNum\x12\x1a\n" +
+	"\bquantity\x18\x02 \x01(\x05R\bquantity\"P\n" +
+	"\n" +
+	"SetChanges\x12\x17\n" +
+	"\aset_num\x18\x01 \x01(\tR\x06setNum\x12)\n" +
+	"\achanges\x18\x02 \x03(\v2\x0f.pile.v1.ChangeR\achanges\"J\n" +
 	"\n" +
 	"ColorCount\x12$\n" +
 	"\x05color\x18\x01 \x01(\v2\x0e.pile.v1.ColorR\x05color\x12\x16\n" +
@@ -4806,7 +6024,7 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x06themes\x18\x02 \x03(\v2\x13.pile.v1.ThemeCountR\x06themes\"K\n" +
 	"\rGetSetRequest\x12!\n" +
 	"\x04view\x18\x01 \x01(\v2\r.pile.v1.ViewR\x04view\x12\x17\n" +
-	"\aset_num\x18\x02 \x01(\tR\x06setNum\"\xb1\x03\n" +
+	"\aset_num\x18\x02 \x01(\tR\x06setNum\"\xae\x04\n" +
 	"\aSetLine\x12\x19\n" +
 	"\bpart_num\x18\x01 \x01(\tR\apartNum\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12$\n" +
@@ -4819,24 +6037,29 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x05class\x18\b \x01(\x0e2\x12.pile.v1.PartClassR\x05class\x12%\n" +
 	"\x04lots\x18\t \x03(\v2\x11.pile.v1.LotCountR\x04lots\x12\x18\n" +
 	"\acounted\x18\n" +
-	" \x01(\bR\acounted\x12+\n" +
-	"\tuse_color\x18\v \x01(\v2\x0e.pile.v1.ColorR\buseColor\x12\x1b\n" +
+	" \x01(\bR\acounted\x12-\n" +
+	"\n" +
+	"use_colors\x18\x0e \x03(\v2\x0e.pile.v1.ColorR\tuseColors\x12\x1b\n" +
 	"\tany_color\x18\f \x01(\bR\banyColor\x124\n" +
 	"\vpart_colors\x18\r \x03(\v2\x13.pile.v1.ColorCountR\n" +
-	"partColors\"\xcf\x01\n" +
+	"partColors\x12\x12\n" +
+	"\x04made\x18\x0f \x01(\x05R\x04made\x12/\n" +
+	"\tmade_from\x18\x10 \x03(\v2\x12.pile.v1.PartCountR\bmadeFrom\x12#\n" +
+	"\rhas_footprint\x18\x11 \x01(\bR\fhasFootprintJ\x04\b\v\x10\fR\tuse_color\"\xe2\x01\n" +
 	"\bSetColor\x12$\n" +
 	"\x05color\x18\x01 \x01(\v2\x0e.pile.v1.ColorR\x05color\x12\x12\n" +
 	"\x04need\x18\x02 \x01(\x05R\x04need\x12\x14\n" +
-	"\x05found\x18\x03 \x01(\x05R\x05found\x12+\n" +
-	"\tuse_color\x18\x04 \x01(\v2\x0e.pile.v1.ColorR\buseColor\x12\x1b\n" +
+	"\x05found\x18\x03 \x01(\x05R\x05found\x12-\n" +
+	"\n" +
+	"use_colors\x18\a \x03(\v2\x0e.pile.v1.ColorR\tuseColors\x12\x1b\n" +
 	"\tany_color\x18\x05 \x01(\bR\banyColor\x12)\n" +
-	"\x05swaps\x18\x06 \x03(\v2\x13.pile.v1.ColorCountR\x05swaps\"r\n" +
+	"\x05swaps\x18\x06 \x03(\v2\x13.pile.v1.ColorCountR\x05swapsJ\x04\b\x04\x10\x05R\tuse_color\"r\n" +
 	"\n" +
 	"Minifigure\x12\x17\n" +
 	"\afig_num\x18\x01 \x01(\tR\x06figNum\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
 	"\bquantity\x18\x03 \x01(\x05R\bquantity\x12\x1b\n" +
-	"\timage_url\x18\x04 \x01(\tR\bimageUrl\"\xf1\x03\n" +
+	"\timage_url\x18\x04 \x01(\tR\bimageUrl\"\x9c\x04\n" +
 	"\x0eGetSetResponse\x12#\n" +
 	"\x03set\x18\x01 \x01(\v2\x11.pile.v1.SetMatchR\x03set\x12&\n" +
 	"\x05lines\x18\x02 \x03(\v2\x10.pile.v1.SetLineR\x05lines\x125\n" +
@@ -4850,7 +6073,8 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\rsource_placed\x18\t \x01(\x05R\fsourcePlaced\x12'\n" +
 	"\x0fsource_unplaced\x18\n" +
 	" \x03(\tR\x0esourceUnplaced\x12)\n" +
-	"\x06colors\x18\v \x03(\v2\x11.pile.v1.SetColorR\x06colors\"&\n" +
+	"\x06colors\x18\v \x03(\v2\x11.pile.v1.SetColorR\x06colors\x12)\n" +
+	"\achanges\x18\f \x03(\v2\x0f.pile.v1.ChangeR\achanges\"&\n" +
 	"\x10ListPartsRequest\x12\x12\n" +
 	"\x04lots\x18\x01 \x03(\tR\x04lots\"\xa2\x02\n" +
 	"\tPartCount\x12\x19\n" +
@@ -4994,7 +6218,64 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\aset_num\x18\x01 \x01(\tR\x06setNum\x12\x18\n" +
 	"\astarred\x18\x02 \x01(\bR\astarred\",\n" +
 	"\x0fSetStarResponse\x12\x19\n" +
-	"\bset_nums\x18\x01 \x03(\tR\asetNums*n\n" +
+	"\bset_nums\x18\x01 \x03(\tR\asetNums\"=\n" +
+	"\x0fFindSetsRequest\x12\x14\n" +
+	"\x05query\x18\x01 \x01(\tR\x05query\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\"\xac\x02\n" +
+	"\bFoundSet\x12\x17\n" +
+	"\aset_num\x18\x01 \x01(\tR\x06setNum\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
+	"\x04kind\x18\x03 \x01(\x0e2\r.pile.v1.KindR\x04kind\x12\x12\n" +
+	"\x04year\x18\x04 \x01(\x05R\x04year\x12\x14\n" +
+	"\x05theme\x18\x05 \x01(\tR\x05theme\x12\x1b\n" +
+	"\timage_url\x18\x06 \x01(\tR\bimageUrl\x12\x1c\n" +
+	"\n" +
+	"of_set_num\x18\a \x01(\tR\bofSetNum\x12\x17\n" +
+	"\aof_name\x18\b \x01(\tR\x06ofName\x12\x1a\n" +
+	"\bdesigner\x18\t \x01(\tR\bdesigner\x12\x1e\n" +
+	"\n" +
+	"collection\x18\n" +
+	" \x01(\tR\n" +
+	"collection\x12\x16\n" +
+	"\x06pieces\x18\v \x01(\x05R\x06pieces\"9\n" +
+	"\x10FindSetsResponse\x12%\n" +
+	"\x04sets\x18\x01 \x03(\v2\x11.pile.v1.FoundSetR\x04sets\"j\n" +
+	"\x10FindPartsRequest\x12\x14\n" +
+	"\x05query\x18\x01 \x01(\tR\x05query\x12\x12\n" +
+	"\x04lots\x18\x02 \x03(\tR\x04lots\x12\x16\n" +
+	"\x06colors\x18\x03 \x03(\x05R\x06colors\x12\x14\n" +
+	"\x05limit\x18\x04 \x01(\x05R\x05limit\"=\n" +
+	"\x11FindPartsResponse\x12(\n" +
+	"\x05parts\x18\x01 \x03(\v2\x12.pile.v1.PartCountR\x05parts\"\x81\x01\n" +
+	"\x12GetStandInsRequest\x12!\n" +
+	"\x04view\x18\x01 \x01(\v2\r.pile.v1.ViewR\x04view\x12\x17\n" +
+	"\aset_num\x18\x02 \x01(\tR\x06setNum\x12\x19\n" +
+	"\bpart_num\x18\x03 \x01(\tR\apartNum\x12\x14\n" +
+	"\x05color\x18\x04 \x01(\x05R\x05color\"\x8d\x01\n" +
+	"\vStandInPart\x12\x19\n" +
+	"\bpart_num\x18\x01 \x01(\tR\apartNum\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
+	"\timage_url\x18\x03 \x01(\tR\bimageUrl\x12\x1a\n" +
+	"\bquantity\x18\x04 \x01(\x05R\bquantity\x12\x16\n" +
+	"\x06pieces\x18\x05 \x01(\x05R\x06pieces\"\xc6\x01\n" +
+	"\rStandInOption\x12+\n" +
+	"\bstand_in\x18\x01 \x01(\v2\x10.pile.v1.StandInR\astandIn\x12.\n" +
+	"\x06source\x18\x02 \x01(\x0e2\x16.pile.v1.StandInSourceR\x06source\x12*\n" +
+	"\x05parts\x18\x03 \x03(\v2\x14.pile.v1.StandInPartR\x05parts\x12\x14\n" +
+	"\x05makes\x18\x04 \x01(\x05R\x05makes\x12\x16\n" +
+	"\x06chosen\x18\x05 \x01(\bR\x06chosen\"s\n" +
+	"\x13GetStandInsResponse\x12*\n" +
+	"\x04fits\x18\x01 \x01(\v2\x16.pile.v1.StandInOptionR\x04fits\x120\n" +
+	"\aoptions\x18\x02 \x03(\v2\x16.pile.v1.StandInOptionR\aoptions\"\x14\n" +
+	"\x12ListChangesRequest\">\n" +
+	"\x13ListChangesResponse\x12'\n" +
+	"\x04sets\x18\x01 \x03(\v2\x13.pile.v1.SetChangesR\x04sets\"h\n" +
+	"\x10SetChangeRequest\x12\x17\n" +
+	"\aset_num\x18\x01 \x01(\tR\x06setNum\x12'\n" +
+	"\x06change\x18\x02 \x01(\v2\x0f.pile.v1.ChangeR\x06change\x12\x12\n" +
+	"\x04undo\x18\x03 \x01(\bR\x04undo\":\n" +
+	"\x11SetChangeResponse\x12%\n" +
+	"\x03set\x18\x01 \x01(\v2\x13.pile.v1.SetChangesR\x03set*n\n" +
 	"\n" +
 	"ColorMatch\x12\x1b\n" +
 	"\x17COLOR_MATCH_UNSPECIFIED\x10\x00\x12\x15\n" +
@@ -5048,7 +6329,14 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\x10PART_CLASS_PLAIN\x10\x01\x12\x16\n" +
 	"\x12PART_CLASS_PRINTED\x10\x02\x12\x15\n" +
 	"\x11PART_CLASS_FIGURE\x10\x03\x12\x18\n" +
-	"\x14PART_CLASS_ACCESSORY\x10\x042\x85\x06\n" +
+	"\x14PART_CLASS_ACCESSORY\x10\x04*\xc6\x01\n" +
+	"\rStandInSource\x12\x1f\n" +
+	"\x1bSTAND_IN_SOURCE_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19STAND_IN_SOURCE_FOOTPRINT\x10\x01\x12\x1d\n" +
+	"\x19STAND_IN_SOURCE_UNPRINTED\x10\x02\x12\x1b\n" +
+	"\x17STAND_IN_SOURCE_PRINTED\x10\x03\x12\x1d\n" +
+	"\x19STAND_IN_SOURCE_SUB_PARTS\x10\x04\x12\x1a\n" +
+	"\x16STAND_IN_SOURCE_PICKED\x10\x052\xe2\b\n" +
 	"\vPileService\x12?\n" +
 	"\bListLots\x12\x18.pile.v1.ListLotsRequest\x1a\x19.pile.v1.ListLotsResponse\x12H\n" +
 	"\vGetOverview\x12\x1b.pile.v1.GetOverviewRequest\x1a\x1c.pile.v1.GetOverviewResponse\x12?\n" +
@@ -5063,7 +6351,12 @@ const file_pile_v1_pile_proto_rawDesc = "" +
 	"\n" +
 	"FindPieces\x12\x1a.pile.v1.FindPiecesRequest\x1a\x1b.pile.v1.FindPiecesResponse\x12B\n" +
 	"\tListStars\x12\x19.pile.v1.ListStarsRequest\x1a\x1a.pile.v1.ListStarsResponse\x12<\n" +
-	"\aSetStar\x12\x17.pile.v1.SetStarRequest\x1a\x18.pile.v1.SetStarResponseB4Z2github.com/basicallysource/pile/gen/pile/v1;pilev1b\x06proto3"
+	"\aSetStar\x12\x17.pile.v1.SetStarRequest\x1a\x18.pile.v1.SetStarResponse\x12?\n" +
+	"\bFindSets\x12\x18.pile.v1.FindSetsRequest\x1a\x19.pile.v1.FindSetsResponse\x12B\n" +
+	"\tFindParts\x12\x19.pile.v1.FindPartsRequest\x1a\x1a.pile.v1.FindPartsResponse\x12H\n" +
+	"\vGetStandIns\x12\x1b.pile.v1.GetStandInsRequest\x1a\x1c.pile.v1.GetStandInsResponse\x12H\n" +
+	"\vListChanges\x12\x1b.pile.v1.ListChangesRequest\x1a\x1c.pile.v1.ListChangesResponse\x12B\n" +
+	"\tSetChange\x12\x19.pile.v1.SetChangeRequest\x1a\x1a.pile.v1.SetChangeResponseB4Z2github.com/basicallysource/pile/gen/pile/v1;pilev1b\x06proto3"
 
 var (
 	file_pile_v1_pile_proto_rawDescOnce sync.Once
@@ -5077,8 +6370,8 @@ func file_pile_v1_pile_proto_rawDescGZIP() []byte {
 	return file_pile_v1_pile_proto_rawDescData
 }
 
-var file_pile_v1_pile_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_pile_v1_pile_proto_msgTypes = make([]protoimpl.MessageInfo, 53)
+var file_pile_v1_pile_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
+var file_pile_v1_pile_proto_msgTypes = make([]protoimpl.MessageInfo, 71)
 var file_pile_v1_pile_proto_goTypes = []any{
 	(ColorMatch)(0),                 // 0: pile.v1.ColorMatch
 	(Rule)(0),                       // 1: pile.v1.Rule
@@ -5086,165 +6379,212 @@ var file_pile_v1_pile_proto_goTypes = []any{
 	(Place)(0),                      // 3: pile.v1.Place
 	(Order)(0),                      // 4: pile.v1.Order
 	(PartClass)(0),                  // 5: pile.v1.PartClass
-	(*View)(nil),                    // 6: pile.v1.View
-	(*ColorChoice)(nil),             // 7: pile.v1.ColorChoice
-	(*ColorCount)(nil),              // 8: pile.v1.ColorCount
-	(*Counting)(nil),                // 9: pile.v1.Counting
-	(*Filter)(nil),                  // 10: pile.v1.Filter
-	(*Color)(nil),                   // 11: pile.v1.Color
-	(*Totals)(nil),                  // 12: pile.v1.Totals
-	(*ColorSource)(nil),             // 13: pile.v1.ColorSource
-	(*Lot)(nil),                     // 14: pile.v1.Lot
-	(*LotCount)(nil),                // 15: pile.v1.LotCount
-	(*ColorShare)(nil),              // 16: pile.v1.ColorShare
-	(*CategoryShare)(nil),           // 17: pile.v1.CategoryShare
-	(*ListLotsRequest)(nil),         // 18: pile.v1.ListLotsRequest
-	(*ListLotsResponse)(nil),        // 19: pile.v1.ListLotsResponse
-	(*SetMatch)(nil),                // 20: pile.v1.SetMatch
-	(*Section)(nil),                 // 21: pile.v1.Section
-	(*GetOverviewRequest)(nil),      // 22: pile.v1.GetOverviewRequest
-	(*QueuedSet)(nil),               // 23: pile.v1.QueuedSet
-	(*GetOverviewResponse)(nil),     // 24: pile.v1.GetOverviewResponse
-	(*CollectionSection)(nil),       // 25: pile.v1.CollectionSection
-	(*ListSetsRequest)(nil),         // 26: pile.v1.ListSetsRequest
-	(*ThemeCount)(nil),              // 27: pile.v1.ThemeCount
-	(*ListSetsResponse)(nil),        // 28: pile.v1.ListSetsResponse
-	(*GetSetRequest)(nil),           // 29: pile.v1.GetSetRequest
-	(*SetLine)(nil),                 // 30: pile.v1.SetLine
-	(*SetColor)(nil),                // 31: pile.v1.SetColor
-	(*Minifigure)(nil),              // 32: pile.v1.Minifigure
-	(*GetSetResponse)(nil),          // 33: pile.v1.GetSetResponse
-	(*ListPartsRequest)(nil),        // 34: pile.v1.ListPartsRequest
-	(*PartCount)(nil),               // 35: pile.v1.PartCount
-	(*UnmatchedPart)(nil),           // 36: pile.v1.UnmatchedPart
-	(*ListPartsResponse)(nil),       // 37: pile.v1.ListPartsResponse
-	(*GetCollectTimesRequest)(nil),  // 38: pile.v1.GetCollectTimesRequest
-	(*CollectBasis)(nil),            // 39: pile.v1.CollectBasis
-	(*SlowPiece)(nil),               // 40: pile.v1.SlowPiece
-	(*CollectTime)(nil),             // 41: pile.v1.CollectTime
-	(*SetCollectTimes)(nil),         // 42: pile.v1.SetCollectTimes
-	(*GetCollectTimesResponse)(nil), // 43: pile.v1.GetCollectTimesResponse
-	(*StorageBin)(nil),              // 44: pile.v1.StorageBin
-	(*GetStorageRequest)(nil),       // 45: pile.v1.GetStorageRequest
-	(*GetStorageResponse)(nil),      // 46: pile.v1.GetStorageResponse
-	(*SetStorageRequest)(nil),       // 47: pile.v1.SetStorageRequest
-	(*SetStorageResponse)(nil),      // 48: pile.v1.SetStorageResponse
-	(*FindPiecesRequest)(nil),       // 49: pile.v1.FindPiecesRequest
-	(*BinCount)(nil),                // 50: pile.v1.BinCount
-	(*StoredPart)(nil),              // 51: pile.v1.StoredPart
-	(*FilterOption)(nil),            // 52: pile.v1.FilterOption
-	(*FindPiecesResponse)(nil),      // 53: pile.v1.FindPiecesResponse
-	(*ListStarsRequest)(nil),        // 54: pile.v1.ListStarsRequest
-	(*ListStarsResponse)(nil),       // 55: pile.v1.ListStarsResponse
-	(*SetStarRequest)(nil),          // 56: pile.v1.SetStarRequest
-	(*SetStarResponse)(nil),         // 57: pile.v1.SetStarResponse
-	nil,                             // 58: pile.v1.SetCollectTimes.LeftOutEntry
+	(StandInSource)(0),              // 6: pile.v1.StandInSource
+	(*View)(nil),                    // 7: pile.v1.View
+	(*Change)(nil),                  // 8: pile.v1.Change
+	(*ColorTake)(nil),               // 9: pile.v1.ColorTake
+	(*PartSwap)(nil),                // 10: pile.v1.PartSwap
+	(*StandIn)(nil),                 // 11: pile.v1.StandIn
+	(*PartQuantity)(nil),            // 12: pile.v1.PartQuantity
+	(*SetChanges)(nil),              // 13: pile.v1.SetChanges
+	(*ColorCount)(nil),              // 14: pile.v1.ColorCount
+	(*Counting)(nil),                // 15: pile.v1.Counting
+	(*Filter)(nil),                  // 16: pile.v1.Filter
+	(*Color)(nil),                   // 17: pile.v1.Color
+	(*Totals)(nil),                  // 18: pile.v1.Totals
+	(*ColorSource)(nil),             // 19: pile.v1.ColorSource
+	(*Lot)(nil),                     // 20: pile.v1.Lot
+	(*LotCount)(nil),                // 21: pile.v1.LotCount
+	(*ColorShare)(nil),              // 22: pile.v1.ColorShare
+	(*CategoryShare)(nil),           // 23: pile.v1.CategoryShare
+	(*ListLotsRequest)(nil),         // 24: pile.v1.ListLotsRequest
+	(*ListLotsResponse)(nil),        // 25: pile.v1.ListLotsResponse
+	(*SetMatch)(nil),                // 26: pile.v1.SetMatch
+	(*Section)(nil),                 // 27: pile.v1.Section
+	(*GetOverviewRequest)(nil),      // 28: pile.v1.GetOverviewRequest
+	(*QueuedSet)(nil),               // 29: pile.v1.QueuedSet
+	(*GetOverviewResponse)(nil),     // 30: pile.v1.GetOverviewResponse
+	(*CollectionSection)(nil),       // 31: pile.v1.CollectionSection
+	(*ListSetsRequest)(nil),         // 32: pile.v1.ListSetsRequest
+	(*ThemeCount)(nil),              // 33: pile.v1.ThemeCount
+	(*ListSetsResponse)(nil),        // 34: pile.v1.ListSetsResponse
+	(*GetSetRequest)(nil),           // 35: pile.v1.GetSetRequest
+	(*SetLine)(nil),                 // 36: pile.v1.SetLine
+	(*SetColor)(nil),                // 37: pile.v1.SetColor
+	(*Minifigure)(nil),              // 38: pile.v1.Minifigure
+	(*GetSetResponse)(nil),          // 39: pile.v1.GetSetResponse
+	(*ListPartsRequest)(nil),        // 40: pile.v1.ListPartsRequest
+	(*PartCount)(nil),               // 41: pile.v1.PartCount
+	(*UnmatchedPart)(nil),           // 42: pile.v1.UnmatchedPart
+	(*ListPartsResponse)(nil),       // 43: pile.v1.ListPartsResponse
+	(*GetCollectTimesRequest)(nil),  // 44: pile.v1.GetCollectTimesRequest
+	(*CollectBasis)(nil),            // 45: pile.v1.CollectBasis
+	(*SlowPiece)(nil),               // 46: pile.v1.SlowPiece
+	(*CollectTime)(nil),             // 47: pile.v1.CollectTime
+	(*SetCollectTimes)(nil),         // 48: pile.v1.SetCollectTimes
+	(*GetCollectTimesResponse)(nil), // 49: pile.v1.GetCollectTimesResponse
+	(*StorageBin)(nil),              // 50: pile.v1.StorageBin
+	(*GetStorageRequest)(nil),       // 51: pile.v1.GetStorageRequest
+	(*GetStorageResponse)(nil),      // 52: pile.v1.GetStorageResponse
+	(*SetStorageRequest)(nil),       // 53: pile.v1.SetStorageRequest
+	(*SetStorageResponse)(nil),      // 54: pile.v1.SetStorageResponse
+	(*FindPiecesRequest)(nil),       // 55: pile.v1.FindPiecesRequest
+	(*BinCount)(nil),                // 56: pile.v1.BinCount
+	(*StoredPart)(nil),              // 57: pile.v1.StoredPart
+	(*FilterOption)(nil),            // 58: pile.v1.FilterOption
+	(*FindPiecesResponse)(nil),      // 59: pile.v1.FindPiecesResponse
+	(*ListStarsRequest)(nil),        // 60: pile.v1.ListStarsRequest
+	(*ListStarsResponse)(nil),       // 61: pile.v1.ListStarsResponse
+	(*SetStarRequest)(nil),          // 62: pile.v1.SetStarRequest
+	(*SetStarResponse)(nil),         // 63: pile.v1.SetStarResponse
+	(*FindSetsRequest)(nil),         // 64: pile.v1.FindSetsRequest
+	(*FoundSet)(nil),                // 65: pile.v1.FoundSet
+	(*FindSetsResponse)(nil),        // 66: pile.v1.FindSetsResponse
+	(*FindPartsRequest)(nil),        // 67: pile.v1.FindPartsRequest
+	(*FindPartsResponse)(nil),       // 68: pile.v1.FindPartsResponse
+	(*GetStandInsRequest)(nil),      // 69: pile.v1.GetStandInsRequest
+	(*StandInPart)(nil),             // 70: pile.v1.StandInPart
+	(*StandInOption)(nil),           // 71: pile.v1.StandInOption
+	(*GetStandInsResponse)(nil),     // 72: pile.v1.GetStandInsResponse
+	(*ListChangesRequest)(nil),      // 73: pile.v1.ListChangesRequest
+	(*ListChangesResponse)(nil),     // 74: pile.v1.ListChangesResponse
+	(*SetChangeRequest)(nil),        // 75: pile.v1.SetChangeRequest
+	(*SetChangeResponse)(nil),       // 76: pile.v1.SetChangeResponse
+	nil,                             // 77: pile.v1.SetCollectTimes.LeftOutEntry
 }
 var file_pile_v1_pile_proto_depIdxs = []int32{
-	10, // 0: pile.v1.View.filter:type_name -> pile.v1.Filter
-	9,  // 1: pile.v1.View.counting:type_name -> pile.v1.Counting
-	0,  // 2: pile.v1.View.colors:type_name -> pile.v1.ColorMatch
-	7,  // 3: pile.v1.View.color_choices:type_name -> pile.v1.ColorChoice
-	11, // 4: pile.v1.ColorCount.color:type_name -> pile.v1.Color
-	2,  // 5: pile.v1.Filter.kind:type_name -> pile.v1.Kind
-	16, // 6: pile.v1.Totals.colors:type_name -> pile.v1.ColorShare
-	13, // 7: pile.v1.Totals.color_sources:type_name -> pile.v1.ColorSource
-	12, // 8: pile.v1.Lot.totals:type_name -> pile.v1.Totals
-	11, // 9: pile.v1.ColorShare.color:type_name -> pile.v1.Color
-	14, // 10: pile.v1.ListLotsResponse.lots:type_name -> pile.v1.Lot
-	2,  // 11: pile.v1.SetMatch.kind:type_name -> pile.v1.Kind
-	20, // 12: pile.v1.Section.sets:type_name -> pile.v1.SetMatch
-	6,  // 13: pile.v1.GetOverviewRequest.view:type_name -> pile.v1.View
-	20, // 14: pile.v1.QueuedSet.set:type_name -> pile.v1.SetMatch
-	15, // 15: pile.v1.QueuedSet.lots:type_name -> pile.v1.LotCount
-	14, // 16: pile.v1.GetOverviewResponse.lots:type_name -> pile.v1.Lot
-	12, // 17: pile.v1.GetOverviewResponse.totals:type_name -> pile.v1.Totals
-	17, // 18: pile.v1.GetOverviewResponse.categories:type_name -> pile.v1.CategoryShare
-	23, // 19: pile.v1.GetOverviewResponse.sort_out:type_name -> pile.v1.QueuedSet
-	21, // 20: pile.v1.GetOverviewResponse.complete:type_name -> pile.v1.Section
-	21, // 21: pile.v1.GetOverviewResponse.almost:type_name -> pile.v1.Section
-	21, // 22: pile.v1.GetOverviewResponse.half:type_name -> pile.v1.Section
-	21, // 23: pile.v1.GetOverviewResponse.likely:type_name -> pile.v1.Section
-	21, // 24: pile.v1.GetOverviewResponse.custom:type_name -> pile.v1.Section
-	21, // 25: pile.v1.GetOverviewResponse.minifigure:type_name -> pile.v1.Section
-	21, // 26: pile.v1.GetOverviewResponse.tiny:type_name -> pile.v1.Section
-	27, // 27: pile.v1.GetOverviewResponse.themes:type_name -> pile.v1.ThemeCount
-	21, // 28: pile.v1.GetOverviewResponse.starred:type_name -> pile.v1.Section
-	21, // 29: pile.v1.GetOverviewResponse.builds:type_name -> pile.v1.Section
-	25, // 30: pile.v1.GetOverviewResponse.collections:type_name -> pile.v1.CollectionSection
-	21, // 31: pile.v1.CollectionSection.section:type_name -> pile.v1.Section
-	6,  // 32: pile.v1.ListSetsRequest.view:type_name -> pile.v1.View
-	4,  // 33: pile.v1.ListSetsRequest.order:type_name -> pile.v1.Order
-	20, // 34: pile.v1.ListSetsResponse.sets:type_name -> pile.v1.SetMatch
-	27, // 35: pile.v1.ListSetsResponse.themes:type_name -> pile.v1.ThemeCount
-	6,  // 36: pile.v1.GetSetRequest.view:type_name -> pile.v1.View
-	11, // 37: pile.v1.SetLine.color:type_name -> pile.v1.Color
-	5,  // 38: pile.v1.SetLine.class:type_name -> pile.v1.PartClass
-	15, // 39: pile.v1.SetLine.lots:type_name -> pile.v1.LotCount
-	11, // 40: pile.v1.SetLine.use_color:type_name -> pile.v1.Color
-	8,  // 41: pile.v1.SetLine.part_colors:type_name -> pile.v1.ColorCount
-	11, // 42: pile.v1.SetColor.color:type_name -> pile.v1.Color
-	11, // 43: pile.v1.SetColor.use_color:type_name -> pile.v1.Color
-	8,  // 44: pile.v1.SetColor.swaps:type_name -> pile.v1.ColorCount
-	20, // 45: pile.v1.GetSetResponse.set:type_name -> pile.v1.SetMatch
-	30, // 46: pile.v1.GetSetResponse.lines:type_name -> pile.v1.SetLine
-	32, // 47: pile.v1.GetSetResponse.minifigures:type_name -> pile.v1.Minifigure
-	3,  // 48: pile.v1.GetSetResponse.place:type_name -> pile.v1.Place
-	20, // 49: pile.v1.GetSetResponse.other_colors:type_name -> pile.v1.SetMatch
-	3,  // 50: pile.v1.GetSetResponse.other_place:type_name -> pile.v1.Place
-	1,  // 51: pile.v1.GetSetResponse.hidden_by:type_name -> pile.v1.Rule
-	20, // 52: pile.v1.GetSetResponse.builds:type_name -> pile.v1.SetMatch
-	31, // 53: pile.v1.GetSetResponse.colors:type_name -> pile.v1.SetColor
-	11, // 54: pile.v1.PartCount.color:type_name -> pile.v1.Color
-	15, // 55: pile.v1.PartCount.lots:type_name -> pile.v1.LotCount
-	35, // 56: pile.v1.ListPartsResponse.parts:type_name -> pile.v1.PartCount
-	36, // 57: pile.v1.ListPartsResponse.unmatched:type_name -> pile.v1.UnmatchedPart
-	11, // 58: pile.v1.SlowPiece.color:type_name -> pile.v1.Color
-	40, // 59: pile.v1.CollectTime.slowest:type_name -> pile.v1.SlowPiece
-	58, // 60: pile.v1.SetCollectTimes.left_out:type_name -> pile.v1.SetCollectTimes.LeftOutEntry
-	41, // 61: pile.v1.SetCollectTimes.exact:type_name -> pile.v1.CollectTime
-	41, // 62: pile.v1.SetCollectTimes.near:type_name -> pile.v1.CollectTime
-	41, // 63: pile.v1.SetCollectTimes.any:type_name -> pile.v1.CollectTime
-	39, // 64: pile.v1.GetCollectTimesResponse.basis:type_name -> pile.v1.CollectBasis
-	42, // 65: pile.v1.GetCollectTimesResponse.sets:type_name -> pile.v1.SetCollectTimes
-	44, // 66: pile.v1.GetStorageResponse.bins:type_name -> pile.v1.StorageBin
-	44, // 67: pile.v1.SetStorageRequest.bins:type_name -> pile.v1.StorageBin
-	44, // 68: pile.v1.SetStorageResponse.bins:type_name -> pile.v1.StorageBin
-	11, // 69: pile.v1.StoredPart.color:type_name -> pile.v1.Color
-	50, // 70: pile.v1.StoredPart.bins:type_name -> pile.v1.BinCount
-	11, // 71: pile.v1.FilterOption.color:type_name -> pile.v1.Color
-	51, // 72: pile.v1.FindPiecesResponse.parts:type_name -> pile.v1.StoredPart
-	52, // 73: pile.v1.FindPiecesResponse.colors:type_name -> pile.v1.FilterOption
-	52, // 74: pile.v1.FindPiecesResponse.types:type_name -> pile.v1.FilterOption
-	52, // 75: pile.v1.FindPiecesResponse.bins:type_name -> pile.v1.FilterOption
-	52, // 76: pile.v1.FindPiecesResponse.lots:type_name -> pile.v1.FilterOption
-	18, // 77: pile.v1.PileService.ListLots:input_type -> pile.v1.ListLotsRequest
-	22, // 78: pile.v1.PileService.GetOverview:input_type -> pile.v1.GetOverviewRequest
-	26, // 79: pile.v1.PileService.ListSets:input_type -> pile.v1.ListSetsRequest
-	29, // 80: pile.v1.PileService.GetSet:input_type -> pile.v1.GetSetRequest
-	34, // 81: pile.v1.PileService.ListParts:input_type -> pile.v1.ListPartsRequest
-	38, // 82: pile.v1.PileService.GetCollectTimes:input_type -> pile.v1.GetCollectTimesRequest
-	45, // 83: pile.v1.PileService.GetStorage:input_type -> pile.v1.GetStorageRequest
-	47, // 84: pile.v1.PileService.SetStorage:input_type -> pile.v1.SetStorageRequest
-	49, // 85: pile.v1.PileService.FindPieces:input_type -> pile.v1.FindPiecesRequest
-	54, // 86: pile.v1.PileService.ListStars:input_type -> pile.v1.ListStarsRequest
-	56, // 87: pile.v1.PileService.SetStar:input_type -> pile.v1.SetStarRequest
-	19, // 88: pile.v1.PileService.ListLots:output_type -> pile.v1.ListLotsResponse
-	24, // 89: pile.v1.PileService.GetOverview:output_type -> pile.v1.GetOverviewResponse
-	28, // 90: pile.v1.PileService.ListSets:output_type -> pile.v1.ListSetsResponse
-	33, // 91: pile.v1.PileService.GetSet:output_type -> pile.v1.GetSetResponse
-	37, // 92: pile.v1.PileService.ListParts:output_type -> pile.v1.ListPartsResponse
-	43, // 93: pile.v1.PileService.GetCollectTimes:output_type -> pile.v1.GetCollectTimesResponse
-	46, // 94: pile.v1.PileService.GetStorage:output_type -> pile.v1.GetStorageResponse
-	48, // 95: pile.v1.PileService.SetStorage:output_type -> pile.v1.SetStorageResponse
-	53, // 96: pile.v1.PileService.FindPieces:output_type -> pile.v1.FindPiecesResponse
-	55, // 97: pile.v1.PileService.ListStars:output_type -> pile.v1.ListStarsResponse
-	57, // 98: pile.v1.PileService.SetStar:output_type -> pile.v1.SetStarResponse
-	88, // [88:99] is the sub-list for method output_type
-	77, // [77:88] is the sub-list for method input_type
-	77, // [77:77] is the sub-list for extension type_name
-	77, // [77:77] is the sub-list for extension extendee
-	0,  // [0:77] is the sub-list for field type_name
+	16,  // 0: pile.v1.View.filter:type_name -> pile.v1.Filter
+	15,  // 1: pile.v1.View.counting:type_name -> pile.v1.Counting
+	0,   // 2: pile.v1.View.colors:type_name -> pile.v1.ColorMatch
+	9,   // 3: pile.v1.Change.colors:type_name -> pile.v1.ColorTake
+	10,  // 4: pile.v1.Change.swap:type_name -> pile.v1.PartSwap
+	11,  // 5: pile.v1.PartSwap.stand_ins:type_name -> pile.v1.StandIn
+	12,  // 6: pile.v1.StandIn.parts:type_name -> pile.v1.PartQuantity
+	8,   // 7: pile.v1.SetChanges.changes:type_name -> pile.v1.Change
+	17,  // 8: pile.v1.ColorCount.color:type_name -> pile.v1.Color
+	2,   // 9: pile.v1.Filter.kind:type_name -> pile.v1.Kind
+	22,  // 10: pile.v1.Totals.colors:type_name -> pile.v1.ColorShare
+	19,  // 11: pile.v1.Totals.color_sources:type_name -> pile.v1.ColorSource
+	18,  // 12: pile.v1.Lot.totals:type_name -> pile.v1.Totals
+	17,  // 13: pile.v1.ColorShare.color:type_name -> pile.v1.Color
+	20,  // 14: pile.v1.ListLotsResponse.lots:type_name -> pile.v1.Lot
+	2,   // 15: pile.v1.SetMatch.kind:type_name -> pile.v1.Kind
+	26,  // 16: pile.v1.Section.sets:type_name -> pile.v1.SetMatch
+	7,   // 17: pile.v1.GetOverviewRequest.view:type_name -> pile.v1.View
+	26,  // 18: pile.v1.QueuedSet.set:type_name -> pile.v1.SetMatch
+	21,  // 19: pile.v1.QueuedSet.lots:type_name -> pile.v1.LotCount
+	20,  // 20: pile.v1.GetOverviewResponse.lots:type_name -> pile.v1.Lot
+	18,  // 21: pile.v1.GetOverviewResponse.totals:type_name -> pile.v1.Totals
+	23,  // 22: pile.v1.GetOverviewResponse.categories:type_name -> pile.v1.CategoryShare
+	29,  // 23: pile.v1.GetOverviewResponse.sort_out:type_name -> pile.v1.QueuedSet
+	27,  // 24: pile.v1.GetOverviewResponse.complete:type_name -> pile.v1.Section
+	27,  // 25: pile.v1.GetOverviewResponse.almost:type_name -> pile.v1.Section
+	27,  // 26: pile.v1.GetOverviewResponse.half:type_name -> pile.v1.Section
+	27,  // 27: pile.v1.GetOverviewResponse.likely:type_name -> pile.v1.Section
+	27,  // 28: pile.v1.GetOverviewResponse.custom:type_name -> pile.v1.Section
+	27,  // 29: pile.v1.GetOverviewResponse.minifigure:type_name -> pile.v1.Section
+	27,  // 30: pile.v1.GetOverviewResponse.tiny:type_name -> pile.v1.Section
+	33,  // 31: pile.v1.GetOverviewResponse.themes:type_name -> pile.v1.ThemeCount
+	27,  // 32: pile.v1.GetOverviewResponse.starred:type_name -> pile.v1.Section
+	27,  // 33: pile.v1.GetOverviewResponse.builds:type_name -> pile.v1.Section
+	31,  // 34: pile.v1.GetOverviewResponse.collections:type_name -> pile.v1.CollectionSection
+	27,  // 35: pile.v1.CollectionSection.section:type_name -> pile.v1.Section
+	7,   // 36: pile.v1.ListSetsRequest.view:type_name -> pile.v1.View
+	4,   // 37: pile.v1.ListSetsRequest.order:type_name -> pile.v1.Order
+	26,  // 38: pile.v1.ListSetsResponse.sets:type_name -> pile.v1.SetMatch
+	33,  // 39: pile.v1.ListSetsResponse.themes:type_name -> pile.v1.ThemeCount
+	7,   // 40: pile.v1.GetSetRequest.view:type_name -> pile.v1.View
+	17,  // 41: pile.v1.SetLine.color:type_name -> pile.v1.Color
+	5,   // 42: pile.v1.SetLine.class:type_name -> pile.v1.PartClass
+	21,  // 43: pile.v1.SetLine.lots:type_name -> pile.v1.LotCount
+	17,  // 44: pile.v1.SetLine.use_colors:type_name -> pile.v1.Color
+	14,  // 45: pile.v1.SetLine.part_colors:type_name -> pile.v1.ColorCount
+	41,  // 46: pile.v1.SetLine.made_from:type_name -> pile.v1.PartCount
+	17,  // 47: pile.v1.SetColor.color:type_name -> pile.v1.Color
+	17,  // 48: pile.v1.SetColor.use_colors:type_name -> pile.v1.Color
+	14,  // 49: pile.v1.SetColor.swaps:type_name -> pile.v1.ColorCount
+	26,  // 50: pile.v1.GetSetResponse.set:type_name -> pile.v1.SetMatch
+	36,  // 51: pile.v1.GetSetResponse.lines:type_name -> pile.v1.SetLine
+	38,  // 52: pile.v1.GetSetResponse.minifigures:type_name -> pile.v1.Minifigure
+	3,   // 53: pile.v1.GetSetResponse.place:type_name -> pile.v1.Place
+	26,  // 54: pile.v1.GetSetResponse.other_colors:type_name -> pile.v1.SetMatch
+	3,   // 55: pile.v1.GetSetResponse.other_place:type_name -> pile.v1.Place
+	1,   // 56: pile.v1.GetSetResponse.hidden_by:type_name -> pile.v1.Rule
+	26,  // 57: pile.v1.GetSetResponse.builds:type_name -> pile.v1.SetMatch
+	37,  // 58: pile.v1.GetSetResponse.colors:type_name -> pile.v1.SetColor
+	8,   // 59: pile.v1.GetSetResponse.changes:type_name -> pile.v1.Change
+	17,  // 60: pile.v1.PartCount.color:type_name -> pile.v1.Color
+	21,  // 61: pile.v1.PartCount.lots:type_name -> pile.v1.LotCount
+	41,  // 62: pile.v1.ListPartsResponse.parts:type_name -> pile.v1.PartCount
+	42,  // 63: pile.v1.ListPartsResponse.unmatched:type_name -> pile.v1.UnmatchedPart
+	17,  // 64: pile.v1.SlowPiece.color:type_name -> pile.v1.Color
+	46,  // 65: pile.v1.CollectTime.slowest:type_name -> pile.v1.SlowPiece
+	77,  // 66: pile.v1.SetCollectTimes.left_out:type_name -> pile.v1.SetCollectTimes.LeftOutEntry
+	47,  // 67: pile.v1.SetCollectTimes.exact:type_name -> pile.v1.CollectTime
+	47,  // 68: pile.v1.SetCollectTimes.near:type_name -> pile.v1.CollectTime
+	47,  // 69: pile.v1.SetCollectTimes.any:type_name -> pile.v1.CollectTime
+	45,  // 70: pile.v1.GetCollectTimesResponse.basis:type_name -> pile.v1.CollectBasis
+	48,  // 71: pile.v1.GetCollectTimesResponse.sets:type_name -> pile.v1.SetCollectTimes
+	50,  // 72: pile.v1.GetStorageResponse.bins:type_name -> pile.v1.StorageBin
+	50,  // 73: pile.v1.SetStorageRequest.bins:type_name -> pile.v1.StorageBin
+	50,  // 74: pile.v1.SetStorageResponse.bins:type_name -> pile.v1.StorageBin
+	17,  // 75: pile.v1.StoredPart.color:type_name -> pile.v1.Color
+	56,  // 76: pile.v1.StoredPart.bins:type_name -> pile.v1.BinCount
+	17,  // 77: pile.v1.FilterOption.color:type_name -> pile.v1.Color
+	57,  // 78: pile.v1.FindPiecesResponse.parts:type_name -> pile.v1.StoredPart
+	58,  // 79: pile.v1.FindPiecesResponse.colors:type_name -> pile.v1.FilterOption
+	58,  // 80: pile.v1.FindPiecesResponse.types:type_name -> pile.v1.FilterOption
+	58,  // 81: pile.v1.FindPiecesResponse.bins:type_name -> pile.v1.FilterOption
+	58,  // 82: pile.v1.FindPiecesResponse.lots:type_name -> pile.v1.FilterOption
+	2,   // 83: pile.v1.FoundSet.kind:type_name -> pile.v1.Kind
+	65,  // 84: pile.v1.FindSetsResponse.sets:type_name -> pile.v1.FoundSet
+	41,  // 85: pile.v1.FindPartsResponse.parts:type_name -> pile.v1.PartCount
+	7,   // 86: pile.v1.GetStandInsRequest.view:type_name -> pile.v1.View
+	11,  // 87: pile.v1.StandInOption.stand_in:type_name -> pile.v1.StandIn
+	6,   // 88: pile.v1.StandInOption.source:type_name -> pile.v1.StandInSource
+	70,  // 89: pile.v1.StandInOption.parts:type_name -> pile.v1.StandInPart
+	71,  // 90: pile.v1.GetStandInsResponse.fits:type_name -> pile.v1.StandInOption
+	71,  // 91: pile.v1.GetStandInsResponse.options:type_name -> pile.v1.StandInOption
+	13,  // 92: pile.v1.ListChangesResponse.sets:type_name -> pile.v1.SetChanges
+	8,   // 93: pile.v1.SetChangeRequest.change:type_name -> pile.v1.Change
+	13,  // 94: pile.v1.SetChangeResponse.set:type_name -> pile.v1.SetChanges
+	24,  // 95: pile.v1.PileService.ListLots:input_type -> pile.v1.ListLotsRequest
+	28,  // 96: pile.v1.PileService.GetOverview:input_type -> pile.v1.GetOverviewRequest
+	32,  // 97: pile.v1.PileService.ListSets:input_type -> pile.v1.ListSetsRequest
+	35,  // 98: pile.v1.PileService.GetSet:input_type -> pile.v1.GetSetRequest
+	40,  // 99: pile.v1.PileService.ListParts:input_type -> pile.v1.ListPartsRequest
+	44,  // 100: pile.v1.PileService.GetCollectTimes:input_type -> pile.v1.GetCollectTimesRequest
+	51,  // 101: pile.v1.PileService.GetStorage:input_type -> pile.v1.GetStorageRequest
+	53,  // 102: pile.v1.PileService.SetStorage:input_type -> pile.v1.SetStorageRequest
+	55,  // 103: pile.v1.PileService.FindPieces:input_type -> pile.v1.FindPiecesRequest
+	60,  // 104: pile.v1.PileService.ListStars:input_type -> pile.v1.ListStarsRequest
+	62,  // 105: pile.v1.PileService.SetStar:input_type -> pile.v1.SetStarRequest
+	64,  // 106: pile.v1.PileService.FindSets:input_type -> pile.v1.FindSetsRequest
+	67,  // 107: pile.v1.PileService.FindParts:input_type -> pile.v1.FindPartsRequest
+	69,  // 108: pile.v1.PileService.GetStandIns:input_type -> pile.v1.GetStandInsRequest
+	73,  // 109: pile.v1.PileService.ListChanges:input_type -> pile.v1.ListChangesRequest
+	75,  // 110: pile.v1.PileService.SetChange:input_type -> pile.v1.SetChangeRequest
+	25,  // 111: pile.v1.PileService.ListLots:output_type -> pile.v1.ListLotsResponse
+	30,  // 112: pile.v1.PileService.GetOverview:output_type -> pile.v1.GetOverviewResponse
+	34,  // 113: pile.v1.PileService.ListSets:output_type -> pile.v1.ListSetsResponse
+	39,  // 114: pile.v1.PileService.GetSet:output_type -> pile.v1.GetSetResponse
+	43,  // 115: pile.v1.PileService.ListParts:output_type -> pile.v1.ListPartsResponse
+	49,  // 116: pile.v1.PileService.GetCollectTimes:output_type -> pile.v1.GetCollectTimesResponse
+	52,  // 117: pile.v1.PileService.GetStorage:output_type -> pile.v1.GetStorageResponse
+	54,  // 118: pile.v1.PileService.SetStorage:output_type -> pile.v1.SetStorageResponse
+	59,  // 119: pile.v1.PileService.FindPieces:output_type -> pile.v1.FindPiecesResponse
+	61,  // 120: pile.v1.PileService.ListStars:output_type -> pile.v1.ListStarsResponse
+	63,  // 121: pile.v1.PileService.SetStar:output_type -> pile.v1.SetStarResponse
+	66,  // 122: pile.v1.PileService.FindSets:output_type -> pile.v1.FindSetsResponse
+	68,  // 123: pile.v1.PileService.FindParts:output_type -> pile.v1.FindPartsResponse
+	72,  // 124: pile.v1.PileService.GetStandIns:output_type -> pile.v1.GetStandInsResponse
+	74,  // 125: pile.v1.PileService.ListChanges:output_type -> pile.v1.ListChangesResponse
+	76,  // 126: pile.v1.PileService.SetChange:output_type -> pile.v1.SetChangeResponse
+	111, // [111:127] is the sub-list for method output_type
+	95,  // [95:111] is the sub-list for method input_type
+	95,  // [95:95] is the sub-list for extension type_name
+	95,  // [95:95] is the sub-list for extension extendee
+	0,   // [0:95] is the sub-list for field type_name
 }
 
 func init() { file_pile_v1_pile_proto_init() }
@@ -5253,16 +6593,17 @@ func file_pile_v1_pile_proto_init() {
 		return
 	}
 	file_pile_v1_pile_proto_msgTypes[1].OneofWrappers = []any{
-		(*ColorChoice_UseColor)(nil),
-		(*ColorChoice_AnyColor)(nil),
+		(*Change_Colors)(nil),
+		(*Change_Swap)(nil),
+		(*Change_Counted)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pile_v1_pile_proto_rawDesc), len(file_pile_v1_pile_proto_rawDesc)),
-			NumEnums:      6,
-			NumMessages:   53,
+			NumEnums:      7,
+			NumMessages:   71,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

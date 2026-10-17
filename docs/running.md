@@ -58,6 +58,7 @@ changes it shows in `git status`.
 | `collections/` | no | Designers' collections of custom models, a folder each: [collections.md](collections.md). |
 | `storage.json` | no | The bins the pieces are kept in, each at an address: [storage.md](storage.md). Empty when absent; pile writes it when the storage is set while it runs. |
 | `stars.json` | no | The starred sets and custom models: [views.md](views.md#stars). Empty when absent; pile writes it when a star changes. |
+| `changes.json` | no | Changes to sets: a line's colors, other parts that make one of its part, whether it counts: [changes.md](changes.md). None when absent; pile writes it when a change is made or taken back. |
 
 `lots.json` is a list of lots. Each has an `id`, a `name`, a `description`,
 and exactly one source: `"hiveMachine": "NAME"` (one of your machines on a

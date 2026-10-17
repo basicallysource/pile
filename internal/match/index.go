@@ -7,16 +7,15 @@ import (
 	"regexp"
 	"slices"
 	"sort"
+	"sync"
 
 	"github.com/basicallysource/pile/internal/catalog"
 )
 
 // Line is one line of a set: a part (by index id) in a color, and its class.
-// Any is a view's choice that it takes any color of its part.
 type Line struct {
 	Part, Color, Quantity int32
 	Class                 catalog.Class
-	Any                   bool
 }
 
 // Counting is which classes of part count toward a set's completeness, a
@@ -72,11 +71,11 @@ type Entry struct {
 	// different parts; or nothing unusual (its rarest pieces as common as
 	// those of the most common tenth of sets). See plain.go.
 	MostlyBasic, FewParts, NothingUnusual bool
-	// Of an entry with a view's color choices (choices.go): which of its
-	// lines each line of the set as sold became, by part and color; and
-	// whether a line takes any color.
-	was      map[uint64]int
-	anyLines bool
+	// Of an entry with a set's changes (changes.go): the entry as sold,
+	// whose lines are these lines in the same order, and how each line
+	// changed.
+	base *Entry
+	how  []how
 }
 
 // Index is every set, custom model and build with a counted line, and the weights
@@ -93,6 +92,12 @@ type Index struct {
 	wMax   float64
 	// Each color's near colors (colors.go).
 	near map[int32][]int32
+	// The plain plates, tiles and bricks (footprints.go): each part's shape,
+	// the part of each shape, and the ways to cover each one's footprint,
+	// worked out when first asked for.
+	shapes map[int32]catalog.Shape
+	sized  map[catalog.Shape]int32
+	cover  sync.Map
 }
 
 func key(part, color int32) uint64 { return uint64(uint32(part))<<32 | uint64(uint32(color)) }
@@ -182,7 +187,7 @@ func NewIndex(cat *catalog.Catalog) *Index {
 				continue
 			}
 			parts[l.Part] = true
-			w += float64(l.Quantity) * ix.weight(l, ix.Colors(Exact))
+			w += float64(l.Quantity) * ix.weight(l, ix.Colors(Exact), false)
 		}
 		e.DistinctParts = int32(len(parts))
 		e.Rarity = w / float64(max(e.Need, 1))
@@ -190,6 +195,7 @@ func NewIndex(cat *catalog.Catalog) *Index {
 			(!e.Set.Licensed && e.Need >= bulkSize && e.Need >= bulkRepeat*e.DistinctParts))
 	}
 	ix.judgePlain()
+	ix.readShapes(dfAny)
 	return ix
 }
 
@@ -230,11 +236,11 @@ func (ix *Index) PartNum(id int32) string { return ix.nums[id] }
 func (ix *Index) Entry(num string) *Entry { return ix.byNum[num] }
 
 // weight is how rare l's part is: in its color, or in any color when the
-// line takes any.
-func (ix *Index) weight(l Line, cs Colors) float64 {
+// line takes any (anyColor).
+func (ix *Index) weight(l Line, cs Colors, anyColor bool) float64 {
 	var w float64
 	var ok bool
-	if cs.Mode == Any || l.Any {
+	if cs.Mode == Any || anyColor {
 		w, ok = ix.wAny[l.Part]
 	} else {
 		w, ok = ix.wExact[key(l.Part, l.Color)]
@@ -284,17 +290,14 @@ func (ix *Index) dedupe() {
 }
 
 // LineOf is the index in e.Lines of this part (or a variant) in this color,
-// as the set has it (before a view's color choices), or -1.
+// as the set has it (before its changes), or -1.
 func (ix *Index) LineOf(e *Entry, part string, color int32) int {
 	id, ok := ix.PartID(part)
 	if !ok {
 		return -1
 	}
-	if e.was != nil {
-		if i, ok := e.was[key(id, color)]; ok {
-			return i
-		}
-		return -1
+	if e.base != nil {
+		e = e.base
 	}
 	for i, l := range e.Lines {
 		if l.Part == id && l.Color == color {

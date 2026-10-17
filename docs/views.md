@@ -37,20 +37,24 @@ device, and "Starred only" lists nothing else.
 Colors are yours to bend, to see how close a set gets. At the top, Exact
 colors counts only the right color; Similar colors lets a near color stand
 in once the right one runs out (dark red for red, an old gray for a new
-one); Any color lets any color of the part do. In a set's panel, Colors
-swaps one of its colors for another (all its red for dark red, or for
-white, to build it in other colors), each choice saying how many of those
-pieces the lots have; and each part's count opens the same for that part
-alone: its own color, any color, or another color the lots have it in.
-The changes last until you take them back ("Its own colors"), count in the
-sort-out queue (a set that takes dark red leaves the red for the sets after
-it), and the overview says how many sets you changed.
+one); Any color lets any color of the part do. A set's own colors and
+parts are changed in its panel, and kept with the set rather than the view
+(see Changes to sets): all its red for dark red, one part in several
+colors, a part made of other parts. They count in the sort-out queue (a
+set that takes dark red leaves the red for the sets after it), and the
+overview says how many sets are changed.
+
+The sort-out queue starts with a search: type a set's, build's or custom
+model's name or number (a build is found by its set's too) and pick it to
+put it at the end of the queue, then drag it to its place. "Sort this out"
+on a set's panel does the same.
 <!-- /human -->
 
 A view is how lots are looked at: which lots, in what order, which colors a
-line takes, the changes to sets' colors, what counts, the filter, and the
-sort-out queue. Every
-request about lots carries one (`View` in `proto/pile/v1/pile.proto`).
+line takes, what counts, the filter, and the sort-out queue. Every request
+about lots carries one (`View` in `proto/pile/v1/pile.proto`). The changes
+to sets are not the view's: they are kept with the sets on the server and
+read by every view ([changes.md](changes.md)).
 
 ## The lots: a stack
 
@@ -96,19 +100,16 @@ had its own (`Pile.allot`), near colors by nearness, any color the most
 plentiful first, and counted as `wrong_color`. Rarity weights are exact but
 for a line that takes any color.
 
-`View.color_choices` change sets' colors (`match.Choice`,
-`internal/match/choices.go`): a set's lines in one color, or one part's line
-in it, take another color instead, or any color (`Line.Any`). A part's
-choice is made after its color's. `WithChoices` rewrites the set's lines for
-the view (two lines that become one part in one color merge) and keeps which
-line each line of the set became, so `LineOf` and a set's panel still go by
-the set's own part and color. The server scores the changed sets in place of
+A set's own changes (`changes.json`, [changes.md](changes.md)) recolor its
+lines, one color or one part at a time: another color, several to mix, or
+any (`match.WithChanges`). The server scores the changed sets in place of
 their own (`view.entry`, the queue, the overview, a set's panel and its
-builds). `GetSet` sends each line's choice and its part's colors in the lots
-(`SetLine.part_colors`), and each of the set's colors with what could stand
-in for it (`SetColor.swaps`: how many of the color's pieces the lots have in
-another color, line by line; the near colors always among them). A line that
-takes another color is pictured in it when Rebrickable has the picture.
+builds). `GetSet` sends each line's colors (`SetLine.use_colors`,
+`any_color`) and its part's colors in the lots (`SetLine.part_colors`), and
+each of the set's colors with what could stand in for it (`SetColor.swaps`:
+how many of the color's pieces the lots have in another color, line by
+line; the near colors always among them). A line that takes another color
+is pictured in it when Rebrickable has the picture.
 
 ## Counting
 
@@ -129,11 +130,16 @@ with their set. What is judged once per set (rarity, basic or loose bricks,
 a minifigure set, the likely order) rests on the default counting; collect
 times count plain parts only, as they always did.
 
+A set's change can count one of its lines, or leave it out, whatever the
+view counts (`Entry.Counts`, [changes.md](changes.md)); `SetLine.counted`
+says which it is.
+
 The app keeps the counting with the view (`view.counting`), shows it in
 "What counts" in `FilterBar.svelte`, and says it in the overview's header
 (`counting.ts`). A set's panel (`SetDetail.svelte`) stacks its lines as
-small tiles filled by how much was found (`LineTile.svelte`): missing, then
-found, then not counted, then its whole minifigures.
+small tiles filled by how much was found (`LineTile.svelte`, each a button
+for its menu): missing, then found, then not counted, then its whole
+minifigures.
 
 ## The filter
 
@@ -180,9 +186,8 @@ star asks again.
 ## The rest of the view
 
 Kept in the browser (`view.svelte.ts`), so it lasts across pages and
-reloads: the colors a line takes and the changes to sets' colors, what
-counts, the filter, grouping by theme,
-and the sort-out queue. The queue is the view's, not a stack's: adding,
+reloads: the colors a line takes, what counts, the filter, grouping by
+theme, and the sort-out queue. The queue is the view's, not a stack's: adding,
 taking out or moving a lot keeps its sets and their order, and the server
 counts them again against the new lots (a set they cannot help stays, with
 what they have of it). Before it was the view's, each stack kept one
@@ -190,6 +195,14 @@ what they have of it). Before it was the view's, each stack kept one
 The queue's sets take their pieces in order, each against what the ones
 before it left; everything else is matched against what is left after all
 of them (`internal/server/view.go`).
+
+A set, build within a set or custom model goes into the queue from its
+panel ("Sort this out") or from the search at the top of the queue
+(`AddToQueue.svelte`): `FindSets` finds every one with counted lines, so
+the queue can take it, by words that start its name or number (a build's
+by its set's too, a custom model's by its designer's and collection's), its
+number first, then whole words, sets before builds before custom models,
+the biggest first; a pick goes to the end (`view.add`).
 
 On a lot's overview the queue is a grid of cards (`SortOutQueue.svelte`),
 put in order by dragging: a card picked up floats under the pointer as the

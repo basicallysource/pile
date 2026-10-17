@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"slices"
 	"strings"
-	"unicode"
 
 	pilev1 "github.com/basicallysource/pile/gen/pile/v1"
 	"github.com/basicallysource/pile/internal/catalog"
@@ -96,33 +95,6 @@ func (s *Service) stock() *stock {
 	k := newStock(st, s.lots, s.cat)
 	s.stocked.Store(k)
 	return k
-}
-
-// words splits text into lowercase words of letters and digits.
-func words(text string) []string {
-	return strings.FieldsFunc(strings.ToLower(text), func(r rune) bool { return !unicode.IsLetter(r) && !unicode.IsDigit(r) })
-}
-
-// matches says whether every query word starts one of the words, and whether
-// every one is one of them whole.
-func matches(query []string, sets ...[]string) (ok, exact bool) {
-	exact = true
-	for _, q := range query {
-		found, whole := false, false
-		for _, ws := range sets {
-			for _, w := range ws {
-				if strings.HasPrefix(w, q) {
-					found = true
-					whole = whole || w == q
-				}
-			}
-		}
-		if !found {
-			return false, false
-		}
-		exact = exact && whole
-	}
-	return true, exact
 }
 
 // tally counts pieces under each choice of one filter.

@@ -12,6 +12,7 @@ import (
 	"testing/fstest"
 
 	"github.com/basicallysource/pile/internal/catalog"
+	"github.com/basicallysource/pile/internal/changes"
 	"github.com/basicallysource/pile/internal/hive/hivetest"
 	"github.com/basicallysource/pile/internal/lots"
 	"github.com/basicallysource/pile/internal/server"
@@ -52,6 +53,10 @@ func TestRefreshServesNewLots(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	ch, err := changes.Read(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
 	cat := &catalog.Catalog{
 		Colors:          map[int32]*catalog.Color{0: {ID: 0, Name: "Black"}},
 		Parts:           map[string]*catalog.Part{"3001": {Num: "3001", Name: "Brick 2 x 4", Category: "Bricks"}},
@@ -61,7 +66,7 @@ func TestRefreshServesNewLots(t *testing.T) {
 		BrickLinkParts:  map[string]string{"3001": "3001"},
 		BrickLinkColors: map[int32]int32{11: 0},
 	}
-	sh := &server.Shared{Cat: cat, Storage: kept, Stars: sr, DataDir: dir}
+	sh := &server.Shared{Cat: cat, Storage: kept, Stars: sr, Changes: ch, DataDir: dir}
 	s, err := server.New(sh, ls)
 	if err != nil {
 		t.Fatal(err)

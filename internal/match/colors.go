@@ -30,34 +30,44 @@ func (ix *Index) Colors(m ColorMode) Colors { return Colors{Mode: m, near: ix.ne
 func (ix *Index) Near(c int32) []int32 { return ix.near[c] }
 
 // others is the colors l takes beside its own, from those the pile has of
-// its part (have), in the order they are drawn: near colors by nearness,
-// any color the most plentiful first (left).
-func (cs Colors) others(l Line, have []int32, left func(int32) int32) []int32 {
-	switch {
-	case cs.Mode == Any || l.Any:
+// a part (have), in the order they are drawn: with any color (the view's,
+// or its set's change), every one, the most plentiful (left) first;
+// otherwise the colors its set's change mixes in (h), the most plentiful
+// first, then in similar colors the colors near its own by nearness.
+func (cs Colors) others(l Line, h *how, have []int32, left func(int32) int32) []int32 {
+	plenty := func(a, b int32) int {
+		if d := left(b) - left(a); d != 0 {
+			return int(d)
+		}
+		return int(a - b)
+	}
+	if cs.Mode == Any || (h != nil && h.any) {
 		out := make([]int32, 0, len(have))
 		for _, c := range have {
 			if c != l.Color {
 				out = append(out, c)
 			}
 		}
-		slices.SortFunc(out, func(a, b int32) int {
-			if d := left(b) - left(a); d != 0 {
-				return int(d)
-			}
-			return int(a - b)
-		})
+		slices.SortFunc(out, plenty)
 		return out
-	case cs.Mode == Similar:
-		var out []int32
-		for _, c := range cs.near[l.Color] {
-			if slices.Contains(have, c) {
+	}
+	var out []int32
+	if h != nil {
+		for _, c := range h.also {
+			if c != l.Color && slices.Contains(have, c) && !slices.Contains(out, c) {
 				out = append(out, c)
 			}
 		}
-		return out
+		slices.SortFunc(out, plenty)
 	}
-	return nil
+	if cs.Mode == Similar {
+		for _, c := range cs.near[l.Color] {
+			if slices.Contains(have, c) && !slices.Contains(out, c) {
+				out = append(out, c)
+			}
+		}
+	}
+	return out
 }
 
 // Pairs of colors a builder takes for one another, by Rebrickable's names:

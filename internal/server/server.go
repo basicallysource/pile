@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"sync"
 	"sync/atomic"
 
 	"github.com/basicallysource/pile/gen/pile/v1/pilev1connect"
 	"github.com/basicallysource/pile/internal/catalog"
+	"github.com/basicallysource/pile/internal/changes"
 	"github.com/basicallysource/pile/internal/collect"
 	"github.com/basicallysource/pile/internal/hive"
 	"github.com/basicallysource/pile/internal/lots"
@@ -19,21 +21,22 @@ import (
 
 // Shared is what every Service over one data folder shares, and keeps when
 // one is built again with fresh lots: the catalog, the parts' sizes, the
-// storage and the stars. A bin or a star changed through one Service is
-// changed for them all.
+// storage, the stars and the sets' changes. A bin, a star or a change made
+// through one Service is made for them all.
 type Shared struct {
 	Cat *catalog.Catalog
 	// Each part's size (collect.LoadSizes).
 	Sizes   map[string]collect.Size
 	Storage *storage.Kept
 	Stars   *stars.Stars
+	Changes *changes.Kept
 	// The data folder: its hive.sqlite, and the builds' pictures.
 	DataDir string
 }
 
 // Service holds the catalog, its index, every lot, the stacks of lots views
 // look at, the lots' collect times as they are worked out, what the
-// storage's bins hold, and the stars.
+// storage's bins hold, the stars and the sets' changes.
 type Service struct {
 	cat        *catalog.Catalog
 	index      *match.Index
@@ -47,6 +50,11 @@ type Service struct {
 	// for (stock).
 	stocked atomic.Pointer[stock]
 	stars   *stars.Stars
+	changes *changes.Kept
+	// The catalog's parts and the sets, ready to search (find.go), when
+	// first searched.
+	partWords func() []searchedPart
+	setWords  func() []searchedSet
 	// The API, answered by this Service.
 	api http.Handler
 }
@@ -54,7 +62,9 @@ type Service struct {
 // New readies every lot and each lot's stack, puts their pieces in the
 // storage's bins and starts working out the lots' collect times.
 func New(sh *Shared, ls []*lots.Lot) (*Service, error) {
-	s := &Service{cat: sh.Cat, index: match.NewIndex(sh.Cat), lots: map[string]*lot{}, dataDir: sh.DataDir, storage: sh.Storage, stars: sh.Stars}
+	s := &Service{cat: sh.Cat, index: match.NewIndex(sh.Cat), lots: map[string]*lot{}, dataDir: sh.DataDir, storage: sh.Storage, stars: sh.Stars, changes: sh.Changes}
+	s.partWords = sync.OnceValue(s.searchedParts)
+	s.setWords = sync.OnceValue(s.searchedSets)
 	for _, l := range ls {
 		t := newLot(l, sh.Cat, s.index)
 		s.order = append(s.order, t)

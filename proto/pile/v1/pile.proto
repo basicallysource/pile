@@ -34,6 +34,21 @@ service PileService {
   rpc ListStars(ListStarsRequest) returns (ListStarsResponse);
   // Stars or unstars one, and keeps it.
   rpc SetStar(SetStarRequest) returns (SetStarResponse);
+  // Sets, custom models and builds within sets by name or number, as one
+  // types: to put one in the sort-out queue.
+  rpc FindSets(FindSetsRequest) returns (FindSetsResponse);
+  // The catalog's parts by name or number, with how many of each lots have:
+  // to pick other parts that make one of a set's part.
+  rpc FindParts(FindPartsRequest) returns (FindPartsResponse);
+  // What could make one of a set's part instead, through a view: other
+  // parts that cover its footprint, the parts the catalog relates to it, and
+  // those chosen, each with how many the lots could make.
+  rpc GetStandIns(GetStandInsRequest) returns (GetStandInsResponse);
+  // Every set's changes: how each will be built where it differs from its
+  // inventory.
+  rpc ListChanges(ListChangesRequest) returns (ListChangesResponse);
+  // Makes one change to how a set is built, or takes one back, and keeps it.
+  rpc SetChange(SetChangeRequest) returns (SetChangeResponse);
 }
 
 // How lots are looked at.
@@ -54,9 +69,9 @@ message View {
   Counting counting = 5;
   // Which colors a set's line takes once its own color runs out.
   ColorMatch colors = 6;
-  // Changes to sets' colors: a set takes another color for one of its
-  // colors, or for one part.
-  repeated ColorChoice color_choices = 7;
+  // Changes to sets are kept with the sets (Change), not in a view.
+  reserved 7;
+  reserved "color_choices";
 }
 
 // Which colors a set's line takes once its own color runs out. A piece in
@@ -73,20 +88,63 @@ enum ColorMatch {
   COLOR_MATCH_ANY = 3;
 }
 
-// A change to a set's colors: its lines in `color` (all of them, or only
-// `part_num`'s) take `use_color` instead, or any color of their part. A
-// part's choice is made after its color's.
-message ColorChoice {
-  string set_num = 1;
+// A change to how a set will be built where it differs from its inventory,
+// kept with the set in pile's data folder and counted wherever the set is
+// matched (its panel, the sort-out queue, the overview) in every view. It is
+// for one line (a part in a color, as the set has them) or, for its colors
+// only, every line in a color; a line's own change of colors is made after
+// its color's.
+message Change {
+  // The set's part (Rebrickable's number); empty for every line in `color`.
+  string part_num = 1;
   // The color as the set has it.
   int32 color = 2;
-  // One part's line (Rebrickable's number); empty for every line in the
-  // color.
-  string part_num = 3;
-  oneof take {
-    int32 use_color = 4;
-    bool any_color = 5;
+  oneof what {
+    // The colors it takes instead of its own.
+    ColorTake colors = 3;
+    // Other parts that make one of it once its own part runs out.
+    PartSwap swap = 4;
+    // Counted toward the set's completeness, or left out, whatever the
+    // view counts.
+    bool counted = 5;
   }
+  // Read only: the change in words, part numbers and color names
+  // ("60470b Yellow: or 2 x 4085 Yellow").
+  string text = 6;
+}
+
+// Which colors a line takes instead of its own: one other color, several to
+// fill it from in any mix (the first counts as its color, the rest as
+// another color), or any color of its part. None is its own color, which
+// undoes its color's change for one part.
+message ColorTake {
+  repeated int32 colors = 1;
+  bool any = 2;
+}
+
+// Other parts that make one of a line's part, each tried in turn once its
+// own part (in every color it takes) runs out, in the colors the line takes.
+message PartSwap {
+  repeated StandIn stand_ins = 1;
+}
+
+// What makes one of a part: so many of each of some other parts, or (fits)
+// any combination of plates, tiles or bricks of its kind and height that
+// covers its footprint, which matching picks from what the lots have.
+message StandIn {
+  repeated PartQuantity parts = 1;
+  bool fits = 2;
+}
+
+message PartQuantity {
+  string part_num = 1;
+  int32 quantity = 2;
+}
+
+// A set's changes, in the order they were made.
+message SetChanges {
+  string set_num = 1;
+  repeated Change changes = 2;
 }
 
 // A color, and how many pieces of something are in it.
@@ -444,23 +502,35 @@ message SetLine {
   Color color = 3;
   int32 need = 4;
   // Pieces of this part (or a mold variant) found for this line, up to `need`:
-  // in its color, or in the other colors it takes (View.colors, its
-  // ColorChoice). Counted or not.
+  // in its color, or in the other colors it takes (View.colors, the set's
+  // ColorTake), or made from other parts (the set's PartSwap). Counted or
+  // not.
   int32 found = 5;
   // Of `found`, the pieces in another color.
   int32 wrong_color = 6;
   string image_url = 7;
   PartClass class = 8;
-  // The lots `found` is drawn from, in the view's order.
+  // The lots the pieces `found` takes are drawn from, in the view's order
+  // (other parts' pieces included).
   repeated LotCount lots = 9;
-  // Whether the view counts it toward the set's completeness.
+  // Whether it counts toward the set's completeness: as the view counts
+  // its class, or as the set's change says.
   bool counted = 10;
-  // The view's choice for it (ColorChoice): the color it takes instead of
-  // its own, or any color.
-  Color use_color = 11;
+  reserved 11;
+  reserved "use_color";
+  // The colors it takes instead of its own (its ColorTake, or its color's):
+  // one, or several to mix; or any color.
+  repeated Color use_colors = 14;
   bool any_color = 12;
   // Its part in every color the lots have, most first.
   repeated ColorCount part_colors = 13;
+  // Of `found`, how many are made from other parts (its PartSwap), and the
+  // pieces of those parts they take.
+  int32 made = 15;
+  repeated PartCount made_from = 16;
+  // A plate, tile or brick of whole studs, which smaller ones of its kind
+  // can cover.
+  bool has_footprint = 17;
 }
 
 // One of a set's colors, and what could stand in for it.
@@ -470,8 +540,10 @@ message SetColor {
   // takes).
   int32 need = 2;
   int32 found = 3;
-  // The view's choice for the color: the color it takes instead, or any.
-  Color use_color = 4;
+  // The set's change for the color: the colors it takes instead, or any.
+  reserved 4;
+  reserved "use_color";
+  repeated Color use_colors = 7;
   bool any_color = 5;
   // Other colors, each with how many of this color's pieces the lots have
   // in it, part by part (each line capped at what it needs): what taking it
@@ -510,6 +582,8 @@ message GetSetResponse {
   repeated string source_unplaced = 10;
   // Its colors, the most pieces first.
   repeated SetColor colors = 11;
+  // Its changes, in the order they were made.
+  repeated Change changes = 12;
 }
 
 message ListPartsRequest {
@@ -750,4 +824,133 @@ message SetStarRequest {
 message SetStarResponse {
   // Every star after the change, most recent first.
   repeated string set_nums = 1;
+}
+
+message FindSetsRequest {
+  // Words that each start a word of its name or number, or a build's set's,
+  // in any order.
+  string query = 1;
+  // At most this many; 0 for 20.
+  int32 limit = 2;
+}
+
+// A set, custom model or build within a set, as a search finds it.
+message FoundSet {
+  string set_num = 1;
+  string name = 2;
+  Kind kind = 3;
+  int32 year = 4;
+  string theme = 5;
+  string image_url = 6;
+  // A build's set.
+  string of_set_num = 7;
+  string of_name = 8;
+  // A custom model's designer, and its collection.
+  string designer = 9;
+  string collection = 10;
+  // Its pieces, counting what a view counts by default.
+  int32 pieces = 11;
+}
+
+message FindSetsResponse {
+  // Its number first, then whole words before beginnings of words; sets
+  // LEGO sold, then builds, then custom models; the biggest first.
+  repeated FoundSet sets = 1;
+}
+
+message FindPartsRequest {
+  // Words that each start a word of the part's name or number.
+  string query = 1;
+  // The lots whose pieces are counted, taken together.
+  repeated string lots = 2;
+  // Count only these colors; none for every color.
+  repeated int32 colors = 3;
+  // At most this many; 0 for 30.
+  int32 limit = 4;
+}
+
+message FindPartsResponse {
+  // Its number first, then whole words; the most pieces first. Each
+  // PartCount has no color: `count` is in the colors asked for.
+  repeated PartCount parts = 1;
+}
+
+message GetStandInsRequest {
+  View view = 1;
+  string set_num = 2;
+  // The line, as the set has it.
+  string part_num = 3;
+  int32 color = 4;
+}
+
+// Where a stand-in comes from.
+enum StandInSource {
+  STAND_IN_SOURCE_UNSPECIFIED = 0;
+  // Smaller plates, tiles or bricks of its kind and height that cover its
+  // footprint.
+  STAND_IN_SOURCE_FOOTPRINT = 1;
+  // The part it is a print or pattern of.
+  STAND_IN_SOURCE_UNPRINTED = 2;
+  // A print or pattern of it.
+  STAND_IN_SOURCE_PRINTED = 3;
+  // The parts it is assembled from, one of each.
+  STAND_IN_SOURCE_SUB_PARTS = 4;
+  // Picked by hand.
+  STAND_IN_SOURCE_PICKED = 5;
+}
+
+// A part of a stand-in: how many of it make one, and how many pieces of it
+// the lots have.
+message StandInPart {
+  string part_num = 1;
+  string name = 2;
+  string image_url = 3;
+  int32 quantity = 4;
+  int32 pieces = 5;
+}
+
+// One way to make one of a line's part, and how many the lots could make.
+message StandInOption {
+  StandIn stand_in = 1;
+  StandInSource source = 2;
+  // Its parts (none for any that fit), each with how many pieces the lots
+  // have in the colors the line takes, of what the sets before it in the
+  // queue and the set itself leave (the set without this line's
+  // stand-ins).
+  repeated StandInPart parts = 3;
+  // How many of the line's part (up to what it needs) the lots could make
+  // from it, of the same.
+  int32 makes = 4;
+  // The line takes it (its PartSwap has it).
+  bool chosen = 5;
+}
+
+message GetStandInsResponse {
+  // Any combination of smaller plates, tiles or bricks of its kind and
+  // height that covers its footprint, when it is a plain one.
+  StandInOption fits = 1;
+  // Every other way: those chosen first, in the line's order, then the
+  // most it could make first, and the fewest pieces; those the lots could
+  // make none of are left out but for those chosen.
+  repeated StandInOption options = 2;
+}
+
+message ListChangesRequest {}
+
+message ListChangesResponse {
+  // Every set with a change, by set number.
+  repeated SetChanges sets = 1;
+}
+
+message SetChangeRequest {
+  string set_num = 1;
+  // Replaces the set's change of the same line and kind, if any.
+  Change change = 2;
+  // Takes back the set's change of that line and kind instead.
+  bool undo = 3;
+}
+
+message SetChangeResponse {
+  // The set's changes after it.
+  SetChanges set = 1;
 }

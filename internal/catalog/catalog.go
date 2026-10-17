@@ -33,6 +33,8 @@ type Part struct {
 	Name     string
 	Category string
 	Class    Class
+	// When it is a plain plate, tile or brick of whole studs.
+	Shape *Shape
 }
 
 // Class is the kind of part, for what counts toward a set's completeness
@@ -157,8 +159,14 @@ type Catalog struct {
 	// Canonical maps a part to the one part standing for its mold variants and
 	// alternates, which look alike to a camera.
 	Canonical map[string]string
-	// Image of a part in a color, from any set's inventory.
-	Images map[PartColor]string
+	// The other parts that can stand for a part one for one, or make it
+	// (shapes.go): its prints and patterns, the part it is a print of, and
+	// the parts it is assembled from.
+	Related map[string][]Related
+	// Image of a part in a color, from any set's inventory, and of a part in
+	// the first color one was found in.
+	Images     map[PartColor]string
+	PartImages map[string]string
 	// Parts by their number but for a closing letter, the plainest first.
 	stems map[string][]string
 	// BrickLink and LDraw ids to Rebrickable ones.
@@ -182,12 +190,14 @@ type PartColor struct {
 // reading the models leans on.
 func Load(data string) (*Catalog, error) {
 	c := &Catalog{
-		Colors:    map[int32]*Color{},
-		Parts:     map[string]*Part{},
-		Sets:      map[string]*Set{},
-		Canonical: map[string]string{},
-		Images:    map[PartColor]string{},
-		stems:     map[string][]string{},
+		Colors:     map[int32]*Color{},
+		Parts:      map[string]*Part{},
+		Sets:       map[string]*Set{},
+		Canonical:  map[string]string{},
+		Related:    map[string][]Related{},
+		Images:     map[PartColor]string{},
+		PartImages: map[string]string{},
+		stems:      map[string][]string{},
 	}
 	dir := filepath.Join(data, "rebrickable")
 	if st, err := os.Stat(filepath.Join(dir, "inventory_parts.csv.gz")); err == nil {
@@ -300,7 +310,7 @@ func (c *Catalog) loadParts(dir string) error {
 	}
 	return each(dir, "parts", func(row func(string) string) error {
 		cat := cats[row("part_cat_id")]
-		p := &Part{Num: row("part_num"), Name: row("name"), Category: cat}
+		p := &Part{Num: row("part_num"), Name: row("name"), Category: cat, Shape: shapeOf(row("name"))}
 		switch {
 		case cat == "Stickers":
 			p.Class = Printed
@@ -317,8 +327,10 @@ func (c *Catalog) loadParts(dir string) error {
 	})
 }
 
-// loadRelationships marks printed parts and joins mold variants and
-// alternates into one canonical part each (union-find).
+// loadRelationships marks printed parts, joins mold variants and
+// alternates into one canonical part each (union-find), and keeps which
+// parts are prints or patterns of which, and which are assembled from
+// which.
 func (c *Catalog) loadRelationships(dir string) error {
 	parent := map[string]string{}
 	var find func(string) string
@@ -334,10 +346,14 @@ func (c *Catalog) loadRelationships(dir string) error {
 	err := each(dir, "part_relationships", func(row func(string) string) error {
 		child, par := row("child_part_num"), row("parent_part_num")
 		switch row("rel_type") {
-		case "P":
-			if p := c.Parts[child]; p != nil && p.Class == Plain {
+		case "P", "T":
+			if p := c.Parts[child]; p != nil && p.Class == Plain && row("rel_type") == "P" {
 				p.Class = Printed
 			}
+			c.Related[child] = append(c.Related[child], Related{par, PrintOf})
+			c.Related[par] = append(c.Related[par], Related{child, PrintedAs})
+		case "B":
+			c.Related[par] = append(c.Related[par], Related{child, AssembledFrom})
 		case "M", "A":
 			a, b := find(child), find(par)
 			if a != b {
@@ -402,6 +418,9 @@ func (c *Catalog) loadSets(dir string) error {
 		pc := PartColor{row("part_num"), num(row("color_id"))}
 		if _, ok := c.Images[pc]; !ok && img != "" {
 			c.Images[pc] = img
+			if _, ok := c.PartImages[pc.Part]; !ok {
+				c.PartImages[pc.Part] = img
+			}
 		}
 		set := c.Sets[invSet[row("inventory_id")]]
 		if set == nil || row("is_spare") == "True" {

@@ -21,8 +21,9 @@ const (
 )
 
 // GetSet is one set, custom model or build against the view: how complete
-// it is, its lines with what was found of each and where, its builds, and
-// its colors with what could stand in for each.
+// it is, its lines with what was found of each and where (made of other
+// parts too), its builds, its colors with what could stand in for each, and
+// its changes.
 func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRequest]) (*connect.Response[pilev1.GetSetResponse], error) {
 	w, err := s.view(req.Msg.View)
 	if err != nil {
@@ -64,13 +65,19 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 	}
 	lots := w.stack.piles.Sum
 	// Lines of one part (or its variants) and color share what was found for
-	// it, and the lots it is in, first come first served.
+	// it, made of other parts for it, and the lots it is in, first come
+	// first served.
 	exactLeft := map[int]int32{}
 	otherLeft := map[int]int32{}
+	madeLeft := map[int]int32{}
 	lotsLeft := map[int][]int32{}
 	for i := range found.Exact {
 		exactLeft[i], otherLeft[i], lotsLeft[i] = found.Exact[i], found.Other[i], drawn[i]
+		if found.Made != nil {
+			madeLeft[i] = found.Made[i]
+		}
 	}
+	usedGiven := map[int]bool{}
 	for _, l := range set.Lines {
 		line := &pilev1.SetLine{PartNum: l.Part, Color: color(s.cat.Colors[l.Color]), Need: l.Quantity, ImageUrl: l.ImageURL}
 		var class catalog.Class
@@ -78,34 +85,55 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 			line.Name, class = part.Name, part.Class
 		}
 		line.Class, line.Counted = partClass[class], w.counting.Counts(class)
-		use, anyColor := w.choice(set.Num, l.Part, l.Color)
-		line.UseColor, line.AnyColor = s.colorOf(use), anyColor
-		// Pictured in the color it takes, when there is a picture of it.
-		if img := s.cat.Images[catalog.PartColor{Part: l.Part, Color: use}]; use >= 0 && img != "" {
-			line.ImageUrl = img
-		}
 		if id, ok := s.index.PartID(l.Part); ok {
 			line.PartColors = s.colorCounts(lots, id, partColorsMax)
+			_, line.HasFootprint = s.index.Shape(id)
 		}
+		i := -1
 		if e != nil {
-			if i := s.index.LineOf(e, l.Part, l.Color); i >= 0 {
-				x := min(exactLeft[i], l.Quantity)
-				o := min(otherLeft[i], l.Quantity-x)
-				exactLeft[i] -= x
-				otherLeft[i] -= o
-				line.Found, line.WrongColor = x+o, o
-				from := make([]int32, len(w.stack.lots))
-				n := x + o
-				for j, have := range lotsLeft[i] {
-					t := min(have, n)
-					from[j], lotsLeft[i][j], n = t, have-t, n-t
-				}
-				line.Lots = w.stack.lotCounts(from)
+			i = s.index.LineOf(e, l.Part, l.Color)
+		}
+		if i >= 0 {
+			line.Counted = e.Counts(i, w.counting)
+			use, anyColor := e.Takes(i)
+			line.AnyColor = anyColor
+			for _, c := range use {
+				line.UseColors = append(line.UseColors, color(s.cat.Colors[c]))
 			}
+			// Pictured in the color it takes, when there is a picture of it.
+			if img := s.cat.Images[catalog.PartColor{Part: l.Part, Color: e.Lines[i].Color}]; len(use) > 0 && img != "" {
+				line.ImageUrl = img
+			}
+			x := min(exactLeft[i], l.Quantity)
+			o := min(otherLeft[i], l.Quantity-x)
+			m := min(madeLeft[i], l.Quantity-x-o)
+			exactLeft[i] -= x
+			otherLeft[i] -= o
+			madeLeft[i] -= m
+			line.Found, line.WrongColor, line.Made = x+o+m, o, m
+			taken := x + o
+			if m > 0 && !usedGiven[i] {
+				usedGiven[i] = true
+				for _, u := range found.Used {
+					if u.Line == i {
+						line.MadeFrom = append(line.MadeFrom, s.usedPiece(u))
+						taken += u.N
+					}
+				}
+			}
+			from := make([]int32, len(w.stack.lots))
+			for j, have := range lotsLeft[i] {
+				t := min(have, taken)
+				from[j], lotsLeft[i][j], taken = t, have-t, taken-t
+			}
+			line.Lots = w.stack.lotCounts(from)
 		}
 		out.Lines = append(out.Lines, line)
 	}
 	out.Colors = s.setColors(w, set, out.Lines, lots)
+	for _, c := range w.changes[set.Num] {
+		out.Changes = append(out.Changes, s.changeMessage(c))
+	}
 	for _, f := range set.Minifigures {
 		out.Minifigures = append(out.Minifigures, &pilev1.Minifigure{FigNum: f.Num, Name: f.Name, Quantity: f.Quantity, ImageUrl: f.ImageURL})
 	}
@@ -121,33 +149,15 @@ func (s *Service) GetSet(_ context.Context, req *connect.Request[pilev1.GetSetRe
 	return connect.NewResponse(out), nil
 }
 
-// choice is the view's choice for a set's line (a part in its color): the
-// color it takes instead (-1: its own), or any color. A part's choice is
-// made after its color's, as matching makes it.
-func (w *view) choice(set, part string, c int32) (int32, bool) {
-	use, anyColor := int32(-1), false
-	for _, ch := range w.choices[set] {
-		if ch.Part == "" && ch.Color == c {
-			use, anyColor = ch.Use, ch.Any
-		}
+// usedPiece is pieces of another part taken to make one of a line's, as
+// the contract has them.
+func (s *Service) usedPiece(u match.Used) *pilev1.PartCount {
+	num := s.index.PartNum(u.Part)
+	pc := &pilev1.PartCount{PartNum: num, Color: color(s.cat.Colors[u.Color]), Count: u.N, ImageUrl: s.cat.Images[catalog.PartColor{Part: num, Color: u.Color}]}
+	if p := s.cat.Parts[num]; p != nil {
+		pc.Name = p.Name
 	}
-	for _, ch := range w.choices[set] {
-		if ch.Part == part && ch.Color == c {
-			use, anyColor = ch.Use, ch.Any
-		}
-	}
-	if anyColor {
-		use = -1
-	}
-	return use, anyColor
-}
-
-// colorOf is the contract's color for an id; nil for none (-1).
-func (s *Service) colorOf(id int32) *pilev1.Color {
-	if id < 0 {
-		return nil
-	}
-	return color(s.cat.Colors[id])
+	return pc
 }
 
 // colorCounts is a part's colors in a pile, the most pieces first, at most n.
@@ -169,7 +179,7 @@ func (s *Service) colorCounts(p *match.Pile, part int32, n int) []*pilev1.ColorC
 }
 
 // setColors is a set's colors, the most pieces first: what of each was
-// found (lines as drawn above), the view's choice for it, and the other
+// found (lines as drawn above), the set's change for it, and the other
 // colors the lots have its parts in, each with how many of the color's
 // pieces it would find (each line capped at what it needs).
 func (s *Service) setColors(w *view, set *catalog.Set, lines []*pilev1.SetLine, lots *match.Pile) []*pilev1.SetColor {
@@ -180,8 +190,14 @@ func (s *Service) setColors(w *view, set *catalog.Set, lines []*pilev1.SetLine, 
 		sc := byColor[l.Color]
 		if sc == nil {
 			sc = &pilev1.SetColor{Color: color(s.cat.Colors[l.Color])}
-			use, anyColor := w.choice(set.Num, "", l.Color)
-			sc.UseColor, sc.AnyColor = s.colorOf(use), anyColor
+			for _, ch := range w.changes[set.Num] {
+				if ch.Part == "" && ch.Color == l.Color && ch.Colors != nil {
+					sc.AnyColor = ch.Colors.Any
+					for _, c := range ch.Colors.Use {
+						sc.UseColors = append(sc.UseColors, color(s.cat.Colors[c]))
+					}
+				}
+			}
 			byColor[l.Color] = sc
 			swaps[l.Color] = map[int32]int32{}
 			order = append(order, l.Color)

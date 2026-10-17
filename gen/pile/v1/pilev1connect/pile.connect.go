@@ -56,6 +56,16 @@ const (
 	PileServiceListStarsProcedure = "/pile.v1.PileService/ListStars"
 	// PileServiceSetStarProcedure is the fully-qualified name of the PileService's SetStar RPC.
 	PileServiceSetStarProcedure = "/pile.v1.PileService/SetStar"
+	// PileServiceFindSetsProcedure is the fully-qualified name of the PileService's FindSets RPC.
+	PileServiceFindSetsProcedure = "/pile.v1.PileService/FindSets"
+	// PileServiceFindPartsProcedure is the fully-qualified name of the PileService's FindParts RPC.
+	PileServiceFindPartsProcedure = "/pile.v1.PileService/FindParts"
+	// PileServiceGetStandInsProcedure is the fully-qualified name of the PileService's GetStandIns RPC.
+	PileServiceGetStandInsProcedure = "/pile.v1.PileService/GetStandIns"
+	// PileServiceListChangesProcedure is the fully-qualified name of the PileService's ListChanges RPC.
+	PileServiceListChangesProcedure = "/pile.v1.PileService/ListChanges"
+	// PileServiceSetChangeProcedure is the fully-qualified name of the PileService's SetChange RPC.
+	PileServiceSetChangeProcedure = "/pile.v1.PileService/SetChange"
 )
 
 // PileServiceClient is a client for the pile.v1.PileService service.
@@ -86,6 +96,21 @@ type PileServiceClient interface {
 	ListStars(context.Context, *connect.Request[v1.ListStarsRequest]) (*connect.Response[v1.ListStarsResponse], error)
 	// Stars or unstars one, and keeps it.
 	SetStar(context.Context, *connect.Request[v1.SetStarRequest]) (*connect.Response[v1.SetStarResponse], error)
+	// Sets, custom models and builds within sets by name or number, as one
+	// types: to put one in the sort-out queue.
+	FindSets(context.Context, *connect.Request[v1.FindSetsRequest]) (*connect.Response[v1.FindSetsResponse], error)
+	// The catalog's parts by name or number, with how many of each lots have:
+	// to pick other parts that make one of a set's part.
+	FindParts(context.Context, *connect.Request[v1.FindPartsRequest]) (*connect.Response[v1.FindPartsResponse], error)
+	// What could make one of a set's part instead, through a view: other
+	// parts that cover its footprint, the parts the catalog relates to it, and
+	// those chosen, each with how many the lots could make.
+	GetStandIns(context.Context, *connect.Request[v1.GetStandInsRequest]) (*connect.Response[v1.GetStandInsResponse], error)
+	// Every set's changes: how each will be built where it differs from its
+	// inventory.
+	ListChanges(context.Context, *connect.Request[v1.ListChangesRequest]) (*connect.Response[v1.ListChangesResponse], error)
+	// Makes one change to how a set is built, or takes one back, and keeps it.
+	SetChange(context.Context, *connect.Request[v1.SetChangeRequest]) (*connect.Response[v1.SetChangeResponse], error)
 }
 
 // NewPileServiceClient constructs a client for the pile.v1.PileService service. By default, it uses
@@ -165,6 +190,36 @@ func NewPileServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(pileServiceMethods.ByName("SetStar")),
 			connect.WithClientOptions(opts...),
 		),
+		findSets: connect.NewClient[v1.FindSetsRequest, v1.FindSetsResponse](
+			httpClient,
+			baseURL+PileServiceFindSetsProcedure,
+			connect.WithSchema(pileServiceMethods.ByName("FindSets")),
+			connect.WithClientOptions(opts...),
+		),
+		findParts: connect.NewClient[v1.FindPartsRequest, v1.FindPartsResponse](
+			httpClient,
+			baseURL+PileServiceFindPartsProcedure,
+			connect.WithSchema(pileServiceMethods.ByName("FindParts")),
+			connect.WithClientOptions(opts...),
+		),
+		getStandIns: connect.NewClient[v1.GetStandInsRequest, v1.GetStandInsResponse](
+			httpClient,
+			baseURL+PileServiceGetStandInsProcedure,
+			connect.WithSchema(pileServiceMethods.ByName("GetStandIns")),
+			connect.WithClientOptions(opts...),
+		),
+		listChanges: connect.NewClient[v1.ListChangesRequest, v1.ListChangesResponse](
+			httpClient,
+			baseURL+PileServiceListChangesProcedure,
+			connect.WithSchema(pileServiceMethods.ByName("ListChanges")),
+			connect.WithClientOptions(opts...),
+		),
+		setChange: connect.NewClient[v1.SetChangeRequest, v1.SetChangeResponse](
+			httpClient,
+			baseURL+PileServiceSetChangeProcedure,
+			connect.WithSchema(pileServiceMethods.ByName("SetChange")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -181,6 +236,11 @@ type pileServiceClient struct {
 	findPieces      *connect.Client[v1.FindPiecesRequest, v1.FindPiecesResponse]
 	listStars       *connect.Client[v1.ListStarsRequest, v1.ListStarsResponse]
 	setStar         *connect.Client[v1.SetStarRequest, v1.SetStarResponse]
+	findSets        *connect.Client[v1.FindSetsRequest, v1.FindSetsResponse]
+	findParts       *connect.Client[v1.FindPartsRequest, v1.FindPartsResponse]
+	getStandIns     *connect.Client[v1.GetStandInsRequest, v1.GetStandInsResponse]
+	listChanges     *connect.Client[v1.ListChangesRequest, v1.ListChangesResponse]
+	setChange       *connect.Client[v1.SetChangeRequest, v1.SetChangeResponse]
 }
 
 // ListLots calls pile.v1.PileService.ListLots.
@@ -238,6 +298,31 @@ func (c *pileServiceClient) SetStar(ctx context.Context, req *connect.Request[v1
 	return c.setStar.CallUnary(ctx, req)
 }
 
+// FindSets calls pile.v1.PileService.FindSets.
+func (c *pileServiceClient) FindSets(ctx context.Context, req *connect.Request[v1.FindSetsRequest]) (*connect.Response[v1.FindSetsResponse], error) {
+	return c.findSets.CallUnary(ctx, req)
+}
+
+// FindParts calls pile.v1.PileService.FindParts.
+func (c *pileServiceClient) FindParts(ctx context.Context, req *connect.Request[v1.FindPartsRequest]) (*connect.Response[v1.FindPartsResponse], error) {
+	return c.findParts.CallUnary(ctx, req)
+}
+
+// GetStandIns calls pile.v1.PileService.GetStandIns.
+func (c *pileServiceClient) GetStandIns(ctx context.Context, req *connect.Request[v1.GetStandInsRequest]) (*connect.Response[v1.GetStandInsResponse], error) {
+	return c.getStandIns.CallUnary(ctx, req)
+}
+
+// ListChanges calls pile.v1.PileService.ListChanges.
+func (c *pileServiceClient) ListChanges(ctx context.Context, req *connect.Request[v1.ListChangesRequest]) (*connect.Response[v1.ListChangesResponse], error) {
+	return c.listChanges.CallUnary(ctx, req)
+}
+
+// SetChange calls pile.v1.PileService.SetChange.
+func (c *pileServiceClient) SetChange(ctx context.Context, req *connect.Request[v1.SetChangeRequest]) (*connect.Response[v1.SetChangeResponse], error) {
+	return c.setChange.CallUnary(ctx, req)
+}
+
 // PileServiceHandler is an implementation of the pile.v1.PileService service.
 type PileServiceHandler interface {
 	// The collection: every lot, with its totals.
@@ -266,6 +351,21 @@ type PileServiceHandler interface {
 	ListStars(context.Context, *connect.Request[v1.ListStarsRequest]) (*connect.Response[v1.ListStarsResponse], error)
 	// Stars or unstars one, and keeps it.
 	SetStar(context.Context, *connect.Request[v1.SetStarRequest]) (*connect.Response[v1.SetStarResponse], error)
+	// Sets, custom models and builds within sets by name or number, as one
+	// types: to put one in the sort-out queue.
+	FindSets(context.Context, *connect.Request[v1.FindSetsRequest]) (*connect.Response[v1.FindSetsResponse], error)
+	// The catalog's parts by name or number, with how many of each lots have:
+	// to pick other parts that make one of a set's part.
+	FindParts(context.Context, *connect.Request[v1.FindPartsRequest]) (*connect.Response[v1.FindPartsResponse], error)
+	// What could make one of a set's part instead, through a view: other
+	// parts that cover its footprint, the parts the catalog relates to it, and
+	// those chosen, each with how many the lots could make.
+	GetStandIns(context.Context, *connect.Request[v1.GetStandInsRequest]) (*connect.Response[v1.GetStandInsResponse], error)
+	// Every set's changes: how each will be built where it differs from its
+	// inventory.
+	ListChanges(context.Context, *connect.Request[v1.ListChangesRequest]) (*connect.Response[v1.ListChangesResponse], error)
+	// Makes one change to how a set is built, or takes one back, and keeps it.
+	SetChange(context.Context, *connect.Request[v1.SetChangeRequest]) (*connect.Response[v1.SetChangeResponse], error)
 }
 
 // NewPileServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -341,6 +441,36 @@ func NewPileServiceHandler(svc PileServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(pileServiceMethods.ByName("SetStar")),
 		connect.WithHandlerOptions(opts...),
 	)
+	pileServiceFindSetsHandler := connect.NewUnaryHandler(
+		PileServiceFindSetsProcedure,
+		svc.FindSets,
+		connect.WithSchema(pileServiceMethods.ByName("FindSets")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pileServiceFindPartsHandler := connect.NewUnaryHandler(
+		PileServiceFindPartsProcedure,
+		svc.FindParts,
+		connect.WithSchema(pileServiceMethods.ByName("FindParts")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pileServiceGetStandInsHandler := connect.NewUnaryHandler(
+		PileServiceGetStandInsProcedure,
+		svc.GetStandIns,
+		connect.WithSchema(pileServiceMethods.ByName("GetStandIns")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pileServiceListChangesHandler := connect.NewUnaryHandler(
+		PileServiceListChangesProcedure,
+		svc.ListChanges,
+		connect.WithSchema(pileServiceMethods.ByName("ListChanges")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pileServiceSetChangeHandler := connect.NewUnaryHandler(
+		PileServiceSetChangeProcedure,
+		svc.SetChange,
+		connect.WithSchema(pileServiceMethods.ByName("SetChange")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/pile.v1.PileService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PileServiceListLotsProcedure:
@@ -365,6 +495,16 @@ func NewPileServiceHandler(svc PileServiceHandler, opts ...connect.HandlerOption
 			pileServiceListStarsHandler.ServeHTTP(w, r)
 		case PileServiceSetStarProcedure:
 			pileServiceSetStarHandler.ServeHTTP(w, r)
+		case PileServiceFindSetsProcedure:
+			pileServiceFindSetsHandler.ServeHTTP(w, r)
+		case PileServiceFindPartsProcedure:
+			pileServiceFindPartsHandler.ServeHTTP(w, r)
+		case PileServiceGetStandInsProcedure:
+			pileServiceGetStandInsHandler.ServeHTTP(w, r)
+		case PileServiceListChangesProcedure:
+			pileServiceListChangesHandler.ServeHTTP(w, r)
+		case PileServiceSetChangeProcedure:
+			pileServiceSetChangeHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -416,4 +556,24 @@ func (UnimplementedPileServiceHandler) ListStars(context.Context, *connect.Reque
 
 func (UnimplementedPileServiceHandler) SetStar(context.Context, *connect.Request[v1.SetStarRequest]) (*connect.Response[v1.SetStarResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.SetStar is not implemented"))
+}
+
+func (UnimplementedPileServiceHandler) FindSets(context.Context, *connect.Request[v1.FindSetsRequest]) (*connect.Response[v1.FindSetsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.FindSets is not implemented"))
+}
+
+func (UnimplementedPileServiceHandler) FindParts(context.Context, *connect.Request[v1.FindPartsRequest]) (*connect.Response[v1.FindPartsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.FindParts is not implemented"))
+}
+
+func (UnimplementedPileServiceHandler) GetStandIns(context.Context, *connect.Request[v1.GetStandInsRequest]) (*connect.Response[v1.GetStandInsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.GetStandIns is not implemented"))
+}
+
+func (UnimplementedPileServiceHandler) ListChanges(context.Context, *connect.Request[v1.ListChangesRequest]) (*connect.Response[v1.ListChangesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.ListChanges is not implemented"))
+}
+
+func (UnimplementedPileServiceHandler) SetChange(context.Context, *connect.Request[v1.SetChangeRequest]) (*connect.Response[v1.SetChangeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pile.v1.PileService.SetChange is not implemented"))
 }

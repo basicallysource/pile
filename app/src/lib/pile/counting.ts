@@ -35,3 +35,10 @@ export function leftOut(c: Counting): string {
 		.map((k) => k.short)
 		.join(', ');
 }
+
+// Whether a view counts a part of this class toward a set's completeness,
+// before any set's own change says otherwise.
+export function countsByView(c: Counting, cls: PartClass): boolean {
+	const k = classes.find((k) => k.class === cls);
+	return k ? c[k.key] : true;
+}

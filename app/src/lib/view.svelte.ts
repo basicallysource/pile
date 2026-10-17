@@ -1,16 +1,18 @@
 // How lots are being looked at (docs/views.md). The lots are the route's:
 // `/lots/big-box,goodwill-box` is a stack of two, in priority order, so a
 // link carries them. The rest is kept in the browser, so it lasts across
-// pages and reloads: which colors a line takes (exact, similar or any), the
-// changes made to sets' colors (docs/views.md#colors), what counts toward a set's
-// completeness (docs/views.md#counting), the filter (which sets are listed,
+// pages and reloads: which colors a line takes once its own runs out
+// (exact, similar or any), what counts toward a set's completeness
+// (docs/views.md#counting), the filter (which sets are listed,
 // docs/views.md#the-filter), whether sets are grouped by theme, and the
 // sort-out queue (most wanted first), which is the view's whatever lots it
 // looks at: adding, taking out or moving a lot keeps it, and the server
 // counts it against the new ones. Every page reads it and the server works
-// from it.
+// from it. Changes to sets (their colors, parts and what counts) are kept
+// with the sets on the server, not here (pile/changes.svelte.ts).
 import { page } from '$app/state';
 import { ColorMatch, Kind, type View } from './gen/pile/v1/pile_pb';
+import { changes } from './pile/changes.svelte';
 import type { MessageInitShape } from '@bufbuild/protobuf';
 import type { CountingSchema, FilterSchema, ViewSchema } from './gen/pile/v1/pile_pb';
 
@@ -55,13 +57,8 @@ const colorMatch: Record<ColorMode, ColorMatch> = {
 	any: ColorMatch.ANY
 };
 
-// A change to a set's colors: its lines in `color` (all, or only
-// `partNum`'s) take `use` instead, or any color of their part.
-export type Choice = { setNum: string; color: number; partNum: string; use?: number; any?: boolean };
-
 type Saved = {
 	colors: ColorMode;
-	choices: Choice[];
 	byTheme: boolean;
 	counting: Counting;
 	filter: Filter;
@@ -76,28 +73,40 @@ function lastStackQueue(sortOut: unknown): string[] {
 	return (queues.at(-1) as string[] | undefined) ?? [];
 }
 
+// Changes to sets' colors as the view kept them before they were kept
+// with the sets: each goes to the server once, and the view forgets it.
+type OldChoice = { setNum: string; color: number; partNum: string; use?: number; any?: boolean };
+function keepWithSets(choices: OldChoice[]) {
+	for (const c of choices)
+		changes.make(c.setNum, {
+			partNum: c.partNum,
+			color: c.color,
+			what: { case: 'colors', value: { colors: c.use === undefined ? [] : [c.use], any: !!c.any } }
+		});
+}
+
 function load(): Saved {
 	try {
 		const s = JSON.parse(localStorage.getItem(KEY) ?? '');
-		if (s && typeof s === 'object')
+		if (s && typeof s === 'object') {
+			if (Array.isArray(s.choices) && s.choices.length) keepWithSets(s.choices);
 			return {
 				// Before similar colors, a switch for any color.
 				colors: ['exact', 'similar', 'any'].includes(s.colors) ? s.colors : s.anyColor ? 'any' : 'exact',
-				choices: Array.isArray(s.choices) ? s.choices : [],
 				byTheme: !!s.byTheme,
 				counting: { ...defaultCounting, ...(s.counting ?? {}) },
 				filter: { ...fresh, ...(s.filter ?? {}) },
 				queue: Array.isArray(s.queue) ? s.queue : lastStackQueue(s.sortOut)
 			};
+		}
 	} catch {
 		// Nothing saved, or storage is off.
 	}
-	return { colors: 'exact', choices: [], byTheme: false, counting: defaultCounting, filter: fresh, queue: [] };
+	return { colors: 'exact', byTheme: false, counting: defaultCounting, filter: fresh, queue: [] };
 }
 
 class ViewState {
 	colors = $state<ColorMode>('exact');
-	choices = $state<Choice[]>([]);
 	// Sets grouped by theme, in each section and list.
 	byTheme = $state(false);
 	counting = $state<Counting>(defaultCounting);
@@ -108,11 +117,11 @@ class ViewState {
 	constructor() {
 		const s = load();
 		this.colors = s.colors;
-		this.choices = s.choices;
 		this.byTheme = s.byTheme;
 		this.counting = s.counting;
 		this.filter = s.filter;
 		this.queue = s.queue;
+		this.save();
 	}
 
 	private save() {
@@ -121,7 +130,6 @@ class ViewState {
 				KEY,
 				JSON.stringify({
 					colors: this.colors,
-					choices: this.choices,
 					byTheme: this.byTheme,
 					counting: this.counting,
 					filter: this.filter,
@@ -135,25 +143,6 @@ class ViewState {
 
 	setColors(colors: ColorMode) {
 		this.colors = colors;
-		this.save();
-	}
-
-	// The view's choice for a set's color (partNum empty) or one part's line.
-	choiceOf(setNum: string, color: number, partNum = ''): Choice | undefined {
-		return this.choices.find((c) => c.setNum === setNum && c.color === color && c.partNum === partNum);
-	}
-
-	// Make a set's color (or one part's line in it) take `use` instead, or
-	// any color; null takes the choice back.
-	choose(setNum: string, color: number, partNum: string, take: { use: number } | { any: true } | null) {
-		const rest = this.choices.filter((c) => !(c.setNum === setNum && c.color === color && c.partNum === partNum));
-		this.choices = take ? [...rest, { setNum, color, partNum, ...take }] : rest;
-		this.save();
-	}
-
-	// Take back every choice for a set.
-	clearChoices(setNum: string) {
-		this.choices = this.choices.filter((c) => c.setNum !== setNum);
 		this.save();
 	}
 
@@ -195,6 +184,11 @@ class ViewState {
 		this.setQueue(q.includes(num) ? q.filter((n) => n !== num) : [...q, num]);
 	}
 
+	// Puts a set at the end of the queue, if it is not in it.
+	add(num: string) {
+		if (!this.queue.includes(num)) this.setQueue([...this.queue, num]);
+	}
+
 	// The queue in this order: the same sets, moved about.
 	reorder(nums: string[]) {
 		if (nums.length === this.queue.length && nums.every((n) => this.queue.includes(n))) this.setQueue(nums);
@@ -218,12 +212,6 @@ class ViewState {
 		return {
 			lots: lotsOf(stack),
 			colors: colorMatch[this.colors],
-			colorChoices: this.choices.map((c) => ({
-				setNum: c.setNum,
-				color: c.color,
-				partNum: c.partNum,
-				take: c.any ? { case: 'anyColor' as const, value: true } : { case: 'useColor' as const, value: c.use ?? c.color }
-			})),
 			counting: { ...this.counting } as MessageInitShape<typeof CountingSchema>,
 			filter: { ...this.filter } as MessageInitShape<typeof FilterSchema>,
 			sortOut: this.queue

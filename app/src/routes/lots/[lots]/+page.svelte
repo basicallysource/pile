@@ -25,6 +25,7 @@
 	import { leftOut } from '$lib/pile/counting';
 	import { count, dayOf } from '$lib/format';
 	import { routeStack, view } from '$lib/view.svelte';
+	import { changes } from '$lib/pile/changes.svelte';
 
 	const stack = $derived(routeStack());
 	const answer = query(sources.overview, () => ({ view: view.of(stack) }));
@@ -55,9 +56,9 @@
 						'Similar colors: a piece in a color near the right one (dark red for red, an old gray for a new one) counts once the right color runs out, and each set says how many would be a recolor.',
 					any: 'Any color: a piece of the right part in another color counts, and each set says how many would be a recolor.'
 				}[view.colors]}
-				{#if view.choices.length}
-					{@const sets = new Set(view.choices.map((c) => c.setNum)).size}
-					Colors changed in {sets === 1 ? 'one set' : `${sets} sets`} (its panel's Colors).
+				{#if changes.sets()}
+					{@const sets = changes.sets()}
+					{sets === 1 ? 'One set is' : `${sets} sets are`} changed: colors, parts or what counts (each in its panel's Changes).
 				{/if}
 				{leftOut(view.counting)
 					? `Left out of how complete a set is: whole minifigures, ${leftOut(view.counting)} (What counts, above the sets); they are still found, and sorted out with their set.`
@@ -82,9 +83,7 @@
 
 		<Distribution categories={data.categories} colors={t.colors} pieces={t.pieces} />
 
-		{#if view.queue.length}
-			<SortOutQueue queue={data.sortOut} {names} pieces={t.pieces} left={data.piecesLeft} />
-		{/if}
+		<SortOutQueue queue={data.sortOut} {names} pieces={t.pieces} left={data.piecesLeft} />
 
 		<SetSection
 			title="Starred"

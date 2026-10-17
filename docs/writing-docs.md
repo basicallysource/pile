@@ -52,6 +52,8 @@ same merge rules on both sides...
 - `storage.md`: bins at addresses, what each holds, and finding pieces in them.
 - `views.md`: looking at lots: a stack of them in priority order, the
   color mode, the sort-out queue.
+- `changes.md`: changes to sets, kept with them: a line's colors, other
+  parts that make one of its part, whether it counts.
 - `loading-data.md`: how the app loads and refreshes what it shows, and keeps
   the reader's place.
 

@@ -33,18 +33,19 @@ func (m *Match) Interest() float64 { return m.Evidence * m.Weighted * m.Weighted
 func (m *Match) rank() float64 { return m.Evidence * m.Weighted }
 
 // Score matches one entry against the pile, in the colors cs takes,
-// counting the lines c counts; Found is for every line.
+// counting the lines c counts (or its set's changes say); Found is for
+// every line.
 func (ix *Index) Score(e *Entry, p *Pile, cs Colors, c Counting) (*Match, Found) {
 	f := p.find(e, cs)
 	m := &Match{Entry: e}
 	var wNeed float64
 	for i, l := range e.Lines {
-		if !c.Counts(l.Class) {
+		if !e.Counts(i, c) {
 			continue
 		}
 		m.Need += l.Quantity
-		h := f.Exact[i] + f.Other[i]
-		w := ix.weight(l, cs)
+		h := f.Exact[i] + f.Other[i] + f.made(i)
+		w := ix.weight(l, cs, e.anyColor(i))
 		m.Have += h
 		m.WrongColor += f.Other[i]
 		wNeed += float64(l.Quantity) * w

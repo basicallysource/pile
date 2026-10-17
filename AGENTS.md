@@ -69,12 +69,15 @@ the public record).
   lots name, read through a Hive's records API with the key in
   `PILE_HIVE_KEY`), `hive.sqlite` (the fleet, pulled from a Hive by
   `cmd/pull-hive`; both in `docs/hive.md`), `storage.json` (the bins
-  pieces are kept in: `docs/storage.md`) and `stars.json` (the starred
-  sets: `docs/views.md`). Fresh data means a restart, except the lots'
-  machines, which it reads again from the Hive every `-refresh` and serves
-  through a new Service swapped in whole (`cmd/pile/refresh.go`,
+  pieces are kept in: `docs/storage.md`), `stars.json` (the starred
+  sets: `docs/views.md`) and `changes.json` (how sets will be built where
+  they differ from their inventories: colors, parts made of other parts,
+  what counts: `docs/changes.md`). Fresh data means a restart, except the
+  lots' machines, which it reads again from the Hive every `-refresh` and
+  serves through a new Service swapped in whole (`cmd/pile/refresh.go`,
   `server.Live`), the storage, which `SetStorage` replaces while it runs
-  and writes back, and the stars, which `SetStar` changes one at a time.
+  and writes back, and the stars and the changes, which `SetStar` and
+  `SetChange` change one at a time.
 - **Other commands.** `cmd/pull-hive` (the fleet's records from a Hive),
   `cmd/collect-time` (how long one sorter takes to come across a set's
   pieces: `docs/collect-time.md`), `cmd/export-pieces` (a lot as CSV),
@@ -83,21 +86,26 @@ the public record).
   `scripts/builds/gather.py` gathers the 3D models of sets.
 - **Lots, stacks and views.** The collection is lots (`internal/lots`). A
   page looks at a stack of them in priority order (`/lots/a,b`), and every
-  request about them carries a View: the lots, any-color matching, and a
-  sort-out queue whose sets take their pieces first, drawn from the first
-  lot that has them (`internal/server/view.go`, `stack.go`;
-  `docs/views.md`).
+  request about them carries a View: the lots, the colors a line takes,
+  what counts, the filter, and a sort-out queue whose sets take their
+  pieces first, drawn from the first lot that has them
+  (`internal/server/view.go`, `stack.go`; `docs/views.md`). Changes to
+  sets are kept with the sets, not the view (`internal/changes`), and read
+  by every view (`docs/changes.md`).
 - **Contract.** `proto/pile/v1/pile.proto`, served with Connect;
   `buf generate` writes `gen/` (Go) and `app/src/lib/gen/` (TypeScript).
   Generated code is committed.
 - **Matching** is `internal/match` (its package comment says how sets are
-  scored, in exact or any color, and how the likely order is picked). Pieces
+  scored, in exact or any color, and how the likely order is picked; a
+  set's changes, other parts standing in and plain parts' footprints are
+  `changes.go` and `footprints.go`). Pieces
   (`internal/records`) are read from a Hive by `internal/hive` (its
   package comment says the two ways in), lots from `internal/lots`, the catalog (sets, custom
   models, builds and collections) from `internal/catalog`, LDraw models,
   the parts library and drawing from `internal/ldraw`, the bins from `internal/storage`,
   the handlers from `internal/server` (what the bins hold, and finding it,
-  in `stock.go`). `internal/collect` is the collect-time model.
+  in `stock.go`; finding sets and parts in `find.go`; a set's changes and
+  what could stand in for a part in `changes.go` and `standins.go`). `internal/collect` is the collect-time model.
 - **App.** SvelteKit 5 + Tailwind, static, in `app/`, embedded into the
   binary (`embed.go`). It follows the Sorter design system
   (`docs/design-system/README.md`). Every page loads through

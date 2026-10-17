@@ -40,7 +40,7 @@ func (ix *Index) judgePlain() {
 			if p := ix.cat.Parts[ix.nums[l.Part]]; p != nil && plainCategories[p.Category] {
 				plain += l.Quantity
 			}
-			w := ix.weight(l, ix.Colors(Exact))
+			w := ix.weight(l, ix.Colors(Exact), false)
 			for range min(l.Quantity, rarestPieces) {
 				ws = append(ws, w)
 			}

@@ -4,12 +4,17 @@
 	(a 3D model of a set, a designer's digital file), and where the overview
 	shows it (or why not), then how complete it is; a set read from a 3D
 	model then lists its builds (a building, a vehicle), each opening in the
-	sheet. Then its lines as small tiles, filled by how much of each was found,
-	in stacked groups: what is missing first, then what was found, then what
-	the view does not count toward completeness (still found, and sorted out
-	with it), then its whole minifigures. Each group shows its first rows and
-	opens to all of them. In the sort-out queue it is counted against what the
-	sets before it left; otherwise against what the whole queue leaves.
+	sheet. Then its colors, each of which can take another color, and its
+	changes (docs/changes.md): how it will be built where it differs from
+	its inventory, kept with the set, each with its undo. Then its lines as
+	small tiles, filled by how much of each was found, in stacked groups:
+	what is missing first, then what was found, then what is not counted
+	toward completeness (still found, and sorted out with it), then its whole
+	minifigures. Each group shows its first rows and opens to all of them. A
+	tile opens its line's menu: its colors, other parts to make it from,
+	whether it counts, its picture. In the sort-out queue it is counted
+	against what the sets before it left; otherwise against what the whole
+	queue leaves.
 -->
 <script lang="ts">
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -20,7 +25,7 @@
 	import Badge from '$lib/components/Badge.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import { count, percent } from '$lib/format';
-	import { view } from '$lib/view.svelte';
+	import { routeStack, view } from '$lib/view.svelte';
 	import { zoomsTo } from './zoom.svelte';
 	import { hiddenAs } from './rules';
 	import { classes } from './counting';
@@ -29,6 +34,9 @@
 	import Menu from '$lib/components/Menu.svelte';
 	import LineTile from './LineTile.svelte';
 	import SetGrid from './SetGrid.svelte';
+	import SeveralColors from './SeveralColors.svelte';
+	import StandIns from './StandIns.svelte';
+	import { changes } from './changes.svelte';
 
 	let {
 		detail,
@@ -42,6 +50,11 @@
 	// How many tiles a group shows before it is opened: about two rows.
 	const FOLD = 20;
 	let opened = $state<Record<string, boolean>>({});
+	// The line whose several colors, or other parts, are being chosen.
+	let mixing = $state<SetLine | null>(null);
+	let mixOpen = $state(false);
+	let swapping = $state<SetLine | null>(null);
+	let swapOpen = $state(false);
 
 	const set = $derived(detail.set!);
 	const custom = $derived(set.kind === Kind.CUSTOM);
@@ -101,16 +114,16 @@
 		return s;
 	});
 	const tiles = 'grid grid-cols-[repeat(auto-fill,minmax(3.5rem,1fr))] gap-1';
-	// Pieces in other colors count: the view takes them, or a choice does.
+	// Pieces in other colors count: the view takes them, or a change does.
 	const recolors = $derived(view.colors !== 'exact' || set.wrongColor > 0);
-	const changed = $derived(view.choices.some((c) => c.setNum === set.setNum));
 	// A color's menu: its own, any, or one of the colors its parts are in.
 	const colorItems = (c: SetColor) => {
 		const id = c.color!.id;
-		const own = !c.useColor && !c.anyColor;
+		const own = !c.useColors.length && !c.anyColor;
+		const recolor = (colors: number[], anyColor = false) => changes.recolor(set.setNum, '', id, colors, anyColor);
 		return [
-			{ label: `${c.color!.name}, its own`, checked: own, onselect: () => view.choose(set.setNum, id, '', null) },
-			{ label: 'Any color', checked: c.anyColor, onselect: () => view.choose(set.setNum, id, '', { any: true }) },
+			{ label: `${c.color!.name}, its own`, checked: own, onselect: () => recolor([]) },
+			{ label: 'Any color', checked: c.anyColor, onselect: () => recolor([], true) },
 			...(c.swaps.length
 				? [
 						'separator' as const,
@@ -119,8 +132,8 @@
 							items: c.swaps.map((s) => ({
 								label: s.color!.name,
 								hint: `${count(Math.min(s.pieces, c.need))} of ${count(c.need)}`,
-								checked: c.useColor?.id === s.color!.id,
-								onselect: () => view.choose(set.setNum, id, '', { use: s.color!.id })
+								checked: c.useColors.length === 1 && c.useColors[0].id === s.color!.id,
+								onselect: () => recolor([s.color!.id])
 							}))
 						}
 					]
@@ -151,7 +164,13 @@
 			</div>
 			<div class={tiles}>
 				{#each open ? lines : lines.slice(0, FOLD) as l (l.partNum + ':' + l.color?.id)}
-					<LineTile line={l} {names} setNum={set.setNum} />
+					<LineTile
+						line={l}
+						{names}
+						setNum={set.setNum}
+						onmix={(l) => ((mixing = l), (mixOpen = true))}
+						onswap={(l) => ((swapping = l), (swapOpen = true))}
+					/>
 				{/each}
 			</div>
 		</section>
@@ -228,19 +247,12 @@
 
 {#if detail.colors.length}
 	<section class="flex flex-col gap-2 border-b border-line px-5 py-4">
-		<div class="flex items-start justify-between gap-4">
-			<div class="min-w-0">
-				<h3 class="text-sm font-semibold">Colors</h3>
-				<p class="text-xs text-ink-muted">
-					Swap one of its colors for another (red for dark red), or let any color do. Each says how many of its
-					pieces the lots have in the other color. A single part's color is in its menu below.
-				</p>
-			</div>
-			{#if changed}
-				<Button size="sm" variant="ghost" icon={RotateCcw} onclick={() => view.clearChoices(set.setNum)}
-					>Its own colors</Button
-				>
-			{/if}
+		<div>
+			<h3 class="text-sm font-semibold">Colors</h3>
+			<p class="text-xs text-ink-muted">
+				Swap one of its colors for another (red for dark red), or let any color do. Each says how many of its
+				pieces the lots have in the other color. A single part's colors are in its menu below.
+			</p>
 		</div>
 		<div class="flex flex-wrap gap-1.5">
 			{#each detail.colors as c (c.color?.id)}
@@ -249,17 +261,19 @@
 						<button
 							{...props}
 							type="button"
-							class="flex h-8 items-center gap-2 rounded-button border px-2.5 text-xs {c.useColor || c.anyColor
+							class="flex h-8 items-center gap-2 rounded-button border px-2.5 text-xs {c.useColors.length || c.anyColor
 								? 'border-primary bg-primary-soft text-primary-ink'
 								: 'border-line text-ink hover:bg-hover'}"
 						>
 							<span class="size-3 shrink-0 rounded-full ring-1 ring-line" style="background: #{c.color?.rgb}"></span>
 							<span class="whitespace-nowrap">{c.color?.name}</span>
 							<span class="num text-ink-muted">{count(c.found)}/{count(c.need)}</span>
-							{#if c.useColor}
+							{#if c.useColors.length}
 								<span class="whitespace-nowrap">→</span>
-								<span class="size-3 shrink-0 rounded-full ring-1 ring-line" style="background: #{c.useColor.rgb}"></span>
-								<span class="whitespace-nowrap">{c.useColor.name}</span>
+								{#each c.useColors as u (u.id)}
+									<span class="size-3 shrink-0 rounded-full ring-1 ring-line" style="background: #{u.rgb}"></span>
+								{/each}
+								<span class="whitespace-nowrap">{c.useColors.map((u) => u.name).join(', ')}</span>
 							{:else if c.anyColor}
 								<span class="whitespace-nowrap">→ any color</span>
 							{:else}
@@ -270,6 +284,26 @@
 				</Menu>
 			{/each}
 		</div>
+	</section>
+{/if}
+
+{#if detail.changes.length}
+	<section class="flex flex-col gap-2 border-b border-line px-5 py-4">
+		<div>
+			<h3 class="text-sm font-semibold">Changes</h3>
+			<p class="text-xs text-ink-muted">
+				How it will be built where it differs from its inventory: kept with the set, counted wherever it is matched,
+				and part of what is made from it later.
+			</p>
+		</div>
+		<ul class="flex flex-col divide-y divide-line">
+			{#each detail.changes as c (`${c.partNum}:${c.color}:${c.what.case}`)}
+				<li class="flex items-center justify-between gap-4 py-1.5">
+					<span class="num min-w-0 text-sm text-ink">{c.text}</span>
+					<Button size="sm" variant="ghost" icon={RotateCcw} onclick={() => changes.undo(set.setNum, c)}>Undo</Button>
+				</li>
+			{/each}
+		</ul>
 	</section>
 {/if}
 
@@ -288,7 +322,7 @@
 {@render group(
 	'uncounted',
 	'Not counted',
-	`${kindsOut.length ? kindsOut.map((k) => k.name.toLowerCase()).join(', ').replace(/^./, (c) => c.toUpperCase()) : 'Parts'}: left out of how complete it is (What counts, above the sets), and found or missing like the rest; what was found is sorted out with it.`,
+	`${kindsOut.length ? kindsOut.map((k) => k.name.toLowerCase()).join(', ').replace(/^./, (c) => c.toUpperCase()) : 'Parts'}: left out of how complete it is (What counts, above the sets, or a part's own menu), and found or missing like the rest; what was found is sorted out with it.`,
 	uncounted
 )}
 
@@ -308,3 +342,6 @@
 		</div>
 	</section>
 {/if}
+
+<SeveralColors line={mixing} setNum={set.setNum} bind:open={mixOpen} />
+<StandIns line={swapping} setNum={set.setNum} stack={routeStack()} bind:open={swapOpen} />

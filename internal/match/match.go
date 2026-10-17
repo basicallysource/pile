@@ -10,10 +10,17 @@
 // Matching is exact (a line needs its part in its color), similar (the
 // colors near its own will do, colors.go), or any-color (any color of its
 // part will do); the pieces of the right color are taken first, and the
-// rest are counted as wrong-color. A view can also change a set's colors
-// (choices.go): every line of one color, or one part's, takes another
-// color, or any. A part stands for its mold variants and alternates, which
-// look alike to a camera.
+// rest are counted as wrong-color. A part stands for its mold variants and
+// alternates, which look alike to a camera.
+//
+// A set's own changes (changes.go, kept with the set) say how it will be
+// built where it differs from its inventory: every line of one color, or
+// one part's, takes another color, several to mix, or any; a line counts
+// whatever the view counts, or does not; and other parts make one of a
+// line's part once its own runs out: some parts in a recipe, or any
+// smaller plates, tiles or bricks that cover its footprint
+// (footprints.go). Those stand-ins are drawn last, after every line has
+// had its own part.
 //
 // Each line of a set has a class (plain, printed, minifigure part,
 // accessory); a view's Counting says which count toward completeness. One
